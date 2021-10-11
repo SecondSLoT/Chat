@@ -1,8 +1,8 @@
 package com.secondslot.coursework
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 import com.secondslot.coursework.customview.CustomMessageViewGroup
 import com.secondslot.coursework.customview.CustomMessageViewManager
 

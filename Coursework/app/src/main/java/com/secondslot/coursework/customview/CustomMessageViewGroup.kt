@@ -40,7 +40,14 @@ class CustomMessageViewGroup @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        require(childCount == 3) { "ChildCount expected 3, but found $childCount" }
+        // Check if childCount equals expected value
+        require(childCount == CHILD_COUNT) {
+            context.getString(
+                R.string.custom_message_view_group_child_count_error,
+                CHILD_COUNT,
+                childCount
+            )
+        }
 
         val avatarImageView = getChildAt(0)
         val messageLayout = getChildAt(1)
@@ -164,5 +171,9 @@ class CustomMessageViewGroup @JvmOverloads constructor(
 
     override fun generateLayoutParams(p: LayoutParams): LayoutParams {
         return MarginLayoutParams(p)
+    }
+
+    companion object {
+        private const val CHILD_COUNT = 3
     }
 }
