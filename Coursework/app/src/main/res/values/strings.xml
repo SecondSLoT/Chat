@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Coursework</string>
+
+    <string name="add_reaction_button_content_description">Add reaction button</string>
+</resources>

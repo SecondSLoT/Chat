@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CustomReactionView">
+        <attr name="customTextColor" format="color" />
+        <attr name="customEmoji" format="string" />
+        <attr name="customTextSize" format="dimension" />
+        <attr name="customSelectedColor" format="color" />
+        <attr name="customUnselectedColor" format="color" />
+        <attr name="customCornerRadius" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="MessageViewGroup">
+        <attr name="customBackgroundColor" format="color" />
+    </declare-styleable>
+</resources>
