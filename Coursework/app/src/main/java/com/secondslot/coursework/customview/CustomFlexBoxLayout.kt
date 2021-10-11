@@ -2,7 +2,6 @@ package com.secondslot.coursework.customview
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.view.ViewGroup
 import com.secondslot.coursework.extentions.toPx
 
@@ -17,13 +16,11 @@ class CustomFlexBoxLayout @JvmOverloads constructor(
         var currentRight = paddingLeft
         var totalWidth = 0
         var totalHeight = paddingTop + paddingBottom
+        var lineHeight = 0
         val maxWidth = MeasureSpec.getSize(widthMeasureSpec)
-        var child: View? = null
-        var childMarginTop = 0
-        var childMarginBottom = 0
 
         for (i in 0 until childCount) {
-            child = getChildAt(i)
+            val child = getChildAt(i)
 
             measureChildWithMargins(
                 child,
@@ -35,26 +32,30 @@ class CustomFlexBoxLayout @JvmOverloads constructor(
 
             val childMarginLeft = (child.layoutParams as MarginLayoutParams).leftMargin
             val childMarginRight = (child.layoutParams as MarginLayoutParams).rightMargin
-            childMarginTop = (child.layoutParams as MarginLayoutParams).topMargin
-            childMarginBottom = (child.layoutParams as MarginLayoutParams).bottomMargin
+            val childMarginTop = (child.layoutParams as MarginLayoutParams).topMargin
+            val childMarginBottom = (child.layoutParams as MarginLayoutParams).bottomMargin
+
+            // Overall height of elements in one line should be by the largest element
+            lineHeight = maxOf(
+                lineHeight,
+                child.measuredHeight + childMarginTop + childMarginBottom
+            )
 
             if (currentRight + child.measuredWidth +
                 childMarginLeft + childMarginRight + paddingRight > maxWidth
             ) {
                 totalWidth = maxWidth
                 currentRight = paddingLeft
-                totalHeight += child.measuredHeight +
-                    childMarginTop + childMarginBottom + CHILD_PADDING_BOTTOM_DIP.toPx.toInt()
+                totalHeight += lineHeight + CHILD_PADDING_BOTTOM_DIP.toPx.toInt()
+                lineHeight = child.measuredHeight + childMarginTop + childMarginBottom
             }
 
             currentRight += child.measuredWidth + childMarginLeft + childMarginRight +
                 CHILD_PADDING_RIGHT_DIP.toPx.toInt()
         }
 
-        if (child != null) {
-            totalHeight += child.measuredHeight +
-                childMarginTop + childMarginBottom
-        }
+        // Calculate result width and height
+        totalHeight += lineHeight
 
         val resultWidth =
             resolveSize(maxOf(totalWidth, currentRight + paddingRight), widthMeasureSpec)
@@ -65,15 +66,23 @@ class CustomFlexBoxLayout @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         var currentRight = paddingLeft
         var currentBottom = paddingTop
+        var lineHeight = 0
 
         for (i in 0 until childCount) {
             val child = getChildAt(i)
 
             val childMarginLeft = (child.layoutParams as MarginLayoutParams).leftMargin
             val childMarginRight = (child.layoutParams as MarginLayoutParams).rightMargin
+            val childMarginTop = (child.layoutParams as MarginLayoutParams).topMargin
+            val childMarginBottom = (child.layoutParams as MarginLayoutParams).bottomMargin
+
+            lineHeight = maxOf(
+                lineHeight,
+                child.measuredHeight + childMarginTop + childMarginBottom
+            )
 
             if (currentRight + child.measuredWidth + childMarginLeft +
-                childMarginRight + paddingRight < width
+                childMarginRight + paddingRight <= width
             ) {
                 child.layout(
                     currentRight,
@@ -83,7 +92,8 @@ class CustomFlexBoxLayout @JvmOverloads constructor(
                 )
             } else {
                 currentRight = paddingLeft
-                currentBottom += child.measuredHeight + CHILD_PADDING_BOTTOM_DIP.toPx.toInt()
+                currentBottom += lineHeight + CHILD_PADDING_BOTTOM_DIP.toPx.toInt()
+                lineHeight = child.measuredHeight + childMarginTop + childMarginBottom
 
                 child.layout(
                     currentRight,
@@ -92,7 +102,7 @@ class CustomFlexBoxLayout @JvmOverloads constructor(
                     currentBottom + child.measuredHeight
                 )
             }
-            currentRight += child.measuredWidth + childMarginLeft + childMarginRight +
+            currentRight += child.width + childMarginLeft + childMarginRight +
                 CHILD_PADDING_RIGHT_DIP.toPx.toInt()
         }
     }

@@ -99,11 +99,11 @@ class CustomReactionView @JvmOverloads constructor(
         )
 
         // This OnClickListener is just for demonstration
-        val emojies = listOf("\uD83D\uDE43", "\uD83D\uDE01", "\uD83D\uDE0A")
+        val emojis = listOf("\uD83D\uDE43", "\uD83D\uDE01", "\uD83D\uDE0A")
         this.setOnClickListener {
             it.isSelected = !it.isSelected
             counter++
-            emoji = emojies[Random.nextInt(0, emojies.size)]
+            emoji = emojis[Random.nextInt(0, emojis.size)]
         }
 
         styledAttrs.recycle()

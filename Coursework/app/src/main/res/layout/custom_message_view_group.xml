@@ -6,8 +6,9 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:id="@+id/person_photo"
+        android:layout_width="@dimen/message_avatar_size"
+        android:layout_height="@dimen/message_avatar_size"
         android:layout_marginEnd="6dp"
         android:background="@drawable/test_image"
         android:src="@drawable/circle_image_view_bg" />
@@ -18,10 +19,12 @@
         android:orientation="vertical"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
+        android:layout_marginEnd="@dimen/message_margin_end"
         android:layout_marginBottom="6dp"
         android:background="@drawable/message_bg">
 
         <TextView
+            android:id="@+id/person_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingBottom="4dp"
@@ -29,6 +32,7 @@
             android:textColor="@color/person_name" />
 
         <TextView
+            android:id="@+id/message_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
@@ -42,17 +46,18 @@
 
     <com.secondslot.coursework.customview.CustomFlexBoxLayout
         android:id="@+id/custom_flex_box_layout"
+        android:layout_marginEnd="@dimen/message_flex_box_layout_margin_end"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ImageView
+        <ImageButton
             android:id="@+id/add_reaction_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/add_reaction_button_content_description"
             android:src="@drawable/ic_baseline_add_24"
             android:background="@drawable/add_button_bg"
-            android:paddingVertical="1.5dp"
+            android:paddingVertical="2dp"
             android:paddingHorizontal="8dp"
             app:tint="@color/message" />
     </com.secondslot.coursework.customview.CustomFlexBoxLayout>

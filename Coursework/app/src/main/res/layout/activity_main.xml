@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -10,16 +11,16 @@
     android:paddingHorizontal="@dimen/margin_screen_horizontal"
     tools:context=".MainActivity">
 
-    <com.secondslot.coursework.customview.MessageViewGroup
-        android:background="@color/teal_200"
+    <com.secondslot.coursework.customview.CustomMessageViewGroup
+        android:id="@+id/custom_message_view_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_screen_vertical"/>
 
-<!--    <Button-->
-<!--        android:id="@+id/add_button"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_gravity="center_horizontal"-->
-<!--        android:text="Add reaction" />-->
+    <Button
+        android:id="@+id/test_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Custom view test" />
 </LinearLayout>

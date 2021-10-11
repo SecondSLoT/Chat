@@ -8,9 +8,8 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.ViewGroup
 import com.secondslot.coursework.R
-import com.secondslot.coursework.extentions.toPx
 
-class MessageViewGroup @JvmOverloads constructor(
+class CustomMessageViewGroup @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -27,13 +26,13 @@ class MessageViewGroup @JvmOverloads constructor(
 
         val styledAttrs: TypedArray = context.obtainStyledAttributes(
             attrs,
-            R.styleable.MessageViewGroup,
+            R.styleable.CustomMessageViewGroup,
             defStyleAttr,
             defStyleRes
         )
 
         backgroundPaint.color = styledAttrs.getColor(
-            R.styleable.MessageViewGroup_customBackgroundColor,
+            R.styleable.CustomMessageViewGroup_customBackgroundColor,
             Color.parseColor("#282828")
         )
 
@@ -120,6 +119,7 @@ class MessageViewGroup @JvmOverloads constructor(
         val messageLayout = getChildAt(1)
         val flexBoxLayout = getChildAt(2)
 
+        // Place avatarImageView
         avatarImageView.layout(
             paddingLeft,
             paddingTop,
@@ -129,22 +129,22 @@ class MessageViewGroup @JvmOverloads constructor(
 
         val avatarMarginRight = (avatarImageView.layoutParams as MarginLayoutParams).rightMargin
 
+        // Place messageLayout
         messageLayout.layout(
             avatarImageView.right + avatarMarginRight,
             paddingTop,
-            avatarImageView.right + avatarMarginRight + messageLayout.measuredWidth -
-                MESSAGE_EDGE_PADDING_DIP.toPx.toInt(),
+            avatarImageView.right + avatarMarginRight + messageLayout.measuredWidth,
             paddingTop + messageLayout.measuredHeight
         )
 
         val messageMarginRight = (messageLayout.layoutParams as MarginLayoutParams).rightMargin
         val messageMarginBottom = (messageLayout.layoutParams as MarginLayoutParams).bottomMargin
 
+        // Place reactionsLayout
         flexBoxLayout.layout(
             avatarImageView.right + avatarMarginRight,
             messageLayout.bottom + messageMarginBottom,
-            avatarImageView.right + avatarMarginRight + flexBoxLayout.measuredWidth -
-            FLEX_BOX_EDGE_PADDING_DIP.toPx.toInt(),
+            avatarImageView.right + avatarMarginRight + flexBoxLayout.measuredWidth,
             messageLayout.bottom + messageMarginBottom + flexBoxLayout.measuredHeight
         )
 
@@ -164,10 +164,5 @@ class MessageViewGroup @JvmOverloads constructor(
 
     override fun generateLayoutParams(p: LayoutParams): LayoutParams {
         return MarginLayoutParams(p)
-    }
-
-    companion object {
-        private const val MESSAGE_EDGE_PADDING_DIP = 50
-        private const val FLEX_BOX_EDGE_PADDING_DIP = 15
     }
 }

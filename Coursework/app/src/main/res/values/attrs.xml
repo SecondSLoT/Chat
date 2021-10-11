@@ -9,7 +9,7 @@
         <attr name="customCornerRadius" format="dimension" />
     </declare-styleable>
 
-    <declare-styleable name="MessageViewGroup">
+    <declare-styleable name="CustomMessageViewGroup">
         <attr name="customBackgroundColor" format="color" />
     </declare-styleable>
 </resources>
