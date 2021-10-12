@@ -2,6 +2,7 @@ package com.secondslot.coursework.customview
 
 import android.content.Context
 import android.content.res.TypedArray
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
@@ -11,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.CustomMessageViewGroupBinding
+import com.secondslot.coursework.extentions.toPx
 
 class CustomMessageViewGroup @JvmOverloads constructor(
     context: Context,
@@ -61,8 +63,9 @@ class CustomMessageViewGroup @JvmOverloads constructor(
         }
 
         val avatarImageView = getChildAt(0)
-        val messageLayout = getChildAt(1)
-        val reactionsLayout = getChildAt(2)
+        val personNameTextView = getChildAt(1)
+        val messageTextView = getChildAt(2)
+        val reactionsLayout = getChildAt(3)
 
         var totalWidth = 0
         var totalHeight = 0
@@ -81,23 +84,45 @@ class CustomMessageViewGroup @JvmOverloads constructor(
         totalWidth += avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight
         totalHeight = maxOf(totalHeight, avatarImageView.measuredHeight)
 
-        // Measure messageLayout
+        // Measure personNameTextView
         measureChildWithMargins(
-            messageLayout,
+            personNameTextView,
             widthMeasureSpec,
             avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight,
             heightMeasureSpec,
             0
         )
 
-        val messageMarginLeft = (messageLayout.layoutParams as MarginLayoutParams).leftMargin
-        val messageMarginRight = (messageLayout.layoutParams as MarginLayoutParams).rightMargin
-        val messageMarginTop = (messageLayout.layoutParams as MarginLayoutParams).bottomMargin
-        val messageMarginBottom = (messageLayout.layoutParams as MarginLayoutParams).bottomMargin
-        totalWidth += messageLayout.measuredWidth + messageMarginLeft + messageMarginRight
+        val personMarginLeft = (personNameTextView.layoutParams as MarginLayoutParams).leftMargin
+        val personMarginRight = (personNameTextView.layoutParams as MarginLayoutParams).rightMargin
+        val personMarginTop = (personNameTextView.layoutParams as MarginLayoutParams).bottomMargin
+        val personMarginBottom =
+            (personNameTextView.layoutParams as MarginLayoutParams).bottomMargin
+        totalWidth += personNameTextView.measuredWidth + personMarginLeft + personMarginRight
         totalHeight = maxOf(
             totalHeight,
-            messageLayout.measuredHeight + messageMarginTop + messageMarginBottom
+            personNameTextView.measuredHeight + personMarginTop + personMarginBottom
+        )
+
+        // Measure messageTextView
+        measureChildWithMargins(
+            messageTextView,
+            widthMeasureSpec,
+            avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight,
+            heightMeasureSpec,
+            0
+        )
+
+        val messageMarginLeft = (messageTextView.layoutParams as MarginLayoutParams).leftMargin
+        val messageMarginRight = (messageTextView.layoutParams as MarginLayoutParams).rightMargin
+        val messageMarginTop = (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
+        val messageMarginBottom =
+            (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
+        totalWidth += messageTextView.measuredWidth + messageMarginLeft + messageMarginRight
+        totalHeight = maxOf(
+            totalHeight,
+            personNameTextView.measuredHeight + personMarginTop + personMarginBottom +
+                messageTextView.measuredHeight + messageMarginTop + messageMarginBottom
         )
 
         // Measure reactionsLayout
@@ -134,8 +159,9 @@ class CustomMessageViewGroup @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val avatarImageView = getChildAt(0)
-        val messageLayout = getChildAt(1)
-        val flexBoxLayout = getChildAt(2)
+        val personNameTextView = getChildAt(1)
+        val messageTextView = getChildAt(2)
+        val flexBoxLayout = getChildAt(3)
 
         // Place avatarImageView
         avatarImageView.layout(
@@ -147,29 +173,50 @@ class CustomMessageViewGroup @JvmOverloads constructor(
 
         val avatarMarginRight = (avatarImageView.layoutParams as MarginLayoutParams).rightMargin
 
-        // Place messageLayout
-        messageLayout.layout(
+        // Place personNameTextView
+        personNameTextView.layout(
             avatarImageView.right + avatarMarginRight,
             paddingTop,
-            avatarImageView.right + avatarMarginRight + messageLayout.measuredWidth,
-            paddingTop + messageLayout.measuredHeight
+            avatarImageView.right + avatarMarginRight + personNameTextView.measuredWidth,
+            paddingTop + personNameTextView.measuredHeight
         )
 
-        val messageMarginRight = (messageLayout.layoutParams as MarginLayoutParams).rightMargin
-        val messageMarginBottom = (messageLayout.layoutParams as MarginLayoutParams).bottomMargin
+        val personNameMarginBottom =
+            (personNameTextView.layoutParams as MarginLayoutParams).bottomMargin
+
+        // Place messageTextView
+        messageTextView.layout(
+            avatarImageView.right + avatarMarginRight,
+            personNameTextView.bottom + personNameMarginBottom,
+            avatarImageView.right + avatarMarginRight + messageTextView.measuredWidth,
+            personNameTextView.bottom + personNameMarginBottom + messageTextView.measuredHeight
+        )
+
+        val messageMarginBottom =
+            (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
 
         // Place reactionsLayout
         flexBoxLayout.layout(
             avatarImageView.right + avatarMarginRight,
-            messageLayout.bottom + messageMarginBottom,
+            messageTextView.bottom + messageMarginBottom,
             avatarImageView.right + avatarMarginRight + flexBoxLayout.measuredWidth,
-            messageLayout.bottom + messageMarginBottom + flexBoxLayout.measuredHeight
+            messageTextView.bottom + messageMarginBottom + flexBoxLayout.measuredHeight
         )
 
         messageBackgroundBounds.left = (avatarImageView.right + avatarMarginRight).toFloat()
         messageBackgroundBounds.top = paddingTop.toFloat()
-        messageBackgroundBounds.right = (messageLayout.right + messageMarginRight).toFloat()
-        messageBackgroundBounds.bottom = (messageLayout.bottom + messageMarginBottom).toFloat()
+        messageBackgroundBounds.right = (messageTextView.right).toFloat()
+        messageBackgroundBounds.bottom = (messageTextView.bottom).toFloat()
+    }
+
+    override fun dispatchDraw(canvas: Canvas?) {
+        canvas?.drawRoundRect(
+            messageBackgroundBounds,
+            MESSAGE_BACKGROUND_CORNER_RADIUS_DP.toPx,
+            MESSAGE_BACKGROUND_CORNER_RADIUS_DP.toPx,
+            backgroundPaint
+        )
+        super.dispatchDraw(canvas)
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
@@ -198,7 +245,8 @@ class CustomMessageViewGroup @JvmOverloads constructor(
 
     fun changeReactionSelectedState(index: Int) {
         if (binding.customFlexBoxLayout.childCount > 0 &&
-            index in 0 until binding.customFlexBoxLayout.childCount) {
+            index in 0 until binding.customFlexBoxLayout.childCount
+        ) {
 
             val child = binding.customFlexBoxLayout.getChildAt(index)
             child.isSelected = !child.isSelected
@@ -207,7 +255,8 @@ class CustomMessageViewGroup @JvmOverloads constructor(
 
     fun getReactionCount(index: Int): Int {
         if (binding.customFlexBoxLayout.childCount > 0 &&
-            index in 0 until binding.customFlexBoxLayout.childCount) {
+            index in 0 until binding.customFlexBoxLayout.childCount - 1
+        ) {
 
             val child = binding.customFlexBoxLayout.getChildAt(index) as CustomReactionView
             return child.counter
@@ -216,6 +265,7 @@ class CustomMessageViewGroup @JvmOverloads constructor(
     }
 
     companion object {
-        private const val CHILD_COUNT = 3
+        private const val CHILD_COUNT = 4
+        private const val MESSAGE_BACKGROUND_CORNER_RADIUS_DP = 18
     }
 }
