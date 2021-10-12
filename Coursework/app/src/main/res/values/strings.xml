@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Coursework</string>
 
+    <string name="person_image_content_description">Person photo</string>
     <string name="add_reaction_button_content_description">Add reaction button</string>
 
     <string name="custom_message_view_group_child_count_error">

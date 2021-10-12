@@ -5,9 +5,12 @@ import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.secondslot.coursework.R
+import com.secondslot.coursework.databinding.CustomMessageViewGroupBinding
 
 class CustomMessageViewGroup @JvmOverloads constructor(
     context: Context,
@@ -16,14 +19,15 @@ class CustomMessageViewGroup @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
+    private val binding: CustomMessageViewGroupBinding =
+        CustomMessageViewGroupBinding.inflate(LayoutInflater.from(context), this)
+
     private val messageBackgroundBounds = RectF()
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
     }
 
     init {
-        inflate(context, R.layout.custom_message_view_group, this)
-
         val styledAttrs: TypedArray = context.obtainStyledAttributes(
             attrs,
             R.styleable.CustomMessageViewGroup,
@@ -35,6 +39,13 @@ class CustomMessageViewGroup @JvmOverloads constructor(
             R.styleable.CustomMessageViewGroup_customBackgroundColor,
             Color.parseColor("#282828")
         )
+
+        // Add a new reaction when AddReactionButton is clicked
+        binding.addReactionButton.setOnClickListener {
+            val reactionView = CustomReactionView(context)
+            val index = binding.customFlexBoxLayout.childCount - 1
+            binding.customFlexBoxLayout.addView(reactionView, index)
+        }
 
         styledAttrs.recycle()
     }
@@ -171,6 +182,37 @@ class CustomMessageViewGroup @JvmOverloads constructor(
 
     override fun generateLayoutParams(p: LayoutParams): LayoutParams {
         return MarginLayoutParams(p)
+    }
+
+    fun setPersonPhoto(image: Drawable) {
+        binding.personPhoto.background = image
+    }
+
+    fun setPersonName(name: String) {
+        binding.personName.text = name
+    }
+
+    fun setMessageText(message: String) {
+        binding.messageTextView.text = message
+    }
+
+    fun changeReactionSelectedState(index: Int) {
+        if (binding.customFlexBoxLayout.childCount > 0 &&
+            index in 0 until binding.customFlexBoxLayout.childCount) {
+
+            val child = binding.customFlexBoxLayout.getChildAt(index)
+            child.isSelected = !child.isSelected
+        }
+    }
+
+    fun getReactionCount(index: Int): Int {
+        if (binding.customFlexBoxLayout.childCount > 0 &&
+            index in 0 until binding.customFlexBoxLayout.childCount) {
+
+            val child = binding.customFlexBoxLayout.getChildAt(index) as CustomReactionView
+            return child.counter
+        }
+        return -1
     }
 
     companion object {
