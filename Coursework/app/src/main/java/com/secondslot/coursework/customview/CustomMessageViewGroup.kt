@@ -205,7 +205,10 @@ class CustomMessageViewGroup @JvmOverloads constructor(
 
         messageBackgroundBounds.left = (avatarImageView.right + avatarMarginRight).toFloat()
         messageBackgroundBounds.top = paddingTop.toFloat()
-        messageBackgroundBounds.right = (messageTextView.right).toFloat()
+        messageBackgroundBounds.right = maxOf(
+            personNameTextView.right.toFloat(),
+            messageTextView.right.toFloat()
+        )
         messageBackgroundBounds.bottom = (messageTextView.bottom).toFloat()
     }
 

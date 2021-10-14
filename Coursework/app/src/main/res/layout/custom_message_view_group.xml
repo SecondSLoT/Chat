@@ -21,6 +21,8 @@
         android:paddingHorizontal="12dp"
         android:paddingTop="8dp"
         android:paddingBottom="4dp"
+        android:maxLines="1"
+        android:ellipsize="end"
         android:text="Person name"
         android:textColor="@color/person_name" />
 

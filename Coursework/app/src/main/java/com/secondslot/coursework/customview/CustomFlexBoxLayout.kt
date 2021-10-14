@@ -46,12 +46,12 @@ class CustomFlexBoxLayout @JvmOverloads constructor(
             ) {
                 totalWidth = maxWidth
                 currentRight = paddingLeft
-                totalHeight += lineHeight + CHILD_PADDING_BOTTOM_DIP.toPx.toInt()
+                totalHeight += lineHeight + CHILD_PADDING_BOTTOM_DP.toPx.toInt()
                 lineHeight = child.measuredHeight + childMarginTop + childMarginBottom
             }
 
             currentRight += child.measuredWidth + childMarginLeft + childMarginRight +
-                CHILD_PADDING_RIGHT_DIP.toPx.toInt()
+                CHILD_PADDING_RIGHT_DP.toPx.toInt()
         }
 
         // Calculate result width and height
@@ -92,7 +92,7 @@ class CustomFlexBoxLayout @JvmOverloads constructor(
                 )
             } else {
                 currentRight = paddingLeft
-                currentBottom += lineHeight + CHILD_PADDING_BOTTOM_DIP.toPx.toInt()
+                currentBottom += lineHeight + CHILD_PADDING_BOTTOM_DP.toPx.toInt()
                 lineHeight = child.measuredHeight + childMarginTop + childMarginBottom
 
                 child.layout(
@@ -103,7 +103,7 @@ class CustomFlexBoxLayout @JvmOverloads constructor(
                 )
             }
             currentRight += child.width + childMarginLeft + childMarginRight +
-                CHILD_PADDING_RIGHT_DIP.toPx.toInt()
+                CHILD_PADDING_RIGHT_DP.toPx.toInt()
         }
     }
 
@@ -120,7 +120,7 @@ class CustomFlexBoxLayout @JvmOverloads constructor(
     }
 
     companion object {
-        private const val CHILD_PADDING_RIGHT_DIP = 8
-        private const val CHILD_PADDING_BOTTOM_DIP = 6
+        private const val CHILD_PADDING_RIGHT_DP = 8
+        private const val CHILD_PADDING_BOTTOM_DP = 6
     }
 }

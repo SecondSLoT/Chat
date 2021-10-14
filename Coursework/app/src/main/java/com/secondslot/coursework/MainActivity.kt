@@ -18,8 +18,8 @@ class MainActivity : AppCompatActivity() {
         testButton.setOnClickListener {
             customMessageViewGroup.run {
                 setPersonPhoto(getDrawable(R.drawable.ic_launcher_background)!!)
-                setPersonName("Test Name")
-                setMessageText("Some example message text")
+                setPersonName("Test really long nickname that don't fit in one line")
+                setMessageText("Some")
                 changeReactionSelectedState(1)
             }
             val reactionsCount = customMessageViewGroup.getReactionCount(1)

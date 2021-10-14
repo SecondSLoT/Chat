@@ -77,7 +77,7 @@ class CustomReactionView @JvmOverloads constructor(
             textSize =
                 styledAttrs.getDimension(
                     R.styleable.CustomReactionView_customTextSize,
-                    DEFAULT_CONTENT_TEXT_SIZE_DIP.toPx
+                    DEFAULT_CONTENT_TEXT_SIZE_DP.toPx
                 )
         }
 
@@ -95,7 +95,7 @@ class CustomReactionView @JvmOverloads constructor(
 
         cornerRadius = styledAttrs.getDimension(
             R.styleable.CustomReactionView_customCornerRadius,
-            DEFAULT_BACKGROUND_CORNER_RADIUS_DIP.toPx
+            DEFAULT_BACKGROUND_CORNER_RADIUS_DP.toPx
         )
 
         // This OnClickListener is just for demonstration
@@ -117,9 +117,9 @@ class CustomReactionView @JvmOverloads constructor(
         val textWidth = contentBounds.width()
 
         val totalWidth =
-            textWidth + paddingRight + paddingLeft + 2 * MARGIN_HORIZONTAL_DIP.toPx.toInt()
+            textWidth + paddingRight + paddingLeft + 2 * MARGIN_HORIZONTAL_DP.toPx.toInt()
         val totalHeight =
-            textHeight + paddingTop + paddingBottom + 2 * MARGIN_VERTICAL_DIP.toPx.toInt()
+            textHeight + paddingTop + paddingBottom + 2 * MARGIN_VERTICAL_DP.toPx.toInt()
 
         val resultWidth = resolveSize(totalWidth, widthMeasureSpec)
         val resultHeight = resolveSize(totalHeight, heightMeasureSpec)
@@ -161,9 +161,9 @@ class CustomReactionView @JvmOverloads constructor(
 
     companion object {
         private val SUPPORTED_DRAWABLE_STATE = intArrayOf(android.R.attr.state_selected)
-        private const val DEFAULT_CONTENT_TEXT_SIZE_DIP = 14
-        private const val DEFAULT_BACKGROUND_CORNER_RADIUS_DIP = 10
-        private const val MARGIN_HORIZONTAL_DIP = 8
-        private const val MARGIN_VERTICAL_DIP = 6
+        private const val DEFAULT_CONTENT_TEXT_SIZE_DP = 14
+        private const val DEFAULT_BACKGROUND_CORNER_RADIUS_DP = 10
+        private const val MARGIN_HORIZONTAL_DP = 8
+        private const val MARGIN_VERTICAL_DP = 6
     }
 }
