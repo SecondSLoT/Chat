@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="CustomReactionView">
-        <attr name="customTextColor" format="color" />
-        <attr name="customEmoji" format="string" />
-        <attr name="customTextSize" format="dimension" />
-        <attr name="customSelectedColor" format="color" />
-        <attr name="customUnselectedColor" format="color" />
-        <attr name="customCornerRadius" format="dimension" />
+        <attr name="reactionTextColor" format="color" />
+        <attr name="reaction" format="string" />
+        <attr name="reactionTextSize" format="dimension" />
+        <attr name="reactionSelectedColor" format="color" />
+        <attr name="reactionUnselectedColor" format="color" />
+        <attr name="reactionCornerRadius" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="CustomDateView">
+        <attr name="dateTextColor" format="color" />
+        <attr name="date" format="string" />
+        <attr name="dateTextSize" format="dimension" />
+        <attr name="dateBgColor" format="color" />
+        <attr name="dateCornerRadius" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="CustomMessageViewGroup">

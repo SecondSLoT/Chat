@@ -11,39 +11,30 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import com.secondslot.coursework.R
+import com.secondslot.coursework.extentions.getDateForChat
 import com.secondslot.coursework.extentions.toPx
 
-class CustomReactionView @JvmOverloads constructor(
+class CustomDateView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
-    var emoji = ""
+    var date = System.currentTimeMillis()
         set(value) {
             field = value
             requestLayout()
         }
 
-    var counter = 1
-        set(value) {
-            field = value
-            requestLayout()
-        }
+    private val contentString = date.getDateForChat()
 
-    var contentString = ""
-
-    // Передаём ANTI_ALIAS_FLAG в конструктор для того, чтобы текст рисовался более плавным
-    // Ссылка на статью с объяснением https://medium.com/@ali.muzaffar/android-why-your-canvas-shapes-arent-smooth-aa2a3f450eb5
     private val contentPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
     }
 
     private val contentBounds = Rect()
     private val contentCoordinate = PointF()
-
-    // Про font metrics https://proandroiddev.com/android-and-typography-101-5f06722dd611
     private val tempFontMetrics = Paint.FontMetrics()
 
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -52,48 +43,42 @@ class CustomReactionView @JvmOverloads constructor(
 
     private val backgroundBounds = RectF()
     private val cornerRadius: Float
-    private var selectedBgColor: Int
-    private var unselectedBgColor: Int
+    private var bgColor: Int
 
     init {
         val styledAttrs: TypedArray = context.obtainStyledAttributes(
             attrs,
-            R.styleable.CustomReactionView,
+            R.styleable.CustomDateView,
             defStyleAttr,
             defStyleRes
         )
 
-        emoji =
-            styledAttrs.getString(R.styleable.CustomReactionView_reaction) ?: "\uD83D\uDE0A"
+        date =
+            styledAttrs.getString(R.styleable.CustomDateView_date)?.toLong() ?: 1000L
 
         contentPaint.run {
             color =
                 styledAttrs.getColor(
-                    R.styleable.CustomReactionView_reactionTextColor,
-                    Color.parseColor("#CCCCCC")
+                    R.styleable.CustomDateView_dateTextColor,
+                    Color.parseColor("#999999")
                 )
 
             textSize =
                 styledAttrs.getDimension(
-                    R.styleable.CustomReactionView_reactionTextSize,
+                    R.styleable.CustomDateView_dateTextSize,
                     DEFAULT_CONTENT_TEXT_SIZE_DP.toPx
                 )
         }
 
-        selectedBgColor = styledAttrs.getColor(
-            R.styleable.CustomReactionView_reactionSelectedColor,
-            Color.parseColor("#464646")
+        bgColor = styledAttrs.getColor(
+            R.styleable.CustomDateView_dateBgColor,
+            Color.parseColor("#070707")
         )
 
-        unselectedBgColor = styledAttrs.getColor(
-            R.styleable.CustomReactionView_reactionUnselectedColor,
-            Color.parseColor("#282828")
-        )
-
-        setBackgroundPaintColor(isSelected)
+        backgroundPaint.color = bgColor
 
         cornerRadius = styledAttrs.getDimension(
-            R.styleable.CustomReactionView_reactionCornerRadius,
+            R.styleable.CustomDateView_dateCornerRadius,
             DEFAULT_BACKGROUND_CORNER_RADIUS_DP.toPx
         )
 
@@ -101,7 +86,6 @@ class CustomReactionView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        constructContentString()
         contentPaint.getTextBounds(contentString, 0, contentString.length, contentBounds)
 
         val textHeight = contentBounds.height()
@@ -120,40 +104,20 @@ class CustomReactionView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         contentPaint.getFontMetrics(tempFontMetrics)
         contentCoordinate.x = w / 2f
-        contentCoordinate.y = h / 2f + contentBounds.height() / 2 - tempFontMetrics.descent
+        contentCoordinate.y = h / 2f + contentBounds.height() / 2
 
         backgroundBounds.right = w.toFloat()
         backgroundBounds.bottom = h.toFloat()
     }
 
-    override fun onCreateDrawableState(extraSpace: Int): IntArray {
-        val drawableState =
-            super.onCreateDrawableState(extraSpace + SUPPORTED_DRAWABLE_STATE.size)
-        if (isSelected) {
-            mergeDrawableStates(drawableState, SUPPORTED_DRAWABLE_STATE)
-        }
-        return drawableState
-    }
-
     override fun onDraw(canvas: Canvas) {
-        setBackgroundPaintColor(isSelected)
         canvas.drawRoundRect(backgroundBounds, cornerRadius, cornerRadius, backgroundPaint)
-
         canvas.drawText(contentString, contentCoordinate.x, contentCoordinate.y, contentPaint)
     }
 
-    private fun constructContentString() {
-        contentString = "$emoji $counter"
-    }
-
-    private fun setBackgroundPaintColor(isSelected: Boolean) {
-        backgroundPaint.color = if (isSelected) selectedBgColor else unselectedBgColor
-    }
-
     companion object {
-        private val SUPPORTED_DRAWABLE_STATE = intArrayOf(android.R.attr.state_selected)
         private const val DEFAULT_CONTENT_TEXT_SIZE_DP = 14
-        private const val DEFAULT_BACKGROUND_CORNER_RADIUS_DP = 10
+        private const val DEFAULT_BACKGROUND_CORNER_RADIUS_DP = 58
         private const val MARGIN_HORIZONTAL_DP = 8
         private const val MARGIN_VERTICAL_DP = 6
     }

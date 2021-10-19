@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+    <!--        tools:listitem="@layout/item_character"/>-->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginVertical="6dp">
+
+        <EditText
+            android:id="@+id/message_edit_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:minHeight="50dp"
+            android:maxHeight="120dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_edit_message_field"
+            android:gravity="center_vertical"
+            android:hint="@string/type_message_hint"
+            android:textColorHint="@color/date_divider_text"
+            android:paddingVertical="4dp"
+            android:paddingHorizontal="20dp"
+            android:textColor="@color/custom_reaction_text"
+            android:textSize="20sp"
+            tools:text="Message text sldfkjdfdoasifasjfdosafijsaf lsakasdlfksajdflaskfj
+asldfkjsafl sadfkjao sadfas sadfef asdfsadf safdoisaf haslfasho;aifh asofi ksjdf ;aoifj
+saf saifjsa;faij laskf sldfkjsof isafsa ofjsa safij salfksaj ;asdfkj" />
+
+        <ImageButton
+            android:id="@+id/send_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="@dimen/margin_screen_horizontal"
+            android:background="@drawable/bg_button_send"
+            android:src="@drawable/ic_baseline_add_24"/>
+    </LinearLayout>
+</LinearLayout>

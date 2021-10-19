@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="270dp"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet">
+
+    <View
+        android:layout_width="62dp"
+        android:layout_height="8dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginVertical="@dimen/margin_screen_vertical"
+        android:background="@drawable/bg_handle"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/reactions_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</LinearLayout>

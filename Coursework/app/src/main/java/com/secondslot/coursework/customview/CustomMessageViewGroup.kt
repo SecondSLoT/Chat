@@ -10,8 +10,12 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.view.isGone
+import androidx.core.view.marginEnd
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.CustomMessageViewGroupBinding
+import com.secondslot.coursework.domain.model.Reaction
 import com.secondslot.coursework.extentions.toPx
 
 class CustomMessageViewGroup @JvmOverloads constructor(
@@ -29,6 +33,8 @@ class CustomMessageViewGroup @JvmOverloads constructor(
         style = Paint.Style.FILL
     }
 
+    private var isOwnMessage = false
+
     init {
         val styledAttrs: TypedArray = context.obtainStyledAttributes(
             attrs,
@@ -41,13 +47,6 @@ class CustomMessageViewGroup @JvmOverloads constructor(
             R.styleable.CustomMessageViewGroup_customBackgroundColor,
             Color.parseColor("#282828")
         )
-
-        // Add a new reaction when AddReactionButton is clicked
-        binding.addReactionButton.setOnClickListener {
-            val reactionView = CustomReactionView(context)
-            val index = binding.customFlexBoxLayout.childCount - 1
-            binding.customFlexBoxLayout.addView(reactionView, index)
-        }
 
         styledAttrs.recycle()
     }
@@ -63,92 +62,155 @@ class CustomMessageViewGroup @JvmOverloads constructor(
         }
 
         val avatarImageView = getChildAt(0)
-        val personNameTextView = getChildAt(1)
+        val userNameTextView = getChildAt(1)
         val messageTextView = getChildAt(2)
         val reactionsLayout = getChildAt(3)
 
         var totalWidth = 0
         var totalHeight = 0
 
-        // Measure avatarImageView
-        measureChildWithMargins(
-            avatarImageView,
-            widthMeasureSpec,
-            0,
-            heightMeasureSpec,
-            0
-        )
+        if (!isOwnMessage) {
+            avatarImageView.isGone = false
+            userNameTextView.isGone = false
 
-        val avatarMarginLeft = (avatarImageView.layoutParams as MarginLayoutParams).leftMargin
-        val avatarMarginRight = (avatarImageView.layoutParams as MarginLayoutParams).rightMargin
-        totalWidth += avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight
-        totalHeight = maxOf(totalHeight, avatarImageView.measuredHeight)
+            // Measure avatarImageView
+            measureChildWithMargins(
+                avatarImageView,
+                widthMeasureSpec,
+                0,
+                heightMeasureSpec,
+                0
+            )
 
-        // Measure personNameTextView
-        measureChildWithMargins(
-            personNameTextView,
-            widthMeasureSpec,
-            avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight,
-            heightMeasureSpec,
-            0
-        )
+            val avatarMarginLeft = (avatarImageView.layoutParams as MarginLayoutParams).leftMargin
+            val avatarMarginRight = (avatarImageView.layoutParams as MarginLayoutParams).rightMargin
+            totalWidth += avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight
+            totalHeight = maxOf(totalHeight, avatarImageView.measuredHeight)
 
-        val personMarginLeft = (personNameTextView.layoutParams as MarginLayoutParams).leftMargin
-        val personMarginRight = (personNameTextView.layoutParams as MarginLayoutParams).rightMargin
-        val personMarginTop = (personNameTextView.layoutParams as MarginLayoutParams).bottomMargin
-        val personMarginBottom =
-            (personNameTextView.layoutParams as MarginLayoutParams).bottomMargin
-        totalWidth += personNameTextView.measuredWidth + personMarginLeft + personMarginRight
-        totalHeight = maxOf(
-            totalHeight,
-            personNameTextView.measuredHeight + personMarginTop + personMarginBottom
-        )
+            // Measure userNameTextView
+            measureChildWithMargins(
+                userNameTextView,
+                widthMeasureSpec,
+                avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight,
+                heightMeasureSpec,
+                0
+            )
 
-        // Measure messageTextView
-        measureChildWithMargins(
-            messageTextView,
-            widthMeasureSpec,
-            avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight,
-            heightMeasureSpec,
-            0
-        )
+            val userMarginLeft =
+                (userNameTextView.layoutParams as MarginLayoutParams).leftMargin
+            val userMarginRight =
+                (userNameTextView.layoutParams as MarginLayoutParams).rightMargin
+            val userMarginTop =
+                (userNameTextView.layoutParams as MarginLayoutParams).bottomMargin
+            val userMarginBottom =
+                (userNameTextView.layoutParams as MarginLayoutParams).bottomMargin
+            totalWidth += userNameTextView.measuredWidth + userMarginLeft + userMarginRight
+            totalHeight = maxOf(
+                totalHeight,
+                userNameTextView.measuredHeight + userMarginTop + userMarginBottom
+            )
 
-        val messageMarginLeft = (messageTextView.layoutParams as MarginLayoutParams).leftMargin
-        val messageMarginRight = (messageTextView.layoutParams as MarginLayoutParams).rightMargin
-        val messageMarginTop = (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
-        val messageMarginBottom =
-            (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
-        totalWidth += messageTextView.measuredWidth + messageMarginLeft + messageMarginRight
-        totalHeight = maxOf(
-            totalHeight,
-            personNameTextView.measuredHeight + personMarginTop + personMarginBottom +
-                messageTextView.measuredHeight + messageMarginTop + messageMarginBottom
-        )
+            // Measure messageTextView
+            measureChildWithMargins(
+                messageTextView,
+                widthMeasureSpec,
+                avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight,
+                heightMeasureSpec,
+                0
+            )
 
-        // Measure reactionsLayout
-        measureChildWithMargins(
-            reactionsLayout,
-            widthMeasureSpec,
-            avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight,
-            heightMeasureSpec,
-            totalHeight
-        )
+            val messageMarginLeft = (messageTextView.layoutParams as MarginLayoutParams).leftMargin
+            val messageMarginRight =
+                (messageTextView.layoutParams as MarginLayoutParams).rightMargin
+            val messageMarginTop = (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
+            val messageMarginBottom =
+                (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
+            totalWidth += messageTextView.measuredWidth + messageMarginLeft + messageMarginRight
+            totalHeight = maxOf(
+                totalHeight,
+                userNameTextView.measuredHeight + userMarginTop + userMarginBottom +
+                    messageTextView.measuredHeight + messageMarginTop + messageMarginBottom
+            )
 
-        val flexBoxLayoutMarginLeft =
-            (reactionsLayout.layoutParams as MarginLayoutParams).leftMargin
-        val flexBoxLayoutMarginRight =
-            (reactionsLayout.layoutParams as MarginLayoutParams).rightMargin
-        val flexBoxLayoutMarginTop =
-            (reactionsLayout.layoutParams as MarginLayoutParams).topMargin
-        val flexBoxLayoutMarginBottom =
-            (reactionsLayout.layoutParams as MarginLayoutParams).bottomMargin
-        totalWidth = maxOf(
-            totalWidth,
-            avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight +
-                reactionsLayout.measuredWidth + flexBoxLayoutMarginLeft + flexBoxLayoutMarginRight
-        )
-        totalHeight += reactionsLayout.measuredHeight + flexBoxLayoutMarginTop +
-            flexBoxLayoutMarginBottom
+            if (!reactionsLayout.isGone) {
+
+                // Measure reactionsLayout
+                measureChildWithMargins(
+                    reactionsLayout,
+                    widthMeasureSpec,
+                    avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight,
+                    heightMeasureSpec,
+                    totalHeight
+                )
+
+                val flexBoxLayoutMarginLeft =
+                    (reactionsLayout.layoutParams as MarginLayoutParams).leftMargin
+                val flexBoxLayoutMarginRight =
+                    (reactionsLayout.layoutParams as MarginLayoutParams).rightMargin
+                val flexBoxLayoutMarginTop =
+                    (reactionsLayout.layoutParams as MarginLayoutParams).topMargin
+                val flexBoxLayoutMarginBottom =
+                    (reactionsLayout.layoutParams as MarginLayoutParams).bottomMargin
+                totalWidth = maxOf(
+                    totalWidth,
+                    avatarImageView.measuredWidth + avatarMarginLeft + avatarMarginRight +
+                        reactionsLayout.measuredWidth + flexBoxLayoutMarginLeft +
+                        flexBoxLayoutMarginRight
+                )
+                totalHeight += reactionsLayout.measuredHeight + flexBoxLayoutMarginTop +
+                    flexBoxLayoutMarginBottom
+            }
+            // If it is own message
+        } else {
+            avatarImageView.isGone = true
+            userNameTextView.isGone = true
+
+            // Measure messageTextView
+            measureChildWithMargins(
+                messageTextView,
+                widthMeasureSpec,
+                messageTextView.marginEnd,
+                heightMeasureSpec,
+                0
+            )
+
+            val messageMarginLeft = (messageTextView.layoutParams as MarginLayoutParams).rightMargin
+            val messageMarginRight =
+                (messageTextView.layoutParams as MarginLayoutParams).leftMargin
+            val messageMarginTop = (messageTextView.layoutParams as MarginLayoutParams).topMargin
+            val messageMarginBottom =
+                (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
+            totalWidth += messageTextView.measuredWidth + messageMarginLeft + messageMarginRight
+            totalHeight = messageTextView.measuredHeight + messageMarginTop + messageMarginBottom
+
+            if (!reactionsLayout.isGone) {
+
+                // Measure reactionsLayout
+                measureChildWithMargins(
+                    reactionsLayout,
+                    widthMeasureSpec,
+                    messageTextView.marginEnd,
+                    heightMeasureSpec,
+                    totalHeight
+                )
+
+                val flexBoxLayoutMarginLeft =
+                    (reactionsLayout.layoutParams as MarginLayoutParams).leftMargin
+                val flexBoxLayoutMarginRight =
+                    (reactionsLayout.layoutParams as MarginLayoutParams).rightMargin
+                val flexBoxLayoutMarginTop =
+                    (reactionsLayout.layoutParams as MarginLayoutParams).topMargin
+                val flexBoxLayoutMarginBottom =
+                    (reactionsLayout.layoutParams as MarginLayoutParams).bottomMargin
+                totalWidth = maxOf(
+                    totalWidth,
+                    reactionsLayout.measuredWidth +
+                        flexBoxLayoutMarginLeft + flexBoxLayoutMarginRight
+                )
+                totalHeight += reactionsLayout.measuredHeight + flexBoxLayoutMarginTop +
+                    flexBoxLayoutMarginBottom
+            }
+        }
 
         val resultWidth =
             resolveSize(totalWidth + paddingRight + paddingLeft, widthMeasureSpec)
@@ -161,55 +223,88 @@ class CustomMessageViewGroup @JvmOverloads constructor(
         val avatarImageView = getChildAt(0)
         val personNameTextView = getChildAt(1)
         val messageTextView = getChildAt(2)
-        val flexBoxLayout = getChildAt(3)
+        val reactionsLayout = getChildAt(3)
 
-        // Place avatarImageView
-        avatarImageView.layout(
-            paddingLeft,
-            paddingTop,
-            paddingLeft + avatarImageView.measuredWidth,
-            paddingTop + avatarImageView.measuredHeight
-        )
+        if (!isOwnMessage) {
+            // Place avatarImageView
+            avatarImageView.layout(
+                paddingLeft,
+                paddingTop,
+                paddingLeft + avatarImageView.measuredWidth,
+                paddingTop + avatarImageView.measuredHeight
+            )
 
-        val avatarMarginRight = (avatarImageView.layoutParams as MarginLayoutParams).rightMargin
+            val avatarMarginRight = (avatarImageView.layoutParams as MarginLayoutParams).rightMargin
 
-        // Place personNameTextView
-        personNameTextView.layout(
-            avatarImageView.right + avatarMarginRight,
-            paddingTop,
-            avatarImageView.right + avatarMarginRight + personNameTextView.measuredWidth,
-            paddingTop + personNameTextView.measuredHeight
-        )
+            // Place userNameTextView
+            personNameTextView.layout(
+                avatarImageView.right + avatarMarginRight,
+                paddingTop,
+                avatarImageView.right + avatarMarginRight + personNameTextView.measuredWidth,
+                paddingTop + personNameTextView.measuredHeight
+            )
 
-        val personNameMarginBottom =
-            (personNameTextView.layoutParams as MarginLayoutParams).bottomMargin
+            val personNameMarginBottom =
+                (personNameTextView.layoutParams as MarginLayoutParams).bottomMargin
 
-        // Place messageTextView
-        messageTextView.layout(
-            avatarImageView.right + avatarMarginRight,
-            personNameTextView.bottom + personNameMarginBottom,
-            avatarImageView.right + avatarMarginRight + messageTextView.measuredWidth,
-            personNameTextView.bottom + personNameMarginBottom + messageTextView.measuredHeight
-        )
 
-        val messageMarginBottom =
-            (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
+            // Place messageTextView
+            messageTextView.layout(
+                avatarImageView.right + avatarMarginRight,
+                personNameTextView.bottom + personNameMarginBottom,
+                avatarImageView.right + avatarMarginRight + messageTextView.measuredWidth,
+                personNameTextView.bottom + personNameMarginBottom + messageTextView.measuredHeight
+            )
 
-        // Place reactionsLayout
-        flexBoxLayout.layout(
-            avatarImageView.right + avatarMarginRight,
-            messageTextView.bottom + messageMarginBottom,
-            avatarImageView.right + avatarMarginRight + flexBoxLayout.measuredWidth,
-            messageTextView.bottom + messageMarginBottom + flexBoxLayout.measuredHeight
-        )
+            val messageMarginBottom =
+                (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
 
-        messageBackgroundBounds.left = (avatarImageView.right + avatarMarginRight).toFloat()
-        messageBackgroundBounds.top = paddingTop.toFloat()
-        messageBackgroundBounds.right = maxOf(
-            personNameTextView.right.toFloat(),
-            messageTextView.right.toFloat()
-        )
-        messageBackgroundBounds.bottom = (messageTextView.bottom).toFloat()
+            if (!reactionsLayout.isGone) {
+                // Place reactionsLayout
+                reactionsLayout.layout(
+                    avatarImageView.right + avatarMarginRight,
+                    messageTextView.bottom + messageMarginBottom,
+                    avatarImageView.right + avatarMarginRight + reactionsLayout.measuredWidth,
+                    messageTextView.bottom + messageMarginBottom + reactionsLayout.measuredHeight
+                )
+            }
+
+            messageBackgroundBounds.left = (avatarImageView.right + avatarMarginRight).toFloat()
+            messageBackgroundBounds.top = paddingTop.toFloat()
+            messageBackgroundBounds.right = maxOf(
+                personNameTextView.right.toFloat(),
+                messageTextView.right.toFloat()
+            )
+            messageBackgroundBounds.bottom = (messageTextView.bottom).toFloat()
+            // If own message
+        } else {
+            // Place messageTextView
+            messageTextView.layout(
+                r - paddingRight - messageTextView.measuredWidth,
+                t + paddingTop,
+                r - paddingRight,
+                t + paddingTop + messageTextView.measuredHeight
+            )
+
+            val messageMarginBottom =
+                (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
+
+            if (!reactionsLayout.isGone) {
+                // Place reactionsLayout
+                reactionsLayout.layout(
+                    r - paddingRight - messageTextView.width,
+                    messageTextView.bottom + messageMarginBottom,
+                    r - paddingRight,
+                    messageTextView.bottom + messageMarginBottom + reactionsLayout.measuredHeight
+                )
+            }
+
+            messageBackgroundBounds.left = (r - paddingRight - messageTextView.width).toFloat()
+            messageBackgroundBounds.top = (t + paddingTop).toFloat()
+            messageBackgroundBounds.right = (r - paddingRight).toFloat()
+            messageBackgroundBounds.bottom =
+                (t + paddingTop + messageTextView.measuredHeight).toFloat()
+        }
     }
 
     override fun dispatchDraw(canvas: Canvas?) {
@@ -234,23 +329,26 @@ class CustomMessageViewGroup @JvmOverloads constructor(
         return MarginLayoutParams(p)
     }
 
-    fun setPersonPhoto(image: Drawable) {
-        binding.personPhoto.background = image
+    fun setUserPhoto(image: Drawable) {
+        binding.userPhoto.background = image
     }
 
-    fun setPersonName(name: String) {
-        binding.personName.text = name
+    fun setUsername(name: String) {
+        binding.username.text = name
     }
 
     fun setMessageText(message: String) {
         binding.messageTextView.text = message
     }
 
+    fun setReactions(reactions: List<Reaction>) {
+        binding.customFlexBoxLayout.isGone = reactions.isEmpty()
+    }
+
     fun changeReactionSelectedState(index: Int) {
         if (binding.customFlexBoxLayout.childCount > 0 &&
             index in 0 until binding.customFlexBoxLayout.childCount
         ) {
-
             val child = binding.customFlexBoxLayout.getChildAt(index)
             child.isSelected = !child.isSelected
         }
@@ -265,6 +363,14 @@ class CustomMessageViewGroup @JvmOverloads constructor(
             return child.counter
         }
         return -1
+    }
+
+    fun setMessageBgColor(bgColor: Int) {
+        backgroundPaint.color = ContextCompat.getColor(context, bgColor)
+    }
+
+    fun setSelfMessageType(isSelf: Boolean) {
+        isOwnMessage = isSelf
     }
 
     companion object {
