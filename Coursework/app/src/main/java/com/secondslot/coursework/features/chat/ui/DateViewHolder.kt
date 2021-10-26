@@ -1,4 +1,4 @@
-package com.secondslot.coursework.features.chatscreen.ui
+package com.secondslot.coursework.features.chat.ui
 
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.databinding.ItemDateDividerBinding

@@ -1,4 +1,4 @@
-package com.secondslot.coursework.features.chatscreen.ui
+package com.secondslot.coursework.features.chat.ui
 
 import android.os.Bundle
 import android.util.Log
@@ -20,8 +20,8 @@ import com.secondslot.coursework.domain.model.DateDivider
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.model.Reaction
 import com.secondslot.coursework.extentions.getDateForChat
-import com.secondslot.coursework.features.chatscreen.adapter.ChatAdapter
-import com.secondslot.coursework.features.chatscreen.adapter.ReactionsAdapter
+import com.secondslot.coursework.features.chat.adapter.ChatAdapter
+import com.secondslot.coursework.features.chat.adapter.ReactionsAdapter
 import java.util.*
 import kotlin.collections.ArrayList
 

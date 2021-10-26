@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/status_online" />
+            <size
+                android:width="42dp"
+                android:height="42dp" />
+        </shape>
+    </item>
+
+    <item>
+        <shape
+            android:shape="ring"
+            android:innerRadius="16.7dp"
+            android:thickness="4dp"
+            android:useLevel="false">
+            <gradient
+                android:angle="135"
+                android:endColor="@color/date_divider_text"
+                android:startColor="@color/background" />
+        </shape>
+    </item>
+</layer-list>

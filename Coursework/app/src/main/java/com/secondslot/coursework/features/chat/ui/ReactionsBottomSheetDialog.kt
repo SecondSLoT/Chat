@@ -1,4 +1,4 @@
-package com.secondslot.coursework.features.chatscreen.ui
+package com.secondslot.coursework.features.chat.ui
 
 import android.content.Context
 import com.google.android.material.bottomsheet.BottomSheetDialog

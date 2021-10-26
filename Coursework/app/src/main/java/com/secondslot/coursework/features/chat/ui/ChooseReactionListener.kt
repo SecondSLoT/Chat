@@ -1,4 +1,4 @@
-package com.secondslot.coursework.features.chatscreen.ui
+package com.secondslot.coursework.features.chat.ui
 
 import com.secondslot.coursework.domain.model.Reaction
 

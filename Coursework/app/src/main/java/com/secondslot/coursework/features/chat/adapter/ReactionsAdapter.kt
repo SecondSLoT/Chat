@@ -1,11 +1,11 @@
-package com.secondslot.coursework.features.chatscreen.adapter
+package com.secondslot.coursework.features.chat.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.databinding.ItemEmojiBinding
 import com.secondslot.coursework.domain.model.Reaction
-import com.secondslot.coursework.features.chatscreen.ui.ChooseReactionListener
+import com.secondslot.coursework.features.chat.ui.ChooseReactionListener
 
 class ReactionsAdapter(
     private val reactions: List<Reaction>,

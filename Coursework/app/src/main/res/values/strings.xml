@@ -1,9 +1,21 @@
 <resources>
     <string name="app_name">Coursework</string>
 
-    <string name="person_image_content_description">Person photo</string>
+    <string name="user_photo_content_description">User photo</string>
     <string name="add_reaction_button_content_description">Add reaction button</string>
-    <string name="type_message_hint">Type a message...</string>
+    <string name="expand_group_content_description">Expand group</string>
+    <string name="collapse_group_content_description">Collapse group</string>
+    <string name="type_message_hint">Type a message…</string>
+    <string name="search_hint">Search…</string>
+    <string name="users_search_hint">Users…</string>
+    <string name="log_out">Log out</string>
+
+    <string name="channels">Channels</string>
+    <string name="people">People</string>
+    <string name="profile">Profile</string>
+
+    <string name="subscribed">Subscribed</string>
+    <string name="all_streams">All streams</string>
 
     <string name="custom_message_view_group_child_count_error">
         ChildCount expected %d, but found %d</string>

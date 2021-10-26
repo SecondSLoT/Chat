@@ -1,4 +1,4 @@
-package com.secondslot.coursework.features.chatscreen.adapter
+package com.secondslot.coursework.features.chat.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -12,9 +12,9 @@ import com.secondslot.coursework.databinding.ItemMessageBinding
 import com.secondslot.coursework.domain.model.ChatItem
 import com.secondslot.coursework.domain.model.DateDivider
 import com.secondslot.coursework.domain.model.Message
-import com.secondslot.coursework.features.chatscreen.ui.DateViewHolder
-import com.secondslot.coursework.features.chatscreen.ui.MessageInteractionListener
-import com.secondslot.coursework.features.chatscreen.ui.MessageViewHolder
+import com.secondslot.coursework.features.chat.ui.DateViewHolder
+import com.secondslot.coursework.features.chat.ui.MessageInteractionListener
+import com.secondslot.coursework.features.chat.ui.MessageViewHolder
 
 private const val TYPE_MESSAGE = 0
 private const val TYPE_DATE = 1
