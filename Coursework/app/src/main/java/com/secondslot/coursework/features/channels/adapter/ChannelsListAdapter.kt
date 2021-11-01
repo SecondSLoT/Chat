@@ -5,23 +5,25 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.R
 import com.secondslot.coursework.domain.model.ExpandableChannelModel
+import com.secondslot.coursework.features.channels.ui.ExpandCollapseListener
+import com.secondslot.coursework.features.channels.ui.OnChatClickListener
 
 class ChannelsListAdapter(
-    var channelGroupList: MutableList<ExpandableChannelModel>
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    private var isFirstItemExpanded: Boolean = true
-    private var actionLock = false
+    private val expandCollapseListener: ExpandCollapseListener,
+    private val chatListener: OnChatClickListener
+) : ListAdapter<ExpandableChannelModel, RecyclerView.ViewHolder>(ChannelsComparator()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             ExpandableChannelModel.PARENT -> {
                 ChannelGroupViewHolder(
                     LayoutInflater.from(parent.context).inflate(
-                        R.layout.item_chanel_group, parent, false
+                        R.layout.item_channel_group, parent, false
                     )
                 )
             }
@@ -37,30 +39,28 @@ class ChannelsListAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val row = channelGroupList[position]
+        val row = getItem(holder.absoluteAdapterPosition)
         when (row.type) {
             ExpandableChannelModel.PARENT -> {
 
                 (holder as ChannelGroupViewHolder).groupTitle.text =
-                    row.channelGroup.group
+                    row.channelGroup.groupTitle
+
+                // Set initial holder state to get rid of dirty holders because of reusing
+                holder.collapseArrow.visibility = View.GONE
+                holder.expandArrow.visibility = View.VISIBLE
 
                 holder.expandArrow.setOnClickListener {
-                    if (row.isExpanded) {
-                        row.isExpanded = false
-                        collapseRow(position)
-
-                    } else {
-                        row.isExpanded = true
-                        holder.collapseArrow.visibility = View.VISIBLE
-                        holder.expandArrow.visibility = View.GONE
-                        expandRow(position)
-                    }
+                    row.isExpanded = true
+                    holder.collapseArrow.visibility = View.VISIBLE
+                    holder.expandArrow.visibility = View.GONE
+                    expandCollapseListener.expandRow(holder.absoluteAdapterPosition)
                 }
 
                 holder.collapseArrow.setOnClickListener {
                     if (row.isExpanded) {
                         row.isExpanded = false
-                        collapseRow(position)
+                        expandCollapseListener.collapseRow(holder.absoluteAdapterPosition)
                         holder.collapseArrow.visibility = View.GONE
                         holder.expandArrow.visibility = View.VISIBLE
 
@@ -71,55 +71,22 @@ class ChannelsListAdapter(
             ExpandableChannelModel.CHILD -> {
                 (holder as ChannelViewHolder).channel.text = row.channel.channelTitle
                 holder.additionalInfo.text = row.channel.someMoreInfo
-            }
-        }
-    }
 
-    override fun getItemCount(): Int = channelGroupList.size
-
-    override fun getItemViewType(position: Int): Int = channelGroupList[position].type
-
-    private fun expandRow(position: Int) {
-        val row = channelGroupList[position]
-        var nextPosition = position
-        when (row.type) {
-            ExpandableChannelModel.PARENT -> {
-                for (child in row.channelGroup.channels) {
-                    channelGroupList.add(
-                        ++nextPosition,
-                        ExpandableChannelModel(ExpandableChannelModel.CHILD, child)
+                holder.itemView.setOnClickListener {
+                    chatListener.onChannelClicked(
+                        getItem(holder.absoluteAdapterPosition).channel.id
                     )
                 }
-                notifyDataSetChanged()
-            }
-            ExpandableChannelModel.CHILD -> {
-                notifyDataSetChanged()
             }
         }
     }
 
-    private fun collapseRow(position: Int) {
-        val row = channelGroupList[position]
-        val nextPosition = position + 1
+    override fun getItemViewType(position: Int): Int = getItem(position).type
 
-        when (row.type) {
-            ExpandableChannelModel.PARENT -> {
 
-                outerloop@ while (true) {
-                    if (nextPosition == channelGroupList.size ||
-                        channelGroupList[nextPosition].type == ExpandableChannelModel.PARENT) {
-                        break@outerloop
-                    }
+    class ChannelGroupViewHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
 
-                    channelGroupList.removeAt(nextPosition)
-                }
-
-                notifyDataSetChanged()
-            }
-        }
-    }
-
-    class ChannelGroupViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         internal var groupTitle: TextView = itemView.findViewById(R.id.title_text_view)
         internal var expandArrow: ImageView = itemView.findViewById(R.id.expand_arrow)
         internal var collapseArrow: ImageView = itemView.findViewById(R.id.collapse_arrow)
@@ -128,5 +95,43 @@ class ChannelsListAdapter(
     class ChannelViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         internal var channel: TextView = itemView.findViewById(R.id.channel_text_view)
         internal var additionalInfo: TextView = itemView.findViewById(R.id.additional_info)
+    }
+}
+
+class ChannelsComparator : DiffUtil.ItemCallback<ExpandableChannelModel>() {
+
+    override fun areItemsTheSame(
+        oldItem: ExpandableChannelModel,
+        newItem: ExpandableChannelModel
+    ): Boolean {
+        if (oldItem.type == ExpandableChannelModel.PARENT &&
+            newItem.type == ExpandableChannelModel.PARENT
+        ) {
+            return oldItem.channelGroup.id == newItem.channelGroup.id
+
+        } else if (oldItem.type == ExpandableChannelModel.CHILD &&
+            newItem.type == ExpandableChannelModel.CHILD
+        ) {
+            return oldItem.channel.id == newItem.channel.id
+        }
+        return false
+    }
+
+    override fun areContentsTheSame(
+        oldItem: ExpandableChannelModel,
+        newItem: ExpandableChannelModel
+    ): Boolean {
+        if (oldItem.type == ExpandableChannelModel.PARENT &&
+            newItem.type == ExpandableChannelModel.PARENT
+        ) {
+            return oldItem.channelGroup == newItem.channelGroup &&
+                oldItem.isExpanded == newItem.isExpanded
+
+        } else if (oldItem.type == ExpandableChannelModel.CHILD &&
+            newItem.type == ExpandableChannelModel.CHILD
+        ) {
+            return oldItem.channel == newItem.channel
+        }
+        return false
     }
 }

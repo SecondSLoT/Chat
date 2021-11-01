@@ -8,11 +8,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.children
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.R
+import com.secondslot.coursework.extentions.toPx
 
-class DividerItemDecoration() : RecyclerView.ItemDecoration() {
+class ChannelsItemDecoration : RecyclerView.ItemDecoration() {
 
     private val dividerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val dividerHeight = 1
 
     override fun getItemOffsets(
         rect: Rect,
@@ -22,7 +22,7 @@ class DividerItemDecoration() : RecyclerView.ItemDecoration() {
     ) {
         super.getItemOffsets(rect, view, parent, s)
 
-        rect.bottom = 1
+        rect.bottom = DIVIDER_HEIGHT_DP.toPx.toInt()
         dividerPaint.color = ContextCompat.getColor(view.context, R.color.on_background)
     }
 
@@ -32,9 +32,13 @@ class DividerItemDecoration() : RecyclerView.ItemDecoration() {
                 val left = parent.paddingLeft.toFloat()
                 val top = view.bottom.toFloat()
                 val right = (parent.width - parent.paddingRight).toFloat()
-                val bottom = top + dividerHeight
+                val bottom = top + DIVIDER_HEIGHT_DP.toPx.toInt()
 
                 canvas.drawRect(left, top, right, bottom, dividerPaint)
             }
+    }
+
+    companion object {
+        private const val DIVIDER_HEIGHT_DP = 2
     }
 }

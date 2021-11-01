@@ -5,10 +5,14 @@
     <string name="add_reaction_button_content_description">Add reaction button</string>
     <string name="expand_group_content_description">Expand group</string>
     <string name="collapse_group_content_description">Collapse group</string>
+    <string name="profile_back_button_description">Back to People screen</string>
+
     <string name="type_message_hint">Type a message…</string>
-    <string name="search_hint">Search…</string>
+    <string name="channels_search_hint">Search…</string>
     <string name="users_search_hint">Users…</string>
-    <string name="log_out">Log out</string>
+
+    <string name="log_out_button">Log out</string>
+    <string name="retry_button">Retry</string>
 
     <string name="channels">Channels</string>
     <string name="people">People</string>
@@ -16,6 +20,9 @@
 
     <string name="subscribed">Subscribed</string>
     <string name="all_streams">All streams</string>
+
+    <string name="status_online">online</string>
+    <string name="status_offline">offline</string>
 
     <string name="custom_message_view_group_child_count_error">
         ChildCount expected %d, but found %d</string>

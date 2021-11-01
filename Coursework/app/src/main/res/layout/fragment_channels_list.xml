@@ -1,7 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/recycler_view"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
 
-</androidx.recyclerview.widget.RecyclerView>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:listitem="@layout/item_channel_group"/>
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <include
+                layout="@layout/placeholder_item_chanel_group"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/item_user_height"
+                android:layout_marginBottom="@dimen/placeholder_item_channel_margin_bottom"/>
+
+            <include
+                layout="@layout/placeholder_item_chanel_group"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/item_user_height"
+                android:layout_marginBottom="@dimen/placeholder_item_channel_margin_bottom"/>
+
+            <include
+                layout="@layout/placeholder_item_chanel_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/placeholder_item_channel_margin_bottom"/>
+
+            <include
+                layout="@layout/placeholder_item_chanel_group"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/item_user_height"
+                android:layout_marginBottom="@dimen/placeholder_item_channel_margin_bottom"/>
+
+            <include
+                layout="@layout/placeholder_item_chanel_group"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/item_user_height"
+                android:layout_marginBottom="@dimen/placeholder_item_channel_margin_bottom"/>
+
+            <include
+                layout="@layout/placeholder_item_chanel_group"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/item_user_height"
+                android:layout_marginBottom="@dimen/placeholder_item_channel_margin_bottom"/>
+
+            <include
+                layout="@layout/placeholder_item_chanel_group"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/item_user_height"
+                android:layout_marginBottom="@dimen/placeholder_item_channel_margin_bottom"/>
+
+            <include
+                layout="@layout/placeholder_item_chanel_group"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/item_user_height"
+                android:layout_marginBottom="@dimen/placeholder_item_channel_margin_bottom"/>
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <include
+        android:id="@+id/included_retry_button"
+        layout="@layout/button_retry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="invisible" />
+</FrameLayout>

@@ -2,15 +2,15 @@ package com.secondslot.coursework.domain.model
 
 class ExpandableChannelModel {
 
-    lateinit var channelGroup: ExpandableChannel.ChannelGroup
+    lateinit var channelGroup: ChannelGroup
     var type: Int
-    lateinit var channel: ExpandableChannel.ChannelGroup.Channel
+    lateinit var channel: ChannelGroup.Channel
     var isExpanded: Boolean
     private var isCloseShown: Boolean
 
     constructor(
         type: Int,
-        channelGroup: ExpandableChannel.ChannelGroup,
+        channelGroup: ChannelGroup,
         isExpanded: Boolean = false,
         isCloseShown: Boolean = false
     ) {
@@ -22,7 +22,7 @@ class ExpandableChannelModel {
 
     constructor(
         type: Int,
-        channel: ExpandableChannel.ChannelGroup.Channel,
+        channel: ChannelGroup.Channel,
         isExpanded: Boolean = false,
         isCloseShown: Boolean = false
     ) {

@@ -1,4 +1,4 @@
-package com.secondslot.coursework.data
+package com.secondslot.coursework.data.db
 
 import com.secondslot.coursework.domain.model.Reaction
 

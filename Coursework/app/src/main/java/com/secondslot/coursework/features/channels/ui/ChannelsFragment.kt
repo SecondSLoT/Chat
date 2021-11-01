@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import com.google.android.material.tabs.TabLayoutMediator
 import com.secondslot.coursework.R
@@ -15,36 +16,51 @@ class ChannelsFragment : Fragment() {
     private var _binding: FragmentChannelsBinding? = null
     private val binding get() = requireNotNull(_binding)
 
+    private val channelsListFragments = listOf(
+        ChannelsListFragment.newInstance(ChannelsListFragment.SUBSCRIBED),
+        ChannelsListFragment.newInstance(ChannelsListFragment.ALL_STREAMS)
+    )
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChannelsBinding.inflate(inflater, container, false)
         initViews()
+        setListeners()
         return binding.root
     }
 
     private fun initViews() {
+        binding.includedSearchView.searchUsersEditText.hint =
+            getString(R.string.channels_search_hint)
+
         val tabs: List<String> = listOf(
             getString(R.string.subscribed),
             getString(R.string.all_streams)
         )
 
-        val channelsPagerAdapter: ChannelsPagerAdapter =
-            ChannelsPagerAdapter(parentFragmentManager, lifecycle)
+        val channelsPagerAdapter = ChannelsPagerAdapter(parentFragmentManager, lifecycle)
 
         binding.viewPager.adapter = channelsPagerAdapter
 
-        channelsPagerAdapter.updateFragments(
-            listOf(
-                ChannelsListFragment.newInstance(ChannelsListFragment.SUBSCRIBED),
-                ChannelsListFragment.newInstance(ChannelsListFragment.ALL_STREAMS)
-            )
-        )
+        channelsPagerAdapter.updateFragments(channelsListFragments)
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = tabs[position]
         }.attach()
+    }
+
+    private fun setListeners() {
+        binding.includedSearchView.searchUsersEditText.doAfterTextChanged {
+            searchChannels(it.toString())
+        }
+    }
+
+    private fun searchChannels(searchQuery: String) {
+        channelsListFragments.forEach {
+            (it as SearchQueryListener).search(searchQuery)
+        }
     }
 
     companion object {

@@ -3,7 +3,7 @@
     <style name="Theme.Coursework" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/log_out_button</item>
-        <item name="colorPrimaryVariant">@color/username</item>
+        <item name="colorPrimaryVariant">@color/panel_background</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
@@ -15,6 +15,7 @@
         <item name="fontFamily">@font/inter</item>
         <item name="bottomSheetDialogTheme">@style/BottomSheetTheme</item>
         <item name="buttonStyle">@style/ButtonStyle</item>
+        <item name="toolbarStyle">@style/ToolbarStyle</item>
     </style>
 
     <style name="BottomSheetTheme" parent="@style/ThemeOverlay.MaterialComponents.BottomSheetDialog">
@@ -30,5 +31,19 @@
         <item name="android:backgroundTint">@color/log_out_button</item>
     </style>
 
+    <style name="ToolbarStyle" parent="Widget.MaterialComponents.Toolbar">
+        <item name="titleTextColor">@color/white</item>
+        <item name="android:textSize">48sp</item>
+        <item name="android:labelTextSize">48sp</item>
+        <item name="titleTextAppearance">?attr/textAppearanceHeadline5</item>
+        <item name="navigationIconTint">@color/white</item>
+    </style>
 
+    <style name="TitleTextAppearance" parent="TextAppearance.MaterialComponents.Headline3">
+        <item name="android:textSize">48sp</item>
+    </style>
+
+    <style name="DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="color">@color/white</item>
+    </style>
 </resources>

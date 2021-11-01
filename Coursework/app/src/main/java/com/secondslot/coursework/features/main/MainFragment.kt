@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentMainBinding
 import com.secondslot.coursework.features.channels.ui.ChannelsFragment
-import com.secondslot.coursework.features.people.PeopleFragment
-import com.secondslot.coursework.features.profile.ProfileFragment
+import com.secondslot.coursework.features.people.ui.PeopleFragment
+import com.secondslot.coursework.features.profile.ui.ProfileFragment
 
 class MainFragment : Fragment() {
 
@@ -41,7 +41,7 @@ class MainFragment : Fragment() {
                         true
                     }
                     else -> {
-                        loadFragment(ProfileFragment.newInstance())
+                        loadFragment(ProfileFragment.newInstance(0))
                         true
                     }
                 }

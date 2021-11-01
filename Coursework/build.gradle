@@ -60,6 +60,9 @@ ext {
     materialVersion = '1.4.0'
     constraintLayoutVersion = '2.1.1'
     navigationVersion = '2.3.5'
-    coroutinesVersion = '1.5.1'
     recyclerViewVersion = '1.2.1'
+    rxJavaVersion = '2.2.21'
+    rxAndroidVersion = '2.1.1'
+    rxKotlinVersion = '2.4.0'
+    shimmerVersion = '0.5.0'
 }

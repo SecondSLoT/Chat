@@ -88,6 +88,7 @@ class MessageComparator : DiffUtil.ItemCallback<ChatItem>() {
                     false
                 }
             }
+
             is DateDivider -> {
                 if (newItem is DateDivider) {
                     oldItem.date == (newItem as DateDivider).date
@@ -95,6 +96,7 @@ class MessageComparator : DiffUtil.ItemCallback<ChatItem>() {
                     false
                 }
             }
+
             else -> false
         }
     }

@@ -6,6 +6,32 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:fitsSystemWindows="true"
+            app:titleCentered="true"
+            app:navigationContentDescription="@string/profile_back_button_description"
+            app:navigationIcon="@drawable/ic_baseline_arrow_back_24"
+            app:title="@string/profile" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="cardView, username_text_view, about_text_view, status_text_view" />
+
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
         android:layout_width="185dp"
@@ -17,9 +43,11 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
+            android:id="@+id/user_photo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/test_image" />
+            android:contentDescription="@string/user_photo_content_description"
+            tools:src="@drawable/test_image" />
     </androidx.cardview.widget.CardView>
 
     <TextView
@@ -27,46 +55,94 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        tools:text="Darrell Steward"
         android:textAppearance="?attr/textAppearanceHeadline4"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView"
-        android:text="Darrell Steward" />
+        app:layout_constraintTop_toBottomOf="@+id/cardView" />
 
     <TextView
         android:id="@+id/about_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/about_text"
+        tools:text="In a meeting"
         android:textAppearance="?attr/textAppearanceHeadline6"
+        android:textColor="@color/about_text"
         app:layout_constraintEnd_toStartOf="@+id/status_text_view"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/username_text_view"
-        android:text="In a meeting" />
+        app:layout_constraintTop_toBottomOf="@+id/username_text_view" />
 
     <TextView
         android:id="@+id/status_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        tools:text="online"
         android:textColor="@color/status_online"
         android:textSize="16sp"
         app:layout_constraintBaseline_toBaselineOf="@id/about_text_view"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/about_text_view"
-        android:text="online" />
+        app:layout_constraintStart_toEndOf="@id/about_text_view" />
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="invisible">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/placeholder_card_view"
+                android:layout_width="185dp"
+                android:layout_height="185dp"
+                android:layout_marginTop="126dp"
+                android:background="@color/bg_custom_reaction_selected"
+                app:cardCornerRadius="15dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/placeholder_username"
+                android:layout_width="250dp"
+                android:layout_height="32sp"
+                android:layout_marginTop="24dp"
+                android:background="@color/bg_custom_reaction_selected"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/placeholder_card_view" />
+
+            <View
+                android:id="@+id/placeholder_about"
+                android:layout_width="200dp"
+                android:layout_height="20sp"
+                android:layout_marginTop="14dp"
+                android:background="@color/bg_custom_reaction_selected"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/placeholder_username" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
 
     <Button
+        android:id="@+id/log_out_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="65dp"
+        android:background="@drawable/bg_log_out_button"
         android:minWidth="184dp"
         android:minHeight="52dp"
-        android:text="@string/log_out"
+        android:text="@string/log_out_button"
         android:textAllCaps="false"
-        android:background="@drawable/bg_log_out_button"
         android:textAppearance="?attr/textAppearanceHeadline6"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
