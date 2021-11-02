@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.R
-import com.secondslot.coursework.domain.model.ExpandableChannelModel
+import com.secondslot.coursework.features.channels.model.ExpandableChannelModel
 import com.secondslot.coursework.features.channels.ui.ExpandCollapseListener
 import com.secondslot.coursework.features.channels.ui.OnChatClickListener
 
@@ -69,12 +69,14 @@ class ChannelsListAdapter(
             }
 
             ExpandableChannelModel.CHILD -> {
-                (holder as ChannelViewHolder).channel.text = row.channel.channelTitle
+                (holder as ChannelViewHolder).channel.text = row.channel.topic
                 holder.additionalInfo.text = row.channel.someMoreInfo
 
                 holder.itemView.setOnClickListener {
+                    val channel = getItem(holder.absoluteAdapterPosition).channel
                     chatListener.onChannelClicked(
-                        getItem(holder.absoluteAdapterPosition).channel.id
+                        channel.id,
+                        channel.topic
                     )
                 }
             }

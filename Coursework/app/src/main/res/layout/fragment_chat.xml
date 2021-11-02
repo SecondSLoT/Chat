@@ -3,8 +3,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/background"
     android:orientation="vertical">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/username">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:fitsSystemWindows="true"
+            app:navigationContentDescription="@string/profile_back_button_description"
+            app:navigationIcon="@drawable/ic_baseline_arrow_back_24"
+            tools:title="#general" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <TextView
+        android:id="@+id/topic_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@color/on_background"
+        android:gravity="center"
+        android:textColor="@color/topic_text"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+        tools:text="Topic: #testing"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"

@@ -1,15 +1,14 @@
 package com.secondslot.coursework.data.db
 
 import androidx.annotation.WorkerThread
-import com.secondslot.coursework.domain.model.ChatItem
-import com.secondslot.coursework.domain.model.Message
+import com.secondslot.coursework.data.db.model.MessageEntity
 import com.secondslot.coursework.domain.model.Reaction
 import java.util.*
 
 object MessagesSource {
 
-    private val messages: ArrayList<ChatItem> = arrayListOf(
-        Message(
+    private val messages: ArrayList<MessageEntity> = arrayListOf(
+        MessageEntity(
             messageId = UUID.randomUUID(),
             userId = 1,
             datetime = System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 20,
@@ -17,7 +16,7 @@ object MessagesSource {
             userPhoto = "test_image.png",
             message = "Hi"
         ),
-        Message(
+        MessageEntity(
             messageId = UUID.randomUUID(),
             userId = 1,
             datetime = System.currentTimeMillis() - 5000L,
@@ -25,13 +24,13 @@ object MessagesSource {
             message = "How are you?",
             userPhoto = "test_image.png",
             reactions = arrayListOf(
-                Reaction(ReactionsSource().reactions[3].code, 1, isSelected = true),
+                Reaction(ReactionsSource.reactions[3].code, 1, isSelected = true),
             )
         )
     )
 
     @WorkerThread
-    fun getMessages(channelId: Int) : ArrayList<ChatItem> {
+    fun getMessages(channelId: Int): ArrayList<MessageEntity> {
         return messages
     }
 }

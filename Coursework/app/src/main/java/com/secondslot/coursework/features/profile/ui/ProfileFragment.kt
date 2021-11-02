@@ -1,13 +1,10 @@
 package com.secondslot.coursework.features.profile.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.addCallback
-import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.core.content.ContextCompat.getColor
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -16,6 +13,7 @@ import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentProfileBinding
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.usecase.GetProfileUseCase
+import com.secondslot.coursework.extentions.loadImage
 import com.secondslot.coursework.features.profile.ui.ProfileState.Error
 import com.secondslot.coursework.features.profile.ui.ProfileState.Loading
 import com.secondslot.coursework.features.profile.ui.ProfileState.Result
@@ -77,10 +75,7 @@ class ProfileFragment : Fragment() {
         when (state) {
             is Result -> {
                 binding.run {
-                    userPhoto.setImageDrawable(
-                        // TODO: Use Glide here
-                        getDrawable(requireContext(), R.drawable.test_image)
-                    )
+                    userPhoto.loadImage(state.user.userPhoto)
                     usernameTextView.text = state.user.username
                     aboutTextView.text = state.user.about
 

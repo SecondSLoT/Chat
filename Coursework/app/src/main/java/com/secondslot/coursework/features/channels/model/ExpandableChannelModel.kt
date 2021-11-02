@@ -1,4 +1,6 @@
-package com.secondslot.coursework.domain.model
+package com.secondslot.coursework.features.channels.model
+
+import com.secondslot.coursework.domain.model.ChannelGroup
 
 class ExpandableChannelModel {
 
@@ -35,5 +37,13 @@ class ExpandableChannelModel {
     companion object {
         const val PARENT = 1
         const val CHILD = 2
+
+        fun fromChannelGroup(channelGroups: List<ChannelGroup>): List<ExpandableChannelModel> =
+            channelGroups.map {
+                ExpandableChannelModel(
+                    type = ExpandableChannelModel.PARENT,
+                    channelGroup = it
+                )
+            }
     }
 }

@@ -64,5 +64,6 @@ ext {
     rxJavaVersion = '2.2.21'
     rxAndroidVersion = '2.1.1'
     rxKotlinVersion = '2.4.0'
+    glideVersion = '4.12.0'
     shimmerVersion = '0.5.0'
 }

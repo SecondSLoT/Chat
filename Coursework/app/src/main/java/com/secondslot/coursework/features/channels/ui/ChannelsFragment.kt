@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentChannelsBinding
@@ -55,6 +56,17 @@ class ChannelsFragment : Fragment() {
         binding.includedSearchView.searchUsersEditText.doAfterTextChanged {
             searchChannels(it.toString())
         }
+
+        binding.includedSearchView.searchImageView.setOnClickListener {
+            searchChannels(binding.includedSearchView.searchUsersEditText.text.toString())
+        }
+
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                binding.includedSearchView.searchUsersEditText.text.clear()
+            }
+        })
     }
 
     private fun searchChannels(searchQuery: String) {

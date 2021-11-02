@@ -1,6 +1,7 @@
 package com.secondslot.coursework.features.channels.ui
 
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,13 +12,15 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentChannelsListBinding
-import com.secondslot.coursework.domain.model.ExpandableChannelModel
+import com.secondslot.coursework.domain.model.ChannelGroup
 import com.secondslot.coursework.domain.usecase.GetAllStreamsUseCase
 import com.secondslot.coursework.domain.usecase.GetChannelsUseCase
 import com.secondslot.coursework.features.channels.adapter.ChannelsItemDecoration
 import com.secondslot.coursework.features.channels.adapter.ChannelsListAdapter
+import com.secondslot.coursework.features.channels.model.ExpandableChannelModel
 import com.secondslot.coursework.features.channels.ui.ChannelsState.*
 import com.secondslot.coursework.features.chat.ui.ChatFragment
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
@@ -40,6 +43,17 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     private val compositeDisposable = CompositeDisposable()
 
     private var channels = mutableListOf<ExpandableChannelModel>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val typedValue = TypedValue()
+        requireActivity().run {
+            theme.resolveAttribute(android.R.attr.statusBarColor, typedValue, true)
+            window.statusBarColor = typedValue.data
+        }
+
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,7 +78,7 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
 
     private fun setListeners() {
         binding.includedRetryButton.retryButton.setOnClickListener {
-            getChannels()
+            setObservers()
         }
     }
 
@@ -74,13 +88,15 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     }
 
     private fun getChannels() {
-        val channelsObservable = when (arguments?.getString(CONTENT_KEY, "")) {
-            SUBSCRIBED -> getChannelsUseCase.execute()
-            else -> getAllStreamsUseCase.execute()
-        }
+        val channelsObservable: Observable<List<ChannelGroup>> =
+            when (arguments?.getString(CONTENT_KEY, "")) {
+                SUBSCRIBED -> getChannelsUseCase.execute()
+                else -> getAllStreamsUseCase.execute()
+            }
 
         channelsObservable
             .subscribeOn(Schedulers.io())
+            .map { ExpandableChannelModel.fromChannelGroup(it) }
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe { processFragmentState(Loading) }
             .subscribeBy(
@@ -131,8 +147,14 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
             .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
             .switchMap { searchQuery ->
                 when (arguments?.getString(CONTENT_KEY, "")) {
-                    SUBSCRIBED -> getChannelsUseCase.execute(searchQuery)
-                    else -> getAllStreamsUseCase.execute(searchQuery)
+                    SUBSCRIBED -> {
+                        getChannelsUseCase.execute(searchQuery)
+                            .map { ExpandableChannelModel.fromChannelGroup(it) }
+                    }
+                    else -> {
+                        getAllStreamsUseCase.execute(searchQuery)
+                            .map { ExpandableChannelModel.fromChannelGroup(it) }
+                    }
                 }
             }
             .observeOn(AndroidSchedulers.mainThread())
@@ -182,11 +204,16 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
         searchSubject.onNext(searchQuery)
     }
 
-    override fun onChannelClicked(channelId: Int) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.container, ChatFragment.newInstance(channelId))
-            .addToBackStack(null)
-            .commitAllowingStateLoss()
+    override fun onChannelClicked(channelId: Int, topic: String) {
+
+        requireActivity().run {
+
+
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.container, ChatFragment.newInstance(channelId, topic))
+                .addToBackStack(null)
+                .commitAllowingStateLoss()
+        }
     }
 
     override fun onDestroy() {

@@ -10,4 +10,4 @@ class Message(
     val userPhoto: String = "",
     val message: String = "",
     var reactions: ArrayList<Reaction> = arrayListOf()
-) : ChatItem
+)

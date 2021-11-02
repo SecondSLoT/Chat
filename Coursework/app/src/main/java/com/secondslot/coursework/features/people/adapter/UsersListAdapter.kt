@@ -2,14 +2,13 @@ package com.secondslot.coursework.features.people.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat.getDrawable
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.ItemUserBinding
 import com.secondslot.coursework.domain.model.User
+import com.secondslot.coursework.extentions.loadRoundImage
 import com.secondslot.coursework.features.people.ui.OnUserClickListener
 
 class PeopleListAdapter(
@@ -34,8 +33,7 @@ class PeopleListAdapter(
 
         fun bind(user: User) {
             binding.run {
-                // TODO: use Glide for setting image here
-                userPhoto.background = getDrawable(itemView.context, R.drawable.test_image)
+                userPhoto.loadRoundImage(user.userPhoto)
                 username.text = user.username
                 email.text = user.email
             }

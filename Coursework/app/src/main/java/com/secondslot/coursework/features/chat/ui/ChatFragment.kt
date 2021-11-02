@@ -5,7 +5,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -16,36 +18,42 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.secondslot.coursework.R
 import com.secondslot.coursework.data.db.ReactionsSource
 import com.secondslot.coursework.databinding.FragmentChatBinding
-import com.secondslot.coursework.domain.model.ChatItem
-import com.secondslot.coursework.domain.model.DateDivider
-import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.model.Reaction
 import com.secondslot.coursework.domain.usecase.GetMessagesUseCase
 import com.secondslot.coursework.extentions.getDateForChat
 import com.secondslot.coursework.features.chat.adapter.ChatAdapter
 import com.secondslot.coursework.features.chat.adapter.ReactionsAdapter
+import com.secondslot.coursework.features.chat.model.ChatItem
+import com.secondslot.coursework.features.chat.model.DateDivider
+import com.secondslot.coursework.features.chat.model.MessageItem
+import com.secondslot.coursework.util.Temporary
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import java.util.*
+import kotlin.collections.ArrayList
 
 class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListener {
-
-//    private val viewModel by viewModels<ChatViewModel>()
 
     private var _binding: FragmentChatBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private val chatAdapter = ChatAdapter(this)
-    private var chosenMessage: Message = Message()
+    private var chosenMessage: MessageItem = MessageItem()
     private var bottomSheetDialog: BottomSheetDialog? = null
 
     private val compositeDisposable = CompositeDisposable()
 
     private val getMessagesUseCase = GetMessagesUseCase()
 
-    private var messages: ArrayList<ChatItem> = arrayListOf()
+    private var messages: List<ChatItem> = arrayListOf()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        requireActivity().window.statusBarColor =
+            ContextCompat.getColor(requireContext(), R.color.username)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,11 +61,14 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatBinding.inflate(inflater, container, false)
-        val channelId = arguments?.getInt(CHANNEL_ID, 0) ?: 0
         initViews()
-        setListeners()
-        setObservers(channelId)
+        setObservers()
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setListeners()
     }
 
     private fun initViews() {
@@ -68,7 +79,11 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
             adapter = chatAdapter
         }
 
-        binding.messageEditText.requestFocus()
+        val topic = arguments?.getString(TOPIC, "") ?: ""
+        binding.run {
+            topicTextView.text = getString(R.string.topic, topic)
+            messageEditText.requestFocus()
+        }
     }
 
     private fun setListeners() {
@@ -80,32 +95,45 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
 
         binding.sendButton.setOnClickListener {
             if (binding.messageEditText.text.toString().isNotEmpty()) {
-                messages.add(
-                    Message(
-                        messageId = UUID.randomUUID(),
-                        datetime = System.currentTimeMillis(),
-                        username = "Me",
-                        message = binding.messageEditText.text.toString()
+                if (Temporary.imitateError()) { // sending message error imitation
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.send_message_error),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    (messages as ArrayList).add(
+                        MessageItem(
+                            messageId = UUID.randomUUID(),
+                            datetime = System.currentTimeMillis(),
+                            username = "Me",
+                            message = binding.messageEditText.text.toString()
+                        )
                     )
-                )
-                //TODO add sending message error imitation
-                binding.messageEditText.text.clear()
+                    binding.messageEditText.text.clear()
 
-                updateMessages()
+                    updateMessages()
+                }
+
             } else {
                 Log.d(TAG, "Add attachment clicked")
             }
         }
+
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().supportFragmentManager.popBackStack()
+        }
     }
 
-    private fun setObservers(channelId: Int) {
-        getMessages(channelId)
+    private fun setObservers() {
+        getMessages(arguments?.getInt(CHANNEL_ID, 0) ?: 0)
     }
 
     private fun getMessages(channelId: Int) {
         val messagesObservable = getMessagesUseCase.execute(channelId)
         messagesObservable
             .subscribeOn(Schedulers.io())
+            .map { MessageItem.fromDomainModel(it) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onNext = {
@@ -113,22 +141,32 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
                     updateMessages()
                 }
             )
-            .also { compositeDisposable.add(it)}
+            .also { compositeDisposable.add(it) }
     }
 
     private fun updateMessages() {
         for (i in messages.size - 1 downTo 1) {
-            if (messages[i - 1] is Message && messages[i] is Message) {
-                if ((messages[i - 1] as Message).datetime.getDateForChat() !=
-                    (messages[i] as Message).datetime.getDateForChat()
+            if (messages[i - 1] is MessageItem && messages[i] is MessageItem) {
+                if ((messages[i - 1] as MessageItem).datetime.getDateForChat() !=
+                    (messages[i] as MessageItem).datetime.getDateForChat()
                 ) {
 
-                    messages.add(i, DateDivider((messages[i] as Message).datetime.getDateForChat()))
+                    (messages as ArrayList).add(
+                        i, DateDivider(
+                            (messages[i] as MessageItem)
+                                .datetime.getDateForChat()
+                        )
+                    )
                 }
             }
         }
         if (messages[0] !is DateDivider) {
-            messages.add(0, DateDivider((messages[0] as Message).datetime.getDateForChat()))
+            (messages as ArrayList).add(
+                0, DateDivider(
+                    (messages[0] as MessageItem)
+                        .datetime.getDateForChat()
+                )
+            )
         }
         chatAdapter.submitList(messages.toList())
     }
@@ -148,7 +186,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     private fun scrollToEnd() = binding.recyclerView.adapter?.itemCount?.minus(1)
         ?.takeIf { it > 0 }?.let(binding.recyclerView::smoothScrollToPosition)
 
-    override fun openReactionsSheet(message: Message) {
+    override fun openReactionsSheet(message: MessageItem) {
         chosenMessage = message
         bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog?.run {
@@ -161,7 +199,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
             bottomSheetDialog?.findViewById<RecyclerView>(R.id.reactions_recycler_view)
         reactionsRecyclerView?.run {
             layoutManager = GridLayoutManager(requireContext(), 7)
-            adapter = ReactionsAdapter(ReactionsSource().reactions, this@ChatFragment)
+            adapter = ReactionsAdapter(ReactionsSource.reactions, this@ChatFragment)
             setHasFixedSize(true)
         }
         bottomSheetDialog?.show()
@@ -177,7 +215,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
             reaction.isSelected = true
             chosenMessage.reactions.add(reaction)
 
-            val newMessage = Message(
+            val newMessage = MessageItem(
                 chosenMessage.messageId,
                 chosenMessage.userId,
                 chosenMessage.datetime,
@@ -188,7 +226,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
             )
 
 
-            messages[messages.indexOf(chosenMessage)] = newMessage
+            (messages as ArrayList)[messages.indexOf(chosenMessage)] = newMessage
 
         } else if (!existingReaction.isSelected) {
             Log.d(TAG, "Existing reaction != null")
@@ -196,7 +234,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
             existingReaction.isSelected = true
             existingReaction.count++
 
-            val newMessage = Message(
+            val newMessage = MessageItem(
                 chosenMessage.messageId,
                 chosenMessage.userId,
                 chosenMessage.datetime,
@@ -206,18 +244,18 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
                 ArrayList(chosenMessage.reactions)
             )
 
-            messages[messages.indexOf(chosenMessage)] = newMessage
+            (messages as ArrayList)[messages.indexOf(chosenMessage)] = newMessage
         }
 
         updateMessages()
     }
 
-    override fun removeReaction(message: Message, reaction: Reaction) {
+    override fun removeReaction(message: MessageItem, reaction: Reaction) {
         val index = messages.indexOf(message)
 
         message.reactions.remove(reaction)
 
-        val newMessage = Message(
+        val newMessage = MessageItem(
             message.messageId,
             message.userId,
             message.datetime,
@@ -227,7 +265,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
             ArrayList(message.reactions)
         )
 
-        messages[index] = newMessage
+        (messages as ArrayList)[index] = newMessage
         updateMessages()
     }
 
@@ -239,10 +277,14 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     companion object {
         private const val TAG = "ChatFragment"
         private const val CHANNEL_ID = "channel_id"
+        private const val TOPIC = "topic" // temporary
 
-        fun newInstance(channelId: Int): ChatFragment {
+        fun newInstance(channelId: Int, topic: String): ChatFragment {
             return ChatFragment().apply {
-                arguments = bundleOf(CHANNEL_ID to channelId)
+                arguments = bundleOf(
+                    CHANNEL_ID to channelId,
+                    TOPIC to topic
+                )
             }
         }
     }

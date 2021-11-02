@@ -1,20 +1,19 @@
 package com.secondslot.coursework.features.chat.ui
 
-import android.widget.ImageView
 import androidx.core.view.isGone
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.R
 import com.secondslot.coursework.customview.CustomFlexBoxLayout
 import com.secondslot.coursework.customview.CustomReactionView
 import com.secondslot.coursework.databinding.ItemMessageBinding
-import com.secondslot.coursework.domain.model.Message
+import com.secondslot.coursework.features.chat.model.MessageItem
 
 class MessageViewHolder(
     private val binding: ItemMessageBinding,
     private val listener: MessageInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(message: Message) {
+    fun bind(message: MessageItem) {
         binding.messageViewGroup.run {
             setUsername(message.username)
             setMessageText(message.message)
@@ -54,8 +53,6 @@ class MessageViewHolder(
         } else {
             customFlexBoxLayout.isGone = true
         }
-
-        val userPhoto = binding.messageViewGroup.findViewById<ImageView>(R.id.user_photo)
 
         if (message.userId == 0L) {
             binding.messageViewGroup.setMessageBgColor(R.color.username)

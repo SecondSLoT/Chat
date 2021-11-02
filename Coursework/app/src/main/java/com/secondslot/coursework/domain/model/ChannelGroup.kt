@@ -8,7 +8,7 @@ data class ChannelGroup(
 
     data class Channel(
         val id: Int,
-        val channelTitle: String,
+        val topic: String,
         val someMoreInfo: String
     )
 }

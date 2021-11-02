@@ -17,6 +17,7 @@
     <string name="channels">Channels</string>
     <string name="people">People</string>
     <string name="profile">Profile</string>
+    <string name="topic">Topic: #%s</string>
 
     <string name="subscribed">Subscribed</string>
     <string name="all_streams">All streams</string>
@@ -26,4 +27,5 @@
 
     <string name="custom_message_view_group_child_count_error">
         ChildCount expected %d, but found %d</string>
+    <string name="send_message_error">Error sending message!</string>
 </resources>

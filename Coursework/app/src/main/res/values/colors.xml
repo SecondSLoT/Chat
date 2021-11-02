@@ -19,6 +19,7 @@
     <color name="email_text">#A1A1A1</color>
     <color name="group_additional_text">#F5F5F5</color>
     <color name="tab_indicator">#219653</color>
+    <color name="topic_text">#CCCCCC</color>
 
     <color name="status_online">#4AB54D</color>
 

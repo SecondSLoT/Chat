@@ -2,7 +2,7 @@ package com.secondslot.coursework.data.db
 
 import com.secondslot.coursework.domain.model.Reaction
 
-class ReactionsSource {
+object ReactionsSource {
 
     val reactions = listOf(
         Reaction("\uD83D\uDE00\t"),
