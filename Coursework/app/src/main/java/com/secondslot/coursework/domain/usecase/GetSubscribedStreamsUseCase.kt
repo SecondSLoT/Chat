@@ -5,15 +5,15 @@ import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.repository.StreamsRepository
 import io.reactivex.Observable
 
-class GetAllStreamsUseCase {
+class GetSubscribedStreamsUseCase {
 
     private val streamsRepository: StreamsRepository = StreamsRepositoryImpl()
 
     fun execute(searchQuery: String = ""): Observable<List<Stream>> {
         return if (searchQuery.isEmpty()) {
-            streamsRepository.getAllStreams()
+            streamsRepository.getSubscribedStreams()
         } else {
-            streamsRepository.getAllStreams()
+            streamsRepository.getSubscribedStreams()
                 .map { channels ->
                     channels.filter {
                         it.streamName.contains(searchQuery, ignoreCase = true)

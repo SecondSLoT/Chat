@@ -1,6 +1,7 @@
 package com.secondslot.coursework.features.channels.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -12,12 +13,12 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentChannelsListBinding
-import com.secondslot.coursework.domain.model.ChannelGroup
+import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.usecase.GetAllStreamsUseCase
-import com.secondslot.coursework.domain.usecase.GetChannelsUseCase
+import com.secondslot.coursework.domain.usecase.GetSubscribedStreamsUseCase
 import com.secondslot.coursework.features.channels.adapter.ChannelsItemDecoration
-import com.secondslot.coursework.features.channels.adapter.ChannelsListAdapter
-import com.secondslot.coursework.features.channels.model.ExpandableChannelModel
+import com.secondslot.coursework.features.channels.adapter.StreamsListAdapter
+import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import com.secondslot.coursework.features.channels.ui.ChannelsState.*
 import com.secondslot.coursework.features.chat.ui.ChatFragment
 import io.reactivex.Observable
@@ -35,14 +36,14 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     private var _binding: FragmentChannelsListBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-    private val getChannelsUseCase = GetChannelsUseCase()
+    private val getSubscribedStreamsUseCase = GetSubscribedStreamsUseCase()
     private val getAllStreamsUseCase = GetAllStreamsUseCase()
-    private val channelsListAdapter = ChannelsListAdapter(this, this)
+    private val streamsListAdapter = StreamsListAdapter(this, this)
 
     private var searchSubject: PublishSubject<String> = PublishSubject.create()
     private val compositeDisposable = CompositeDisposable()
 
-    private var channels = mutableListOf<ExpandableChannelModel>()
+    private var streamModelList = mutableListOf<ExpandableStreamModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +71,7 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     private fun initViews() {
         binding.recyclerView.run {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = channelsListAdapter
+            adapter = streamsListAdapter
             addItemDecoration(ChannelsItemDecoration())
             itemAnimator = null
         }
@@ -83,20 +84,20 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     }
 
     private fun setObservers() {
-        getChannels()
+        getStreams()
         subscribeOnSearchChanges()
     }
 
-    private fun getChannels() {
-        val channelsObservable: Observable<List<ChannelGroup>> =
+    private fun getStreams() {
+        val streamsObservable: Observable<List<Stream>> =
             when (arguments?.getString(CONTENT_KEY, "")) {
-                SUBSCRIBED -> getChannelsUseCase.execute()
+                SUBSCRIBED -> getSubscribedStreamsUseCase.execute()
                 else -> getAllStreamsUseCase.execute()
             }
 
-        channelsObservable
+        streamsObservable
             .subscribeOn(Schedulers.io())
-            .map { ExpandableChannelModel.fromChannelGroup(it) }
+            .map { ExpandableStreamModel.fromStream(it) }
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe { processFragmentState(Loading) }
             .subscribeBy(
@@ -109,9 +110,9 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     private fun processFragmentState(state: ChannelsState) {
         when (state) {
             is Result -> {
-                channels = state.items.toMutableList()
+                streamModelList = state.items.toMutableList()
 
-                channelsListAdapter.submitList(channels)
+                streamsListAdapter.submitList(streamModelList)
                 binding.run {
                     shimmer.isVisible = false
                     includedRetryButton.retryButton.isVisible = false
@@ -129,6 +130,7 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
 
             is Error -> {
                 Toast.makeText(requireContext(), state.error.message, Toast.LENGTH_SHORT).show()
+                state.error.message?.let { Log.e(TAG, it) }
                 binding.run {
                     shimmer.isVisible = false
                     recyclerView.isVisible = false
@@ -148,12 +150,12 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
             .switchMap { searchQuery ->
                 when (arguments?.getString(CONTENT_KEY, "")) {
                     SUBSCRIBED -> {
-                        getChannelsUseCase.execute(searchQuery)
-                            .map { ExpandableChannelModel.fromChannelGroup(it) }
+                        getSubscribedStreamsUseCase.execute(searchQuery)
+                            .map { ExpandableStreamModel.fromStream(it) }
                     }
                     else -> {
                         getAllStreamsUseCase.execute(searchQuery)
-                            .map { ExpandableChannelModel.fromChannelGroup(it) }
+                            .map { ExpandableStreamModel.fromStream(it) }
                     }
                 }
             }
@@ -166,37 +168,37 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     }
 
     override fun expandRow(position: Int) {
-        val row = channels[position]
+        val row = streamModelList[position]
         var nextPosition = position
 
-        if (row.type == ExpandableChannelModel.PARENT) {
-            for (child in row.channelGroup.channels) {
-                channels.add(
+        if (row.type == ExpandableStreamModel.PARENT) {
+            for (child in row.stream.topics) {
+                streamModelList.add(
                     ++nextPosition,
-                    ExpandableChannelModel(ExpandableChannelModel.CHILD, child)
+                    ExpandableStreamModel(ExpandableStreamModel.CHILD, child)
                 )
             }
         }
 
-        channelsListAdapter.submitList(channels.toList())
+        streamsListAdapter.submitList(streamModelList.toList())
     }
 
     override fun collapseRow(position: Int) {
-        val row = channels[position]
+        val row = streamModelList[position]
         val nextPosition = position + 1
 
-        if (row.type == ExpandableChannelModel.PARENT) {
+        if (row.type == ExpandableStreamModel.PARENT) {
             outerloop@ while (true) {
-                if (nextPosition == channels.size ||
-                    channels[nextPosition].type == ExpandableChannelModel.PARENT
+                if (nextPosition == streamModelList.size ||
+                    streamModelList[nextPosition].type == ExpandableStreamModel.PARENT
                 ) {
                     break@outerloop
                 }
 
-                channels.removeAt(nextPosition)
+                streamModelList.removeAt(nextPosition)
             }
 
-            channelsListAdapter.submitList(channels.toList())
+            streamsListAdapter.submitList(streamModelList.toList())
         }
     }
 
@@ -222,6 +224,8 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     }
 
     companion object {
+
+        private const val TAG = "TAG"
         private const val CONTENT_KEY = "list_type"
         const val SUBSCRIBED = "subscribed"
         const val ALL_STREAMS = "all_streams"
@@ -236,7 +240,7 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
 
 internal sealed class ChannelsState {
 
-    class Result(val items: List<ExpandableChannelModel>) : ChannelsState()
+    class Result(val items: List<ExpandableStreamModel>) : ChannelsState()
 
     object Loading : ChannelsState()
 

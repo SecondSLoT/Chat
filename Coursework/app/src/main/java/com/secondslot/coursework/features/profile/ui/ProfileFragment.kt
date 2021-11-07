@@ -47,8 +47,6 @@ class ProfileFragment : Fragment() {
     private fun initViews(userId: Int) {
         if (userId == 0) {
             binding.toolbar.isVisible = false
-        } else {
-            binding.logOutButton.isVisible = false
         }
     }
 
@@ -77,7 +75,6 @@ class ProfileFragment : Fragment() {
                 binding.run {
                     userPhoto.loadImage(state.user.userPhoto)
                     usernameTextView.text = state.user.username
-                    aboutTextView.text = state.user.about
 
                     shimmer.isVisible = false
                     group.isVisible = true

@@ -30,7 +30,7 @@
         android:id="@+id/group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="cardView, username_text_view, about_text_view, status_text_view" />
+        app:constraint_referenced_ids="cardView, username_text_view, status_text_view" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
@@ -62,17 +62,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cardView" />
 
-    <TextView
-        android:id="@+id/about_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:text="In a meeting"
-        android:textAppearance="?attr/textAppearanceHeadline6"
-        android:textColor="@color/about_text"
-        app:layout_constraintEnd_toStartOf="@+id/status_text_view"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/username_text_view" />
+<!--    <TextView-->
+<!--        android:id="@+id/about_text_view"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        tools:text="In a meeting"-->
+<!--        android:textAppearance="?attr/textAppearanceHeadline6"-->
+<!--        android:textColor="@color/about_text"-->
+<!--        app:layout_constraintEnd_toStartOf="@+id/status_text_view"-->
+<!--        app:layout_constraintHorizontal_chainStyle="packed"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/username_text_view" />-->
 
     <TextView
         android:id="@+id/status_text_view"
@@ -82,9 +82,9 @@
         tools:text="online"
         android:textColor="@color/status_online"
         android:textSize="16sp"
-        app:layout_constraintBaseline_toBaselineOf="@id/about_text_view"
+        app:layout_constraintTop_toBottomOf="@+id/username_text_view"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/about_text_view" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmer"
@@ -133,19 +133,19 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.facebook.shimmer.ShimmerFrameLayout>
 
-    <Button
-        android:id="@+id/log_out_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="65dp"
-        android:background="@drawable/bg_log_out_button"
-        android:minWidth="184dp"
-        android:minHeight="52dp"
-        android:text="@string/log_out_button"
-        android:textAllCaps="false"
-        android:textAppearance="?attr/textAppearanceHeadline6"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+<!--    <Button-->
+<!--        android:id="@+id/log_out_button"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="65dp"-->
+<!--        android:background="@drawable/bg_log_out_button"-->
+<!--        android:minWidth="184dp"-->
+<!--        android:minHeight="52dp"-->
+<!--        android:text="@string/log_out_button"-->
+<!--        android:textAllCaps="false"-->
+<!--        android:textAppearance="?attr/textAppearanceHeadline6"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

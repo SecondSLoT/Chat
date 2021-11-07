@@ -9,19 +9,19 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.R
-import com.secondslot.coursework.features.channels.model.ExpandableChannelModel
+import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import com.secondslot.coursework.features.channels.ui.ExpandCollapseListener
 import com.secondslot.coursework.features.channels.ui.OnChatClickListener
 
-class ChannelsListAdapter(
+class StreamsListAdapter(
     private val expandCollapseListener: ExpandCollapseListener,
     private val chatListener: OnChatClickListener
-) : ListAdapter<ExpandableChannelModel, RecyclerView.ViewHolder>(ChannelsComparator()) {
+) : ListAdapter<ExpandableStreamModel, RecyclerView.ViewHolder>(ChannelsComparator()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            ExpandableChannelModel.PARENT -> {
-                ChannelGroupViewHolder(
+            ExpandableStreamModel.PARENT -> {
+                StreamViewHolder(
                     LayoutInflater.from(parent.context).inflate(
                         R.layout.item_channel_group, parent, false
                     )
@@ -29,7 +29,7 @@ class ChannelsListAdapter(
             }
 
             else -> {
-                ChannelViewHolder(
+                TopicViewHolder(
                     LayoutInflater.from(parent.context).inflate(
                         R.layout.item_channel, parent, false
                     )
@@ -41,10 +41,10 @@ class ChannelsListAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val row = getItem(holder.absoluteAdapterPosition)
         when (row.type) {
-            ExpandableChannelModel.PARENT -> {
+            ExpandableStreamModel.PARENT -> {
 
-                (holder as ChannelGroupViewHolder).groupTitle.text =
-                    row.channelGroup.groupTitle
+                (holder as StreamViewHolder).groupTitle.text =
+                    row.stream.streamName
 
                 // Set initial holder state to get rid of dirty holders because of reusing
                 holder.collapseArrow.visibility = View.GONE
@@ -68,15 +68,15 @@ class ChannelsListAdapter(
                 }
             }
 
-            ExpandableChannelModel.CHILD -> {
-                (holder as ChannelViewHolder).channel.text = row.channel.topic
-                holder.additionalInfo.text = row.channel.someMoreInfo
+            ExpandableStreamModel.CHILD -> {
+                (holder as TopicViewHolder).topic.text = row.topic.topicName
+//                holder.additionalInfo.text = row.channel.someMoreInfo
 
                 holder.itemView.setOnClickListener {
-                    val channel = getItem(holder.absoluteAdapterPosition).channel
+                    val topic = getItem(holder.absoluteAdapterPosition).topic
                     chatListener.onChannelClicked(
-                        channel.id,
-                        channel.topic
+                        topic.id,
+                        topic.topicName
                     )
                 }
             }
@@ -86,7 +86,7 @@ class ChannelsListAdapter(
     override fun getItemViewType(position: Int): Int = getItem(position).type
 
 
-    class ChannelGroupViewHolder(itemView: View) :
+    class StreamViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
 
         internal var groupTitle: TextView = itemView.findViewById(R.id.title_text_view)
@@ -94,45 +94,45 @@ class ChannelsListAdapter(
         internal var collapseArrow: ImageView = itemView.findViewById(R.id.collapse_arrow)
     }
 
-    class ChannelViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        internal var channel: TextView = itemView.findViewById(R.id.channel_text_view)
+    class TopicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        internal var topic: TextView = itemView.findViewById(R.id.channel_text_view)
         internal var additionalInfo: TextView = itemView.findViewById(R.id.additional_info)
     }
 }
 
-class ChannelsComparator : DiffUtil.ItemCallback<ExpandableChannelModel>() {
+class ChannelsComparator : DiffUtil.ItemCallback<ExpandableStreamModel>() {
 
     override fun areItemsTheSame(
-        oldItem: ExpandableChannelModel,
-        newItem: ExpandableChannelModel
+        oldItem: ExpandableStreamModel,
+        newItem: ExpandableStreamModel
     ): Boolean {
-        if (oldItem.type == ExpandableChannelModel.PARENT &&
-            newItem.type == ExpandableChannelModel.PARENT
+        if (oldItem.type == ExpandableStreamModel.PARENT &&
+            newItem.type == ExpandableStreamModel.PARENT
         ) {
-            return oldItem.channelGroup.id == newItem.channelGroup.id
+            return oldItem.stream.id == newItem.stream.id
 
-        } else if (oldItem.type == ExpandableChannelModel.CHILD &&
-            newItem.type == ExpandableChannelModel.CHILD
+        } else if (oldItem.type == ExpandableStreamModel.CHILD &&
+            newItem.type == ExpandableStreamModel.CHILD
         ) {
-            return oldItem.channel.id == newItem.channel.id
+            return oldItem.topic.id == newItem.topic.id
         }
         return false
     }
 
     override fun areContentsTheSame(
-        oldItem: ExpandableChannelModel,
-        newItem: ExpandableChannelModel
+        oldItem: ExpandableStreamModel,
+        newItem: ExpandableStreamModel
     ): Boolean {
-        if (oldItem.type == ExpandableChannelModel.PARENT &&
-            newItem.type == ExpandableChannelModel.PARENT
+        if (oldItem.type == ExpandableStreamModel.PARENT &&
+            newItem.type == ExpandableStreamModel.PARENT
         ) {
-            return oldItem.channelGroup == newItem.channelGroup &&
+            return oldItem.stream == newItem.stream &&
                 oldItem.isExpanded == newItem.isExpanded
 
-        } else if (oldItem.type == ExpandableChannelModel.CHILD &&
-            newItem.type == ExpandableChannelModel.CHILD
+        } else if (oldItem.type == ExpandableStreamModel.CHILD &&
+            newItem.type == ExpandableStreamModel.CHILD
         ) {
-            return oldItem.channel == newItem.channel
+            return oldItem.topic == newItem.topic
         }
         return false
     }

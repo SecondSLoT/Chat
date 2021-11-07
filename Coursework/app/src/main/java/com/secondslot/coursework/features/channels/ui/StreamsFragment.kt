@@ -12,7 +12,7 @@ import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentChannelsBinding
 import com.secondslot.coursework.features.channels.adapter.ChannelsPagerAdapter
 
-class ChannelsFragment : Fragment() {
+class StreamsFragment : Fragment() {
 
     private var _binding: FragmentChannelsBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -76,6 +76,6 @@ class ChannelsFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance() = ChannelsFragment()
+        fun newInstance() = StreamsFragment()
     }
 }

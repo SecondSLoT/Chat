@@ -1,6 +1,6 @@
 package com.secondslot.coursework.data.db.model
 
-import com.secondslot.coursework.domain.model.ChannelGroup
+import com.secondslot.coursework.domain.model.Stream
 
 class ChannelGroupEntity(
     val id: Int,
@@ -15,15 +15,15 @@ class ChannelGroupEntity(
     )
 }
 
-fun ChannelGroupEntity.toDomainModel(): ChannelGroup = ChannelGroup(
-    id = this.id,
-    groupTitle = this.groupTitle,
-    channels = this.channels.map {
-        ChannelGroup.Channel(
-            id = it.id,
-            topic = it.topic,
-            someMoreInfo = it.someMoreInfo
-        )
-    }
-)
+//fun ChannelGroupEntity.toDomainModel(): Stream = Stream(
+//    id = this.id,
+//    streamName = this.groupTitle,
+//    topics = this.channels.map {
+//        Stream.Topic(
+//            id = it.id,
+//            topicName = it.topic,
+//            someMoreInfo = it.someMoreInfo
+//        )
+//    }
+//)
 

@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentMainBinding
-import com.secondslot.coursework.features.channels.ui.ChannelsFragment
+import com.secondslot.coursework.features.channels.ui.StreamsFragment
 import com.secondslot.coursework.features.people.ui.PeopleFragment
 import com.secondslot.coursework.features.profile.ui.ProfileFragment
 
@@ -26,14 +26,14 @@ class MainFragment : Fragment() {
     }
 
     private fun initViews() {
-        loadFragment(ChannelsFragment.newInstance())
+        loadFragment(StreamsFragment.newInstance())
 
         binding.bottomNavigationView.run {
             selectedItemId = R.id.action_channels
             setOnItemSelectedListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.action_channels -> {
-                        loadFragment(ChannelsFragment.newInstance())
+                        loadFragment(StreamsFragment.newInstance())
                         true
                     }
                     R.id.action_people -> {
