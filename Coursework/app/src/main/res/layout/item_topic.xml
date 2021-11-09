@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/username"
     android:layout_width="match_parent"
     android:layout_height="41dp"
@@ -10,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="41dp"
-        android:text="Testing"
+        tools:text="Testing"
         android:layout_gravity="center_vertical"
         android:textSize="18sp"
         android:textColor="@color/message" />
@@ -19,7 +20,7 @@
         android:id="@+id/additional_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1240 mes"
+        tools:text="1240 mes"
         android:textColor="@color/group_additional_text"
         android:textSize="16sp"
         android:layout_gravity="center_vertical"

@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentUsersBinding
 import com.secondslot.coursework.domain.model.User
-import com.secondslot.coursework.domain.usecase.GetUsersUseCase
+import com.secondslot.coursework.domain.usecase.GetAllUsersUseCase
 import com.secondslot.coursework.features.people.adapter.PeopleListAdapter
 import com.secondslot.coursework.features.people.adapter.UsersItemDecoration
 import com.secondslot.coursework.features.people.ui.UserState.Error
@@ -35,7 +35,7 @@ class PeopleFragment : Fragment(), OnUserClickListener {
     private val searchSubject: PublishSubject<String> = PublishSubject.create()
     private val compositeDisposable = CompositeDisposable()
 
-    private val getUsersUseCase = GetUsersUseCase()
+    private val getAllUsersUseCase = GetAllUsersUseCase()
     private val usersAdapter = PeopleListAdapter(this)
 
     private var users = listOf<User>()
@@ -81,7 +81,7 @@ class PeopleFragment : Fragment(), OnUserClickListener {
     }
 
     private fun getUsers() {
-        val usersObservable = getUsersUseCase.execute()
+        val usersObservable = getAllUsersUseCase.execute()
         usersObservable
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -132,7 +132,7 @@ class PeopleFragment : Fragment(), OnUserClickListener {
             .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { processFragmentState(Loading) }
             .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
-            .switchMap { searchQuery -> getUsersUseCase.execute(searchQuery) }
+            .switchMap { searchQuery -> getAllUsersUseCase.execute(searchQuery) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onNext = { processFragmentState(Result(it)) },

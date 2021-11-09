@@ -1,5 +1,8 @@
 package com.secondslot.coursework.features.chat.ui
 
+import android.os.Build
+import android.text.Html
+import android.text.Html.FROM_HTML_MODE_COMPACT
 import androidx.core.view.isGone
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.R
@@ -13,10 +16,15 @@ class MessageViewHolder(
     private val listener: MessageInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(message: MessageItem) {
+    fun bind(message: MessageItem, myId: Int) {
         binding.messageViewGroup.run {
-            setUsername(message.username)
-            setMessageText(message.message)
+            message.avatarUrl?.let { setUserPhoto(it) }
+            message.senderFullName?.let { setUsername(it) }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                setMessageText(Html.fromHtml(message.content, FROM_HTML_MODE_COMPACT).toString())
+            } else {
+                setMessageText(Html.fromHtml(message.content).toString())
+            }
         }
 
         val customFlexBoxLayout =
@@ -30,22 +38,18 @@ class MessageViewHolder(
             val index = customFlexBoxLayout.childCount - 1
             for (reaction in message.reactions) {
                 val reactionView = CustomReactionView(itemView.context)
-                reactionView.emoji = reaction.code
-                reactionView.counter = reaction.count
-                reactionView.isSelected = reaction.isSelected
-                reactionView.setOnClickListener {
-                    it as CustomReactionView
-                    if (it.isSelected) {
-                        it.isSelected = false
-                        it.counter--
-                    } else {
-                        it.isSelected = true
-                        it.counter++
-                    }
-                    if (it.counter == 0) {
-                        message.reactions.remove(reaction)
-                        listener.removeReaction(message, reaction)
-                        customFlexBoxLayout.removeView(it)
+                reactionView.run {
+                    emoji = reaction.key.emojiCode
+                    counter = reaction.value
+                    isSelected = reaction.key.userId == myId
+
+                    setOnClickListener {
+                        it as CustomReactionView
+                        if (it.isSelected) {
+                            listener.removeReaction(message.id, reaction.key.emojiName)
+                        } else {
+                            listener.addReaction(message.id, reaction.key.emojiName)
+                        }
                     }
                 }
                 customFlexBoxLayout.addView(reactionView, index)
@@ -54,7 +58,7 @@ class MessageViewHolder(
             customFlexBoxLayout.isGone = true
         }
 
-        if (message.userId == 0L) {
+        if (message.senderId == myId) {
             binding.messageViewGroup.setMessageBgColor(R.color.username)
             binding.messageViewGroup.setSelfMessageType(true)
         } else {

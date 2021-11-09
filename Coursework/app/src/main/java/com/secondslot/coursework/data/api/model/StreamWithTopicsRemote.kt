@@ -8,7 +8,7 @@ class StreamWithTopicsRemote(
     val topics: List<TopicRemote>
 )
 
-object RemoteToDomainMapper : BaseMapper<List<StreamWithTopicsRemote>, List<Stream>> {
+object StreamRemoteToDomainMapper : BaseMapper<List<StreamWithTopicsRemote>, List<Stream>> {
 
     override fun map(type: List<StreamWithTopicsRemote>?): List<Stream> {
         return type?.map {
@@ -16,12 +16,11 @@ object RemoteToDomainMapper : BaseMapper<List<StreamWithTopicsRemote>, List<Stre
                 id = it.streamRemote.id,
                 streamName = it.streamRemote.streamName,
                 description = it.streamRemote.description ?: "",
-                color = it.streamRemote.color ?: "",
-                role = it.streamRemote.role,
                 topics = it.topics.map { topicRemote ->
                     Stream.Topic(
-                        id = topicRemote.id,
-                        topicName = topicRemote.topicName
+                        topicName = topicRemote.topicName,
+                        maxMessageId = topicRemote.maxMessageId,
+                        streamId = it.streamRemote.id
                     )
                 }
             )

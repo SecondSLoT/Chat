@@ -5,13 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.content.ContextCompat.getColor
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentProfileBinding
 import com.secondslot.coursework.domain.model.User
+import com.secondslot.coursework.domain.usecase.GetOwnProfileUseCase
 import com.secondslot.coursework.domain.usecase.GetProfileUseCase
 import com.secondslot.coursework.extentions.loadImage
 import com.secondslot.coursework.features.profile.ui.ProfileState.Error
@@ -31,6 +30,7 @@ class ProfileFragment : Fragment() {
     private val compositeDisposable = CompositeDisposable()
 
     private val getProfileUseCase = GetProfileUseCase()
+    private  val getOwnProfileUseCase = GetOwnProfileUseCase()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,7 +45,7 @@ class ProfileFragment : Fragment() {
     }
 
     private fun initViews(userId: Int) {
-        if (userId == 0) {
+        if (userId == -1) {
             binding.toolbar.isVisible = false
         }
     }
@@ -57,7 +57,11 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setObservers(userId: Int) {
-        val profileSingle = getProfileUseCase.execute(userId)
+        val profileSingle = if (userId != -1) {
+            getProfileUseCase.execute(userId)
+        } else {
+            getOwnProfileUseCase.execute()
+        }
         profileSingle
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -73,25 +77,11 @@ class ProfileFragment : Fragment() {
         when (state) {
             is Result -> {
                 binding.run {
-                    userPhoto.loadImage(state.user.userPhoto)
-                    usernameTextView.text = state.user.username
+                    userPhoto.loadImage(state.user.avatarUrl ?: "")
+                    usernameTextView.text = state.user.fullName
 
                     shimmer.isVisible = false
                     group.isVisible = true
-                }
-
-                if (state.user.status == User.STATUS_ONLINE) {
-                    binding.run {
-                        statusTextView.text = getString(R.string.status_online)
-                        statusTextView.setTextColor(
-                            getColor(requireContext(), R.color.status_online))
-                    }
-                } else {
-                    binding.run {
-                        statusTextView.text = getString(R.string.status_offline)
-                        statusTextView.setTextColor(
-                            getColor(requireContext(), R.color.email_text))
-                    }
                 }
             }
 
@@ -120,7 +110,11 @@ class ProfileFragment : Fragment() {
     companion object {
         private const val USER_ID = "user_id"
 
-        fun newInstance(userId: Int): ProfileFragment {
+        /**
+         * @param userId: if userId is not defined, it's value will be set to -1.
+         * This means that this fragment is for an own profile screen
+         */
+        fun newInstance(userId: Int = -1): ProfileFragment {
           return ProfileFragment().apply {
               arguments = bundleOf(USER_ID to userId)
           }

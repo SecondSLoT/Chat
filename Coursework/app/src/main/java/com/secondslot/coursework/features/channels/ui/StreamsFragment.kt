@@ -10,7 +10,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentChannelsBinding
-import com.secondslot.coursework.features.channels.adapter.ChannelsPagerAdapter
+import com.secondslot.coursework.features.channels.adapter.StreamsPagerAdapter
 
 class StreamsFragment : Fragment() {
 
@@ -41,7 +41,7 @@ class StreamsFragment : Fragment() {
             getString(R.string.all_streams)
         )
 
-        val channelsPagerAdapter = ChannelsPagerAdapter(parentFragmentManager, lifecycle)
+        val channelsPagerAdapter = StreamsPagerAdapter(childFragmentManager, lifecycle)
 
         binding.viewPager.adapter = channelsPagerAdapter
 

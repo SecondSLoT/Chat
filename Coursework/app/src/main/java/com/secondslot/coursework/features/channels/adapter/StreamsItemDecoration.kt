@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.R
 import com.secondslot.coursework.extentions.toPx
 
-class ChannelsItemDecoration : RecyclerView.ItemDecoration() {
+class StreamsItemDecoration : RecyclerView.ItemDecoration() {
 
     private val dividerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 

@@ -3,12 +3,12 @@ package com.secondslot.coursework.features.chat.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.databinding.ItemEmojiBinding
-import com.secondslot.coursework.domain.model.Reaction
 import com.secondslot.coursework.features.chat.ui.ChooseReactionListener
 
 class ReactionsAdapter(
-    private val reactions: List<Reaction>,
+    private val reactions: List<ReactionLocal>,
     private val listener: ChooseReactionListener
 ) :
     RecyclerView.Adapter<ReactionsAdapter.ReactionHolder>() {
@@ -28,17 +28,17 @@ class ReactionsAdapter(
     inner class ReactionHolder(
         private val binding: ItemEmojiBinding,
         private val listener: ChooseReactionListener
-    ) :
-        RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-        init {
+        fun bind(reactions: List<ReactionLocal>) {
+
             binding.root.setOnClickListener {
-                listener.reactionChosen(reactions.get(bindingAdapterPosition))
+                listener.reactionChosen(reactions[absoluteAdapterPosition])
             }
-        }
 
-        fun bind(reactions: List<Reaction>) {
-            binding.emoji.text = reactions[bindingAdapterPosition].code
+            binding.emoji.text = String(
+                Character.toChars(reactions[absoluteAdapterPosition].emojiCode.toInt(16))
+            )
         }
     }
 }

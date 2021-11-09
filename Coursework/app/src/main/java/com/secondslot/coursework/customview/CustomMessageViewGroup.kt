@@ -6,7 +6,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -16,6 +15,7 @@ import androidx.core.view.marginEnd
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.CustomMessageViewGroupBinding
 import com.secondslot.coursework.domain.model.Reaction
+import com.secondslot.coursework.extentions.loadRoundImage
 import com.secondslot.coursework.extentions.toPx
 
 class CustomMessageViewGroup @JvmOverloads constructor(
@@ -329,8 +329,8 @@ class CustomMessageViewGroup @JvmOverloads constructor(
         return MarginLayoutParams(p)
     }
 
-    fun setUserPhoto(image: Drawable) {
-        binding.userPhoto.background = image
+    fun setUserPhoto(imageUri: String) {
+        binding.userPhoto.loadRoundImage(imageUri)
     }
 
     fun setUsername(name: String) {

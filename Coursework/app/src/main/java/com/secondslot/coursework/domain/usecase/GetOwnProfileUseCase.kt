@@ -5,11 +5,11 @@ import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository
 import io.reactivex.Single
 
-class GetProfileUseCase {
+class GetOwnProfileUseCase {
 
     private val repository: UsersRepository = UsersRepositoryImpl
 
-    fun execute(userId: Int): Single<User> {
-        return repository.getProfileInfo(userId)
+    fun execute(): Single<User> {
+        return repository.getOwnProfile()
     }
 }

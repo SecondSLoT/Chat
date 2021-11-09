@@ -11,11 +11,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.R
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import com.secondslot.coursework.features.channels.ui.ExpandCollapseListener
-import com.secondslot.coursework.features.channels.ui.OnChatClickListener
+import com.secondslot.coursework.features.channels.ui.OnTopicClickListener
 
 class StreamsListAdapter(
     private val expandCollapseListener: ExpandCollapseListener,
-    private val chatListener: OnChatClickListener
+    private val topicListener: OnTopicClickListener
 ) : ListAdapter<ExpandableStreamModel, RecyclerView.ViewHolder>(ChannelsComparator()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -23,7 +23,7 @@ class StreamsListAdapter(
             ExpandableStreamModel.PARENT -> {
                 StreamViewHolder(
                     LayoutInflater.from(parent.context).inflate(
-                        R.layout.item_channel_group, parent, false
+                        R.layout.item_stream, parent, false
                     )
                 )
             }
@@ -31,7 +31,7 @@ class StreamsListAdapter(
             else -> {
                 TopicViewHolder(
                     LayoutInflater.from(parent.context).inflate(
-                        R.layout.item_channel, parent, false
+                        R.layout.item_topic, parent, false
                     )
                 )
             }
@@ -70,13 +70,13 @@ class StreamsListAdapter(
 
             ExpandableStreamModel.CHILD -> {
                 (holder as TopicViewHolder).topic.text = row.topic.topicName
-//                holder.additionalInfo.text = row.channel.someMoreInfo
 
                 holder.itemView.setOnClickListener {
                     val topic = getItem(holder.absoluteAdapterPosition).topic
-                    chatListener.onChannelClicked(
-                        topic.id,
-                        topic.topicName
+                    topicListener.onTopicClicked(
+                        topic.topicName,
+                        topic.maxMessageId,
+                        topic.streamId
                     )
                 }
             }
@@ -96,7 +96,6 @@ class StreamsListAdapter(
 
     class TopicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         internal var topic: TextView = itemView.findViewById(R.id.channel_text_view)
-        internal var additionalInfo: TextView = itemView.findViewById(R.id.additional_info)
     }
 }
 
@@ -114,7 +113,7 @@ class ChannelsComparator : DiffUtil.ItemCallback<ExpandableStreamModel>() {
         } else if (oldItem.type == ExpandableStreamModel.CHILD &&
             newItem.type == ExpandableStreamModel.CHILD
         ) {
-            return oldItem.topic.id == newItem.topic.id
+            return oldItem.topic.maxMessageId == newItem.topic.maxMessageId
         }
         return false
     }

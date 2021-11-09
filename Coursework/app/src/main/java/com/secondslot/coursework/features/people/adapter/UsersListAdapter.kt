@@ -2,7 +2,6 @@ package com.secondslot.coursework.features.people.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -33,17 +32,12 @@ class PeopleListAdapter(
 
         fun bind(user: User) {
             binding.run {
-                userPhoto.loadRoundImage(user.userPhoto)
-                username.text = user.username
+                userPhoto.loadRoundImage(user.avatarUrl ?: "")
+                username.text = user.fullName
                 email.text = user.email
             }
 
-            when (user.status) {
-                User.STATUS_ONLINE -> binding.statusImageView.isVisible = true
-                User.STATUS_OFFLINE -> binding.statusImageView.isVisible = false
-            }
-
-            itemView.setOnClickListener { listener.onUserClick(user.id) }
+            itemView.setOnClickListener { listener.onUserClick(user.userId) }
         }
     }
 }
@@ -51,7 +45,7 @@ class PeopleListAdapter(
 class UsersComparator : DiffUtil.ItemCallback<User>() {
 
     override fun areItemsTheSame(oldItem: User, newItem: User): Boolean {
-        return oldItem.id == newItem.id
+        return oldItem.userId == newItem.userId
     }
 
     override fun areContentsTheSame(oldItem: User, newItem: User): Boolean {

@@ -1,9 +1,13 @@
 package com.secondslot.coursework.domain.model
 
+import com.secondslot.coursework.data.api.model.UserShortRemote
+
 class Reaction(
-    val code: String,
-    var count: Int = 1,
-    var isSelected: Boolean = false
+    val emojiName: String,
+    val emojiCode: String,
+    val reactionType: String,
+    val user: UserShortRemote,
+    val userId: Int,
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -12,12 +16,17 @@ class Reaction(
 
         other as Reaction
 
-        if (code != other.code) return false
+        if (emojiName != other.emojiName) return false
+        if (emojiCode != other.emojiCode) return false
+        if (reactionType != other.reactionType) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return code.hashCode()
+        var result = emojiName.hashCode()
+        result = 31 * result + emojiCode.hashCode()
+        result = 31 * result + reactionType.hashCode()
+        return result
     }
 }

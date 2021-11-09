@@ -9,4 +9,6 @@ interface UsersRepository {
     fun getUsers(): Observable<List<User>>
 
     fun getProfileInfo(userId: Int): Single<User>
+
+    fun getOwnProfile(): Single<User>
 }

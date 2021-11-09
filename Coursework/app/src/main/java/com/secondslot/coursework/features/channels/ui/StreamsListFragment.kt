@@ -16,7 +16,7 @@ import com.secondslot.coursework.databinding.FragmentChannelsListBinding
 import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.usecase.GetAllStreamsUseCase
 import com.secondslot.coursework.domain.usecase.GetSubscribedStreamsUseCase
-import com.secondslot.coursework.features.channels.adapter.ChannelsItemDecoration
+import com.secondslot.coursework.features.channels.adapter.StreamsItemDecoration
 import com.secondslot.coursework.features.channels.adapter.StreamsListAdapter
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import com.secondslot.coursework.features.channels.ui.ChannelsState.*
@@ -31,7 +31,7 @@ import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 
 class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryListener,
-    OnChatClickListener {
+    OnTopicClickListener {
 
     private var _binding: FragmentChannelsListBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -72,7 +72,7 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
         binding.recyclerView.run {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = streamsListAdapter
-            addItemDecoration(ChannelsItemDecoration())
+            addItemDecoration(StreamsItemDecoration())
             itemAnimator = null
         }
     }
@@ -206,16 +206,14 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
         searchSubject.onNext(searchQuery)
     }
 
-    override fun onChannelClicked(channelId: Int, topic: String) {
-
-        requireActivity().run {
-
-
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.container, ChatFragment.newInstance(channelId, topic))
-                .addToBackStack(null)
-                .commitAllowingStateLoss()
-        }
+    override fun onTopicClicked(topicName: String, maxMessageId: Int, streamId: Int) {
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(
+                R.id.container,
+                ChatFragment.newInstance(topicName, maxMessageId, streamId)
+            )
+            .addToBackStack(null)
+            .commitAllowingStateLoss()
     }
 
     override fun onDestroy() {

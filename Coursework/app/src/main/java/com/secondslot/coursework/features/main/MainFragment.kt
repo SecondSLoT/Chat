@@ -25,26 +25,32 @@ class MainFragment : Fragment() {
         return binding.root
     }
 
-    private fun initViews() {
-        loadFragment(StreamsFragment.newInstance())
+    override fun onResume() {
+        super.onResume()
+        changePage(binding.bottomNavigationView.selectedItemId)
+    }
 
+    private fun initViews() {
         binding.bottomNavigationView.run {
             selectedItemId = R.id.action_channels
+
             setOnItemSelectedListener { menuItem ->
-                when (menuItem.itemId) {
-                    R.id.action_channels -> {
-                        loadFragment(StreamsFragment.newInstance())
-                        true
-                    }
-                    R.id.action_people -> {
-                        loadFragment(PeopleFragment.newInstance())
-                        true
-                    }
-                    else -> {
-                        loadFragment(ProfileFragment.newInstance(0))
-                        true
-                    }
-                }
+                changePage(menuItem.itemId)
+                true
+            }
+        }
+    }
+
+    private fun changePage(menuItemId: Int) {
+        when (menuItemId) {
+            R.id.action_channels -> {
+                loadFragment(StreamsFragment.newInstance())
+            }
+            R.id.action_people -> {
+                loadFragment(PeopleFragment.newInstance())
+            }
+            else -> {
+                loadFragment(ProfileFragment.newInstance())
             }
         }
     }

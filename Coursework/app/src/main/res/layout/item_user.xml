@@ -20,7 +20,9 @@
         android:id="@+id/status_image_view"
         android:layout_width="16dp"
         android:layout_height="16dp"
+        android:contentDescription="@string/user_status_content_description"
         android:src="@drawable/indicator_status_online"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="@id/user_photo"
         app:layout_constraintBottom_toBottomOf="@id/user_photo"/>
 

@@ -5,9 +5,9 @@ import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository
 import io.reactivex.Observable
 
-class GetUsersUseCase {
+class GetAllUsersUseCase {
 
-    private val usersRepository: UsersRepository = UsersRepositoryImpl()
+    private val usersRepository: UsersRepository = UsersRepositoryImpl
 
     fun execute(searchQuery: String = ""): Observable<List<User>> {
         return if (searchQuery.isEmpty()) {
@@ -16,7 +16,7 @@ class GetUsersUseCase {
             usersRepository.getUsers()
                 .map { users ->
                     users.filter {
-                        it.username.contains(searchQuery, ignoreCase = true)
+                        it.fullName.contains(searchQuery, ignoreCase = true)
                     }
                 }
         }

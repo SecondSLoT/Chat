@@ -26,7 +26,7 @@ class CustomReactionView @JvmOverloads constructor(
             requestLayout()
         }
 
-    var counter = 1
+    var counter = 0
         set(value) {
             field = value
             requestLayout()

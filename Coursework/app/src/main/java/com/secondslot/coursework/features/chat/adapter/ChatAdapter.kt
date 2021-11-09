@@ -20,7 +20,8 @@ private const val TYPE_MESSAGE = 0
 private const val TYPE_DATE = 1
 
 class ChatAdapter(
-    private val listener: MessageInteractionListener
+    private val listener: MessageInteractionListener,
+    private val myId: Int
 ) : ListAdapter<ChatItem, RecyclerView.ViewHolder>(MessageComparator()) {
 
     override fun getItemViewType(position: Int): Int {
@@ -67,7 +68,7 @@ class ChatAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is MessageViewHolder) {
-            holder.bind(getItem(position) as MessageItem)
+            holder.bind(getItem(position) as MessageItem, myId)
         } else {
             (holder as DateViewHolder).bind(getItem(position) as DateDivider)
         }
@@ -84,9 +85,11 @@ class MessageComparator : DiffUtil.ItemCallback<ChatItem>() {
         return when (oldItem) {
             is MessageItem -> {
                 if (newItem is MessageItem) {
-                    oldItem.datetime == newItem.datetime &&
-                        oldItem.username == newItem.username &&
-                        oldItem.message == newItem.message &&
+                    oldItem.id == newItem.id &&
+                        oldItem.senderId == newItem.senderId &&
+                        oldItem.senderFullName == newItem.senderFullName &&
+                        oldItem.content == newItem.content &&
+                        oldItem.topic == newItem.topic &&
                         oldItem.reactions == newItem.reactions
                 } else {
                     false
@@ -95,7 +98,7 @@ class MessageComparator : DiffUtil.ItemCallback<ChatItem>() {
 
             is DateDivider -> {
                 if (newItem is DateDivider) {
-                    oldItem.date == (newItem as DateDivider).date
+                    oldItem.date == newItem.date
                 } else {
                     false
                 }

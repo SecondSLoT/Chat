@@ -1,32 +1,36 @@
 package com.secondslot.coursework.features.chat.model
 
+import com.secondslot.coursework.core.mapper.BaseMapper
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.model.Reaction
-import java.util.*
 
-class MessageItem(
-    val messageId: UUID = UUID.randomUUID(),
-    val userId: Long = 0,
-    val datetime: Long = 0L,
-    val username: String = "",
-    val userPhoto: String = "",
-    val message: String = "",
-    var reactions: ArrayList<Reaction> = arrayListOf()
-) : ChatItem {
+data class MessageItem(
+    val id: Int,
+    val senderId: Int,
+    val senderFullName: String?,
+    val avatarUrl: String?,
+    val content: String,
+    val topic: String?,
+    val timestamp: Int,
+    val isMeMessage: Boolean,
+    var reactions: Map<Reaction, Int>
+) : ChatItem
 
-    companion object {
-        fun fromDomainModel(messages: List<Message>): List<MessageItem> =
-            messages.map {
-                MessageItem(
-                    messageId = it.messageId,
-                    userId = it.userId,
-                    datetime = it.datetime,
-                    username = it.username,
-                    userPhoto = it.userPhoto,
-                    message = it.message,
-                    reactions = it.reactions
-                )
-            }
+object MessageToItemMapper : BaseMapper<List<Message>, List<MessageItem>> {
 
+    override fun map(type: List<Message>?): List<MessageItem> {
+        return type?.map {
+            MessageItem(
+                id = it.id,
+                senderId = it.senderId,
+                senderFullName = it.senderFullName,
+                avatarUrl = it.avatarUrl,
+                content = it.content,
+                topic = it.topic,
+                timestamp = it.timestamp,
+                isMeMessage = it.isMeMessage,
+                reactions = it.reactions.groupingBy { reaction -> reaction }.eachCount()
+            )
+        } ?: emptyList()
     }
 }

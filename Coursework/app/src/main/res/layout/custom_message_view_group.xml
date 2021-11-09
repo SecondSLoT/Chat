@@ -10,9 +10,8 @@
         android:layout_width="@dimen/message_avatar_size"
         android:layout_height="@dimen/message_avatar_size"
         android:layout_marginEnd="6dp"
-        android:background="@drawable/test_image"
         android:contentDescription="@string/user_photo_content_description"
-        android:src="@drawable/bg_circle_image_view" />
+        tools:src="@drawable/test_image" />
 
     <TextView
         android:id="@+id/username"
@@ -32,8 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/message_margin_end"
         android:layout_marginBottom="6dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="8dp"
+        android:paddingVertical="4dp"
         android:paddingHorizontal="12dp"
         tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
             tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis

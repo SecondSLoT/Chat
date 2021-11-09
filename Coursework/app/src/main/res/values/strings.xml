@@ -6,6 +6,7 @@
     <string name="expand_group_content_description">Expand group</string>
     <string name="collapse_group_content_description">Collapse group</string>
     <string name="profile_back_button_description">Back to People screen</string>
+    <string name="user_status_content_description">User status</string>
 
     <string name="type_message_hint">Type a message…</string>
     <string name="channels_search_hint">Search…</string>
@@ -27,5 +28,6 @@
 
     <string name="custom_message_view_group_child_count_error">
         ChildCount expected %d, but found %d</string>
-    <string name="send_message_error">Error sending message!</string>
+    <string name="send_message_error">Error sending message</string>
+    <string name="network_error_message">Network error</string>
 </resources>
