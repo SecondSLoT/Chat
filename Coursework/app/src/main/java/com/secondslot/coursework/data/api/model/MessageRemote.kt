@@ -1,10 +1,13 @@
 package com.secondslot.coursework.data.api.model
 
+import android.util.Log
 import com.secondslot.coursework.core.mapper.BaseMapper
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.model.Reaction
+import com.secondslot.coursework.extentions.convertEmojiCode
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import java.lang.NumberFormatException
 
 @JsonClass(generateAdapter = true)
 class MessageRemote(
@@ -29,6 +32,8 @@ class MessageRemote(
 
 object MessageRemoteToDomainMapper : BaseMapper<List<MessageRemote>, List<Message>> {
 
+    private const val TAG = "MessageRemote"
+
     override fun map(type: List<MessageRemote>?): List<Message> {
         return type?.map {
             Message(
@@ -43,9 +48,7 @@ object MessageRemoteToDomainMapper : BaseMapper<List<MessageRemote>, List<Messag
                 reactions = it.reactions.map { reactionRemote ->
                     Reaction(
                         emojiName = reactionRemote.emojiName,
-                        emojiCode = String(
-                            Character.toChars(reactionRemote.emojiCode.toInt(16))
-                        ),
+                        emojiCode = reactionRemote.emojiCode.convertEmojiCode(),
                         reactionType = reactionRemote.reactionType,
                         user = reactionRemote.user,
                         userId = reactionRemote.userId

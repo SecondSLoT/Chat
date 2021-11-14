@@ -84,7 +84,9 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     }
 
     private fun setObservers() {
+        // Get streams ones when fragment is launched
         getStreams()
+        // Subscription which will update streams when text in search field changes
         subscribeOnSearchChanges()
     }
 
@@ -99,9 +101,15 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
             .subscribeOn(Schedulers.io())
             .map { ExpandableStreamModel.fromStream(it) }
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnSubscribe { processFragmentState(Loading) }
             .subscribeBy(
-                onNext = { processFragmentState(Result(it)) },
+                onNext = {
+                    Log.d(TAG, "streamsObservable onNext")
+                    if (it.isNullOrEmpty()) {
+                        processFragmentState(Loading)
+                    } else {
+                        processFragmentState(Result(it))
+                    }
+                },
                 onError = { processFragmentState(Error(it)) }
             )
             .addTo(compositeDisposable)
@@ -131,6 +139,7 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
             is Error -> {
                 Toast.makeText(requireContext(), state.error.message, Toast.LENGTH_SHORT).show()
                 state.error.message?.let { Log.e(TAG, it) }
+
                 binding.run {
                     shimmer.isVisible = false
                     recyclerView.isVisible = false
@@ -223,7 +232,7 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
 
     companion object {
 
-        private const val TAG = "TAG"
+        private const val TAG = "StreamsListFragment"
         private const val CONTENT_KEY = "list_type"
         const val SUBSCRIBED = "subscribed"
         const val ALL_STREAMS = "all_streams"

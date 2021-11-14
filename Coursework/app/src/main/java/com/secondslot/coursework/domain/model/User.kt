@@ -5,5 +5,4 @@ data class User(
     val fullName: String,
     val avatarUrl: String?,
     val email: String?,
-    val isMe: Boolean = false
 )

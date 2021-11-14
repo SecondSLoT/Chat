@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.databinding.ItemEmojiBinding
+import com.secondslot.coursework.extentions.convertEmojiCode
 import com.secondslot.coursework.features.chat.ui.ChooseReactionListener
 
 class ReactionsAdapter(
@@ -36,9 +37,7 @@ class ReactionsAdapter(
                 listener.reactionChosen(reactions[absoluteAdapterPosition])
             }
 
-            binding.emoji.text = String(
-                Character.toChars(reactions[absoluteAdapterPosition].emojiCode.toInt(16))
-            )
+            binding.emoji.text = reactions[absoluteAdapterPosition].emojiCode.convertEmojiCode()
         }
     }
 }

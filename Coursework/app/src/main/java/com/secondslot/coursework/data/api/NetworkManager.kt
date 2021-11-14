@@ -83,6 +83,18 @@ class NetworkManager {
             delete(result.length - 2, result.length)
             append("]")
         }
+
+//        val moshi = Moshi.Builder().build()
+//        val type: Type = Types.newParameterizedType(
+//            List::class.java,
+//            NarrowDto::class.java
+//        )
+//
+//        val adapter: JsonAdapter<List<NarrowDto>> = moshi.adapter(type)
+//
+//        val result = adapter.toJson(parameters)
+//        Log.d(TAG, "Narrow = $result")
+
         return result.toString()
     }
 
@@ -113,3 +125,8 @@ class NetworkManager {
         private const val TAG = "NetworkManager"
     }
 }
+
+    class NarrowDto(
+        val operator: String,
+        val operand: String
+    )

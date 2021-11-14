@@ -44,8 +44,8 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     private var _binding: FragmentChatBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-    private val myId = 455726
-    private var chatAdapter: ChatAdapter = ChatAdapter(this, myId)
+    private var myId: Int = -1
+    private var chatAdapter: ChatAdapter? = null
     private var chosenMessage: MessageItem? = null
     private var bottomSheetDialog: BottomSheetDialog? = null
 
@@ -67,15 +67,6 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
 
         requireActivity().window.statusBarColor =
             ContextCompat.getColor(requireContext(), R.color.username)
-
-//        getOwnProfileUseCase.execute()
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribeBy(
-//                onSuccess = { user ->
-//                    chatAdapter = ChatAdapter(this, user.userId) }
-//            )
-//            .addTo(compositeDisposable)
     }
 
     override fun onCreateView(
@@ -97,10 +88,20 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     private fun initViews() {
         val linearLayoutManager = LinearLayoutManager(requireContext())
         linearLayoutManager.stackFromEnd = true
-        binding.recyclerView.run {
-            layoutManager = linearLayoutManager
-            adapter = chatAdapter
-        }
+        binding.recyclerView.layoutManager = linearLayoutManager
+
+        getOwnProfileUseCase.execute()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onSuccess = { user ->
+                    myId = user.userId
+                    chatAdapter = ChatAdapter(this, myId)
+                    binding.recyclerView.adapter = chatAdapter
+                },
+                onError = { showError(it) }
+            )
+            .addTo(compositeDisposable)
 
         binding.run {
             topicTextView.text = getString(R.string.topic, topicName)
@@ -109,8 +110,6 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     }
 
     private fun setListeners() {
-        binding.recyclerView.viewTreeObserver.addOnGlobalLayoutListener { scrollToEnd() }
-
         binding.messageEditText.doAfterTextChanged { text ->
             setSendButtonAction(text.toString() == "")
         }
@@ -129,10 +128,10 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     }
 
     private fun setObservers() {
-        getMessages()
+        getMessages(true)
     }
 
-    private fun getMessages() {
+    private fun getMessages(scrollToEnd: Boolean = false) {
         val narrow = mapOf(
             "stream" to streamId,
             "topic" to topicName
@@ -145,7 +144,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
             .subscribeBy(
                 onNext = {
                     messages = it
-                    updateMessages()
+                    updateMessages(scrollToEnd)
                 },
                 onError = { showError(it) }
             )
@@ -165,7 +164,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
                 onSuccess = {
                     if (it.result == SERVER_RESULT_SUCCESS) {
                         binding.messageEditText.text.clear()
-                        getMessages()
+                        getMessages(true)
                     } else {
                         showSendMessageError()
                     }
@@ -184,7 +183,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         if (error == null) {
             Log.e(TAG, getString(R.string.send_message_error))
         } else {
-            Log.e(TAG, "${getString(R.string.send_message_error)} $error")
+            Log.e(TAG, "${getString(R.string.send_message_error)}: $error")
         }
     }
 
@@ -201,7 +200,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         }
     }
 
-    private fun updateMessages() {
+    private fun updateMessages(isScrollToEnd: Boolean = false) {
         for (i in messages.size - 1 downTo 1) {
             if (messages[i - 1] is MessageItem && messages[i] is MessageItem) {
                 if ((messages[i - 1] as MessageItem).timestamp.getDateForChat() !=
@@ -217,6 +216,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
                 }
             }
         }
+
         if (messages[0] !is DateDivider) {
             (messages as ArrayList).add(
                 0, DateDivider(
@@ -225,7 +225,9 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
                 )
             )
         }
-        chatAdapter.submitList(messages.toList())
+        chatAdapter?.submitList(messages.toList()) {
+            if (isScrollToEnd) scrollToEnd()
+        }
     }
 
     private fun setSendButtonAction(isMessageEmpty: Boolean) {
@@ -241,7 +243,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     }
 
     private fun scrollToEnd() = binding.recyclerView.adapter?.itemCount?.minus(1)
-        ?.takeIf { it > 0 }?.let(binding.recyclerView::smoothScrollToPosition)
+        ?.takeIf { it > 0 }?.let(binding.recyclerView::scrollToPosition)
 
     override fun openReactionsSheet(message: MessageItem) {
         chosenMessage = message
