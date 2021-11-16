@@ -6,7 +6,7 @@ data class Message(
     val senderFullName: String?,
     val avatarUrl: String?,
     val content: String,
-    val topic: String?,
+    val topicName: String?,
     val timestamp: Int,
     val isMeMessage: Boolean,
     var reactions: List<Reaction>

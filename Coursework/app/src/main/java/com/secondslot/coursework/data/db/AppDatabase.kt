@@ -3,6 +3,7 @@ package com.secondslot.coursework.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.secondslot.coursework.data.db.dao.MessageDao
+import com.secondslot.coursework.data.db.dao.MessageWithReactionsDao
 import com.secondslot.coursework.data.db.dao.ReactionDao
 import com.secondslot.coursework.data.db.dao.StreamDao
 import com.secondslot.coursework.data.db.dao.StreamWithTopicsDao
@@ -35,6 +36,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract val userDao: UserDao
 
     abstract val messageDao: MessageDao
+
+    abstract val messageWithReactionDao: MessageWithReactionsDao
 
     abstract val reactionDao: ReactionDao
 

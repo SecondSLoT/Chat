@@ -50,11 +50,13 @@ class NetworkManager {
             .toObservable()
     }
 
-    fun getAllUsers(): Observable<List<UserRemote>> = apiService.getAllUsers().map { it.users }
+    fun getAllUsers(): Observable<List<UserRemote>> =
+        apiService.getAllUsers().map { it.users.sortedBy { user -> user.fullName } }
 
-    fun getUser(userId: Int): Single<UserRemote> = apiService.getUser(userId).map { it.user }
+    fun getUser(userId: Int): Observable<List<UserRemote>> =
+        apiService.getUser(userId).map { listOf(it.user) }
 
-    fun getOwnUser(): Single<UserRemote> = apiService.getOwnUser()
+    fun getOwnUser(): Observable<List<UserRemote>> = apiService.getOwnUser().map { listOf(it) }
 
     fun getMessages(
         anchor: String,

@@ -28,12 +28,11 @@ object StreamWithTopicsDbToDomainMapper : BaseMapper<List<StreamWithTopicsDb>, L
                     Stream.Topic(
                         topicName = topicEntity.topicName,
                         maxMessageId = topicEntity.maxMessageId,
-                        streamId = topicEntity.streamId
+                        streamId = topicEntity.streamId,
+                        isSubscribed = topicEntity.isSubscribed
                     )
                 }
             )
         } ?: emptyList()
     }
 }
-
-object DomaintoStreamWithTopicsMapper

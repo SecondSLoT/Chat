@@ -3,6 +3,7 @@ package com.secondslot.coursework.data.db.model.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.secondslot.coursework.domain.model.Message
 
 @Entity(tableName = "messages")
 class MessageEntity(
@@ -15,4 +16,18 @@ class MessageEntity(
     @ColumnInfo(name = "topic_name") val topicName: String?, // Foreign key
     @ColumnInfo(name = "timestamp") val timestamp: Int,
     @ColumnInfo(name = "isMeMessage") val isMeMessage: Boolean,
-)
+) {
+
+    companion object {
+        fun fromMessage(message: Message): MessageEntity = MessageEntity(
+            id = message.id,
+            senderId = message.senderId,
+            senderFullName = message.senderFullName,
+            avatarUrl = message.avatarUrl,
+            content = message.content,
+            topicName = message.topicName,
+            timestamp = message.timestamp,
+            isMeMessage = message.isMeMessage
+        )
+    }
+}

@@ -10,9 +10,9 @@ class GetMessagesUseCase {
     private val repository: MessagesRepository = MessagesRepositoryImpl()
 
     fun execute(
-        anchor: String = "first_unread",
-        numBefore: String = "100",
-        numAfter: String = "100",
+        anchor: String = "newest",
+        numBefore: String = "20",
+        numAfter: String = "0",
         narrow: Map<String, Any>
     ): Observable<List<Message>> {
         return repository.getMessages(anchor, numBefore, numAfter, narrow)

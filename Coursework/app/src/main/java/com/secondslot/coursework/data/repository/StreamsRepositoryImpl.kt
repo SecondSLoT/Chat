@@ -3,7 +3,7 @@ package com.secondslot.coursework.data.repository
 import android.util.Log
 import com.secondslot.coursework.App
 import com.secondslot.coursework.data.api.NetworkManager
-import com.secondslot.coursework.data.api.model.StreamRemoteToDomainMapper
+import com.secondslot.coursework.data.api.model.StreamTopicsRemoteToStreamMapper
 import com.secondslot.coursework.data.db.AppDatabase
 import com.secondslot.coursework.data.db.model.StreamWithTopicsDbToDomainMapper
 import com.secondslot.coursework.data.db.model.entity.StreamEntity
@@ -18,26 +18,25 @@ import io.reactivex.schedulers.Schedulers
 class StreamsRepositoryImpl : StreamsRepository {
 
     private val database: AppDatabase = App.getAppDatabase()
-
     private val networkManager = NetworkManager()
 
     override fun getSubscribedStreams(): Observable<List<Stream>> {
 
         // Data from DB
-        val streamTopicObservableDb = database.streamWithTopicsDao
-            .getSubscribedStreamsTopics().map { streamWithTopicsDbList ->
-                Log.d(TAG, "SubscribedStreamsTopicsDb.size = ${streamWithTopicsDbList.size}")
+        val streamTopicDbObservable = database.streamWithTopicsDao
+            .getStreamsTopics(true).map { streamWithTopicsDbList ->
+                Log.d(TAG, "SubscribedStreamsTopicsDb size = ${streamWithTopicsDbList.size}")
                 StreamWithTopicsDbToDomainMapper.map(streamWithTopicsDbList)
             }.toObservable()
 
         // Data from network
-        val streamTopicObservableRemote = networkManager
+        val streamTopicRemoteObservable = networkManager
             .getSubscribedStreams().map { streamWithTopicsRemoteList ->
-                StreamRemoteToDomainMapper.map(streamWithTopicsRemoteList)
+                StreamTopicsRemoteToStreamMapper.map(streamWithTopicsRemoteList, true)
             }
 
         // Save data from network to DB
-        val disposable = streamTopicObservableRemote.subscribeOn(Schedulers.io())
+        val disposable = streamTopicRemoteObservable.subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())
             .subscribeBy(
                 onNext = { streams ->
@@ -45,7 +44,7 @@ class StreamsRepositoryImpl : StreamsRepository {
                     val topicEntities: ArrayList<TopicEntity> = arrayListOf()
                     streams.forEach { stream ->
                         // Set "isSubscribed" to true for adding streamEntities
-                        streamEntities.add(StreamEntity.fromDomainModel(stream, true))
+                        streamEntities.add(StreamEntity.fromStream(stream, true))
                         topicEntities.addAll(TopicToTopicEntityMapper.map(stream.topics))
                     }
 
@@ -57,48 +56,48 @@ class StreamsRepositoryImpl : StreamsRepository {
 
         // Return data from DB first, then from network
         return Observable.concat(
-            streamTopicObservableDb,
-            streamTopicObservableRemote
+            streamTopicDbObservable,
+            streamTopicRemoteObservable
         )
     }
 
     override fun getAllStreams(): Observable<List<Stream>> {
 
         // Data from DB
-        val streamTopicObservableDb = database.streamWithTopicsDao
-            .getAllStreamsTopics().map { streamWithTopicsDbList ->
+        val streamTopicDbObservable = database.streamWithTopicsDao
+            .getStreamsTopics(false).map { streamWithTopicsDbList ->
                 Log.d(TAG, "UnsubscribedStreamsTopicsDb.size = ${streamWithTopicsDbList.size}")
                 StreamWithTopicsDbToDomainMapper.map(streamWithTopicsDbList)
             }.toObservable()
 
         // Data from network
-        val streamTopicObservableRemote = networkManager
+        val streamTopicRemoteObservable = networkManager
             .getAllStreams().map { streamWithTopicsRemoteList ->
-                StreamRemoteToDomainMapper.map(streamWithTopicsRemoteList)
+                StreamTopicsRemoteToStreamMapper.map(streamWithTopicsRemoteList, false)
             }
 
-//        // Save data from network to DB
-//        val disposable = streamTopicObservableRemote.subscribeOn(Schedulers.io())
-//            .observeOn(Schedulers.io())
-//            .subscribeBy(
-//                onNext = { streams ->
-//                    val streamEntities: ArrayList<StreamEntity> = arrayListOf()
-//                    val topicEntities: ArrayList<TopicEntity> = arrayListOf()
-//                    streams.forEach { stream ->
-//                        streamEntities.add(StreamEntity.fromDomainModel(stream))
-//                        topicEntities.addAll(TopicToTopicEntityMapper.map(stream.topics))
-//                    }
-//
-//                    database.streamWithTopicsDao
-//                        .updateStreamsTopics(streamEntities, topicEntities, false)
-//                },
-//                onError = { Log.e(TAG, "streamTopicObservableRemote error") }
-//            )
+        // Save data from network to DB
+        val disposable = streamTopicRemoteObservable.subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .subscribeBy(
+                onNext = { streams ->
+                    val streamEntities: ArrayList<StreamEntity> = arrayListOf()
+                    val topicEntities: ArrayList<TopicEntity> = arrayListOf()
+                    streams.forEach { stream ->
+                        streamEntities.add(StreamEntity.fromStream(stream, false))
+                        topicEntities.addAll(TopicToTopicEntityMapper.map(stream.topics))
+                    }
+
+                    database.streamWithTopicsDao
+                        .updateStreamsTopics(streamEntities, topicEntities, false)
+                },
+                onError = { Log.e(TAG, "streamTopicRemoteObservable error") }
+            )
 
         // Return data from DB first, then from network
         return Observable.concat(
-            streamTopicObservableDb,
-            streamTopicObservableRemote
+            streamTopicDbObservable,
+            streamTopicRemoteObservable
         )
     }
 

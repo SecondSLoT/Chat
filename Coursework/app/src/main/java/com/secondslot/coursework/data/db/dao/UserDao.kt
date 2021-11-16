@@ -11,11 +11,17 @@ import io.reactivex.Single
 @Dao
 interface UserDao {
 
-    @Query("SELECT * FROM users")
+    @Query("SELECT * FROM users ORDER BY full_name")
     fun getAllUsers(): Single<List<UserEntity>>
+
+    @Query("SELECT * FROM users WHERE user_id = :userId")
+    fun getUser(userId: Int): Single<UserEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertUsers(users: List<UserEntity>): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertUser(user: UserEntity): Completable
 
     @Query("DELETE FROM users")
     fun deleteAllUsers(): Completable

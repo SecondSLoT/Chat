@@ -85,9 +85,14 @@ class PeopleFragment : Fragment(), OnUserClickListener {
         usersObservable
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnSubscribe { processFragmentState(Loading) }
             .subscribeBy(
-                onNext = { processFragmentState(Result(it)) },
+                onNext = {
+                    if (it.isNullOrEmpty()) {
+                        processFragmentState(Loading)
+                    } else {
+                        processFragmentState(Result(it))
+                    }
+                },
                 onError = { processFragmentState(Error(it)) }
             )
             .addTo(compositeDisposable)

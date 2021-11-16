@@ -10,7 +10,8 @@ data class Stream(
     data class Topic(
         val topicName: String,
         val maxMessageId: Int,
-        val streamId: Int
+        val streamId: Int,
+        val isSubscribed: Boolean
     )
 }
 

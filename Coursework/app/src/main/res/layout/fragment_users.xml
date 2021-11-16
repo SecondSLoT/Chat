@@ -28,6 +28,7 @@
             android:id="@+id/shimmer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="invisible"
             android:paddingHorizontal="@dimen/margin_screen_horizontal">
 
             <LinearLayout

@@ -1,12 +1,9 @@
 package com.secondslot.coursework.domain.model
 
-import com.secondslot.coursework.data.api.model.UserShortRemote
-
 class Reaction(
     val emojiName: String,
     val emojiCode: String,
     val reactionType: String,
-    val user: UserShortRemote,
     val userId: Int,
 ) {
 

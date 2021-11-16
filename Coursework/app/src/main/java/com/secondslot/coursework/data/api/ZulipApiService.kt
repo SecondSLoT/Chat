@@ -35,10 +35,10 @@ interface ZulipApiService {
     fun getAllUsers(): Observable<AllUsersResponse>
 
     @GET("users/{user_id}")
-    fun getUser(@Path("user_id") userId: Int): Single<UserResponse>
+    fun getUser(@Path("user_id") userId: Int): Observable<UserResponse>
 
     @GET("users/me")
-    fun getOwnUser(): Single<UserRemote>
+    fun getOwnUser(): Observable<UserRemote>
 
     @GET("messages")
     fun getMessages(

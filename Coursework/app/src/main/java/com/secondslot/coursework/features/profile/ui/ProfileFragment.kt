@@ -1,6 +1,7 @@
 package com.secondslot.coursework.features.profile.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,14 +31,17 @@ class ProfileFragment : Fragment() {
     private val compositeDisposable = CompositeDisposable()
 
     private val getProfileUseCase = GetProfileUseCase()
-    private  val getOwnProfileUseCase = GetOwnProfileUseCase()
+    private val getOwnProfileUseCase = GetOwnProfileUseCase()
+
+    private var myId: Int = -1
+
+    private val userId: Int by lazy { arguments?.getInt(USER_ID, 0) ?: 0 }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
-        val userId = arguments?.getInt(USER_ID, 0) ?: 0
         initViews(userId)
         setListeners()
         setObservers(userId)
@@ -57,17 +61,23 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setObservers(userId: Int) {
-        val profileSingle = if (userId != -1) {
+        val profileObservable = if (userId != -1) {
             getProfileUseCase.execute(userId)
         } else {
             getOwnProfileUseCase.execute()
         }
-        profileSingle
+        profileObservable
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnSubscribe { processFragmentState(Loading) }
             .subscribeBy(
-                onSuccess = { processFragmentState(Result(it)) },
+                onNext = {
+                    Log.d(TAG, "profileObservable onNext")
+                    if (it.isNullOrEmpty()) {
+                        processFragmentState(Loading)
+                    } else {
+                        processFragmentState(Result(it[0]))
+                    }
+                },
                 onError = { processFragmentState(Error(it)) }
             )
             .addTo(compositeDisposable)
@@ -82,6 +92,8 @@ class ProfileFragment : Fragment() {
 
                     shimmer.isVisible = false
                     group.isVisible = true
+
+                    if (userId == -1) myId = state.user.userId
                 }
             }
 
@@ -108,6 +120,8 @@ class ProfileFragment : Fragment() {
     }
 
     companion object {
+        private const val TAG = "ProfileFragment"
+
         private const val USER_ID = "user_id"
 
         /**
@@ -115,9 +129,9 @@ class ProfileFragment : Fragment() {
          * This means that this fragment is for an own profile screen
          */
         fun newInstance(userId: Int = -1): ProfileFragment {
-          return ProfileFragment().apply {
-              arguments = bundleOf(USER_ID to userId)
-          }
+            return ProfileFragment().apply {
+                arguments = bundleOf(USER_ID to userId)
+            }
         }
     }
 }

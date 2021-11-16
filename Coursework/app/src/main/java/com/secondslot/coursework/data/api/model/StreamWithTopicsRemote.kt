@@ -1,6 +1,5 @@
 package com.secondslot.coursework.data.api.model
 
-import com.secondslot.coursework.core.mapper.BaseMapper
 import com.secondslot.coursework.domain.model.Stream
 
 class StreamWithTopicsRemote(
@@ -8,9 +7,9 @@ class StreamWithTopicsRemote(
     val topics: List<TopicRemote>
 )
 
-object StreamRemoteToDomainMapper : BaseMapper<List<StreamWithTopicsRemote>, List<Stream>> {
+object StreamTopicsRemoteToStreamMapper {
 
-    override fun map(type: List<StreamWithTopicsRemote>?): List<Stream> {
+    fun map(type: List<StreamWithTopicsRemote>?, isSubscribed: Boolean): List<Stream> {
         return type?.map {
             Stream(
                 id = it.streamRemote.id,
@@ -20,7 +19,8 @@ object StreamRemoteToDomainMapper : BaseMapper<List<StreamWithTopicsRemote>, Lis
                     Stream.Topic(
                         topicName = topicRemote.topicName,
                         maxMessageId = topicRemote.maxMessageId,
-                        streamId = it.streamRemote.id
+                        streamId = it.streamRemote.id,
+                        isSubscribed = isSubscribed
                     )
                 }
             )

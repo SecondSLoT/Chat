@@ -16,12 +16,8 @@ import io.reactivex.schedulers.Schedulers
 abstract class StreamWithTopicsDao : StreamDao, TopicDao {
 
     @Transaction
-    @Query("SELECT * FROM streams")
-    abstract fun getAllStreamsTopics(): Single<List<StreamWithTopicsDb>>
-
-    @Transaction
-    @Query("SELECT * FROM streams WHERE is_subscribed == 1")
-    abstract fun getSubscribedStreamsTopics(): Single<List<StreamWithTopicsDb>>
+    @Query("SELECT * FROM streams WHERE is_subscribed == :isSubscribed")
+    abstract fun getStreamsTopics(isSubscribed: Boolean): Single<List<StreamWithTopicsDb>>
 
     private fun insertStreamsTopics(streams: List<StreamEntity>, topics: List<TopicEntity>) {
         val streamsCompletable = insertStreams(streams)
@@ -53,16 +49,15 @@ abstract class StreamWithTopicsDao : StreamDao, TopicDao {
         isSubscribed: Boolean = false
     ) {
 
-//        // Delete streams with topics
-//        val deleteCompletable = deleteStreamsTopics(isSubscribed)
-//
-//        // Insert given streams with topics
-//        val disposable = deleteCompletable.subscribeOn(Schedulers.io())
-//            .observeOn(Schedulers.io())
-//            .subscribeBy(
-//                onComplete = { insertStreamsTopics(streams, topics) }
-//            )
-        insertStreamsTopics(streams, topics)
+        // Delete streams with topics
+        val deleteCompletable = deleteStreamsTopics(isSubscribed)
+
+        // Insert given streams with topics
+        val disposable = deleteCompletable.subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .subscribeBy(
+                onComplete = { insertStreamsTopics(streams, topics) }
+            )
     }
 
     companion object {

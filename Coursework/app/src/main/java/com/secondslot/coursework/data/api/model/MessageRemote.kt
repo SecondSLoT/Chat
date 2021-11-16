@@ -1,13 +1,11 @@
 package com.secondslot.coursework.data.api.model
 
-import android.util.Log
 import com.secondslot.coursework.core.mapper.BaseMapper
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.model.Reaction
 import com.secondslot.coursework.extentions.convertEmojiCode
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import java.lang.NumberFormatException
 
 @JsonClass(generateAdapter = true)
 class MessageRemote(
@@ -30,9 +28,7 @@ class MessageRemote(
     @field:Json(name = "content_type") val contentType: String?,
 )
 
-object MessageRemoteToDomainMapper : BaseMapper<List<MessageRemote>, List<Message>> {
-
-    private const val TAG = "MessageRemote"
+object MessageRemoteToMessageMapper : BaseMapper<List<MessageRemote>, List<Message>> {
 
     override fun map(type: List<MessageRemote>?): List<Message> {
         return type?.map {
@@ -42,7 +38,7 @@ object MessageRemoteToDomainMapper : BaseMapper<List<MessageRemote>, List<Messag
                 senderFullName = it.senderFullName,
                 avatarUrl = it.avatarUrl,
                 content = it.content,
-                topic = it.topic,
+                topicName = it.topic,
                 timestamp = it.timestamp,
                 isMeMessage = it.isMeMessage,
                 reactions = it.reactions.map { reactionRemote ->
@@ -50,7 +46,6 @@ object MessageRemoteToDomainMapper : BaseMapper<List<MessageRemote>, List<Messag
                         emojiName = reactionRemote.emojiName,
                         emojiCode = reactionRemote.emojiCode.convertEmojiCode(),
                         reactionType = reactionRemote.reactionType,
-                        user = reactionRemote.user,
                         userId = reactionRemote.userId
                     )
                 }

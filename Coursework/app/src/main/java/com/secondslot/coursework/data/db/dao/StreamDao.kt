@@ -10,15 +10,9 @@ import io.reactivex.Completable
 @Dao
 interface StreamDao {
 
-//    @Query("SELECT * FROM streams")
-//    fun getAllStreams(): Single<List<StreamEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertStreams(streams: List<StreamEntity>): Completable
 
-    @Query("DELETE FROM streams WHERE is_subscribed = :isSubscribed")
+    @Query("DELETE FROM streams WHERE is_subscribed == :isSubscribed")
     fun deleteStreams(isSubscribed: Boolean): Completable
-
-//    @Query("DELETE FROM streams WHERE is_subscribed == 1")
-//    fun deleteSubscribedStreams(): Completable
 }

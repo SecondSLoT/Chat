@@ -26,7 +26,7 @@ object MessageToItemMapper : BaseMapper<List<Message>, List<MessageItem>> {
                 senderFullName = it.senderFullName,
                 avatarUrl = it.avatarUrl,
                 content = it.content,
-                topic = it.topic,
+                topic = it.topicName,
                 timestamp = it.timestamp,
                 isMeMessage = it.isMeMessage,
                 reactions = it.reactions.groupingBy { reaction -> reaction }.eachCount()

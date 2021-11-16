@@ -11,8 +11,8 @@ import io.reactivex.Single
 @Dao
 interface MessageDao {
 
-    @Query("SELECT * FROM messages WHERE topic_name == :topicName")
-    fun getMessages(topicName: String): Single<List<MessageEntity>>
+//    @Query("SELECT * FROM messages WHERE topic_name == :topicName")
+//    fun getMessages(topicName: String): Single<List<MessageEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertMessages(messages: List<MessageEntity>): Completable

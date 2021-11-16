@@ -5,4 +5,9 @@ data class User(
     val fullName: String,
     val avatarUrl: String?,
     val email: String?,
-)
+    val dateJoined: String?
+) {
+    override fun toString(): String {
+        return "$userId - $fullName - $dateJoined"
+    }
+}

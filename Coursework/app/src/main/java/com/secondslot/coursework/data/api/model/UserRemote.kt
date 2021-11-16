@@ -24,6 +24,14 @@ class UserRemote(
     @field:Json(name = "max_message_id") val maxMessageId: Int?,
 )
 
+fun UserRemote.toDomainModel(): User = User(
+    userId = this.userId,
+    fullName = this.fullName,
+    avatarUrl = this.avatarUrl,
+    email = this.email,
+    dateJoined = this.dateJoined
+)
+
 object UserRemoteToUserMapper : BaseMapper<List<UserRemote>, List<User>> {
 
     override fun map(type: List<UserRemote>?): List<User> {
@@ -32,10 +40,3 @@ object UserRemoteToUserMapper : BaseMapper<List<UserRemote>, List<User>> {
         } ?: emptyList()
     }
 }
-
-fun UserRemote.toDomainModel(): User = User(
-    userId = this.userId,
-    fullName = this.fullName,
-    avatarUrl = this.avatarUrl,
-    email = this.email
-)

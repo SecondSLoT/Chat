@@ -38,6 +38,7 @@ import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import java.util.*
+import kotlin.collections.ArrayList
 
 class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListener {
 
@@ -58,6 +59,12 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     private val removeReactionUseCase = RemoveReactionUseCase()
 
     private var messages: List<ChatItem> = arrayListOf()
+    private var firstMessageId: Int = -1
+    private var isLoading: Boolean = false
+        set(value) {
+            field = value
+            Log.d(TAG, "isLoading = $field")
+        }
 
     private val topicName: String by lazy { arguments?.getString(TOPIC_NAME, "") ?: "" }
     private val streamId: Int by lazy { arguments?.getInt(STREAM_ID, 0) ?: 0 }
@@ -90,16 +97,22 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         linearLayoutManager.stackFromEnd = true
         binding.recyclerView.layoutManager = linearLayoutManager
 
+        // Get own profile for my ID to set it to chatAdapter
         getOwnProfileUseCase.execute()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onSuccess = { user ->
-                    myId = user.userId
-                    chatAdapter = ChatAdapter(this, myId)
-                    binding.recyclerView.adapter = chatAdapter
+                onNext = { user ->
+                    if (user.isNotEmpty()) {
+                        myId = user[0].userId
+                        chatAdapter = ChatAdapter(this, myId)
+                        binding.recyclerView.adapter = chatAdapter
+                    }
                 },
-                onError = { showError(it) }
+                onError = {
+                    Log.d(TAG, "getOwnProfileUseCase.execute() error")
+                    showError(it)
+                }
             )
             .addTo(compositeDisposable)
 
@@ -113,6 +126,25 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         binding.messageEditText.doAfterTextChanged { text ->
             setSendButtonAction(text.toString() == "")
         }
+
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                // If user scrolls up
+                if (dy < 0 && !isLoading) {
+                    // If item on position to prefetch is visible
+                    if (
+                        (binding.recyclerView.layoutManager as LinearLayoutManager)
+                            .findFirstCompletelyVisibleItemPosition() == PREFETCH_DISTANCE
+                    ) {
+
+                        Log.d(TAG, "It's time to prefetch")
+                        getMessages(firstMessageId.toString(), false)
+                    }
+                }
+            }
+        })
 
         binding.sendButton.setOnClickListener {
             if (binding.messageEditText.text.toString().isNotEmpty()) {
@@ -128,25 +160,47 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     }
 
     private fun setObservers() {
-        getMessages(true)
+        getMessages(isScrollToEnd = true)
     }
 
-    private fun getMessages(scrollToEnd: Boolean = false) {
+    private fun getMessages(anchor: String = "newest", isScrollToEnd: Boolean = false) {
+        if (isLoading) return
+        isLoading = true
+
+        // firstMessageId != -1 means that we already have some loaded messages and
+        // now we need to load a new batch of messages
+        if (firstMessageId != -1) {
+            // Remove item at index 0 - time divider
+            // Remove item at index 1 - first message, because it will be at the next batch
+            (messages as ArrayList).subList(0, 2).clear()
+        }
+
         val narrow = mapOf(
             "stream" to streamId,
             "topic" to topicName
         )
 
-        getMessagesUseCase.execute(narrow = narrow)
+        Log.d(TAG, "GetMessagesUseCase execute")
+        getMessagesUseCase.execute(anchor = anchor, narrow = narrow)
             .subscribeOn(Schedulers.io())
             .map { MessageToItemMapper.map(it) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onNext = {
-                    messages = it
-                    updateMessages(scrollToEnd)
+                    Log.d(TAG, "MessageObservable onNext")
+                    if (it.isNotEmpty()) {
+                        firstMessageId = it[0].id
+                        (messages as ArrayList).addAll(0, it)
+                        updateMessages(isScrollToEnd)
+                    }
                 },
-                onError = { showError(it) }
+                onError = {
+                    showError(it)
+                    isLoading = false
+                },
+                onComplete = {
+                    isLoading = false
+                }
             )
             .also { compositeDisposable.add(it) }
     }
@@ -164,7 +218,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
                 onSuccess = {
                     if (it.result == SERVER_RESULT_SUCCESS) {
                         binding.messageEditText.text.clear()
-                        getMessages(true)
+                        getMessages(isScrollToEnd = true)
                     } else {
                         showSendMessageError()
                     }
@@ -341,6 +395,8 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
 
         private const val SERVER_RESULT_SUCCESS = "success"
         private const val SERVER_RESULT_ERROR = "error"
+
+        private const val PREFETCH_DISTANCE = 4
 
         fun newInstance(topicName: String, maxMessageId: Int, streamId: Int): ChatFragment {
             return ChatFragment().apply {
