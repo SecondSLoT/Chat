@@ -32,58 +32,91 @@ class MessagesRepositoryImpl : MessagesRepository {
     ): Observable<List<Message>> {
 
         val topicName = narrow["topic"] as String
-        var messagesReactionsDbObservable: Observable<List<Message>>? = null
+        var messagesReactionsDbObservable: Observable<List<Message>> = Observable.just(emptyList())
 
         if (anchor == "newest" || anchor == "first_unread") {
 
             // Data from DB
             messagesReactionsDbObservable = database.messageWithReactionDao
-                .getMessagesReactions(topicName).map { messageReactionDbList ->
+                .getMessagesReactions(topicName)
+//                .subscribeOn(Schedulers.io())
+                .map { messageReactionDbList ->
                     Log.d(TAG, "MessagesReactionsDb size = ${messageReactionDbList.size}")
-                    MessageReactionDbToDomainModel.map(messageReactionDbList)
-                }.toObservable()
+                    messagesCache = MessageReactionDbToDomainModel.map(messageReactionDbList)
+                    messagesCache
+                }
+                .toObservable()
 
-            val disposable = messagesReactionsDbObservable
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                .subscribeBy(
-                    onNext = { messagesCache = it }
-                )
+//            val disposable = messagesReactionsDbObservable
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(Schedulers.io())
+//                .subscribeBy(
+//                    onNext = { messagesCache = it }
+//                )
         }
 
         // Data from network
         val messagesReactionsRemoteObservable = networkManager
-            .getMessages(anchor, numBefore, numAfter, narrow).map { messageRemoteList ->
-                MessageRemoteToMessageMapper.map(messageRemoteList)
+            .getMessages(anchor, numBefore, numAfter, narrow)
+            .map { messageRemoteList ->
+                val messages = MessageRemoteToMessageMapper.map(messageRemoteList)
+
+                messagesCache = mergeData(messagesCache, messages)
+                val messageEntities: ArrayList<MessageEntity> = arrayListOf()
+                val reactionEntities: ArrayList<ReactionEntity> = arrayListOf()
+
+                messagesCache.forEach { message ->
+                    messageEntities.add(MessageEntity.fromMessage(message))
+                    reactionEntities.addAll(
+                        ReactionToReactionEntityMapper.map(message.reactions, message.id)
+                    )
+                }
+
+                database.messageWithReactionDao
+                    .updateMessagesReactions(messageEntities, reactionEntities, topicName)
+
+                messages
             }
 
+
         // Save data from network to DB
-        val disposable = messagesReactionsRemoteObservable
-            .subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.io())
-            .subscribeBy(
-                onNext = { messages ->
-                    messagesCache = mergeData(messagesCache, messages)
-                    val messageEntities: ArrayList<MessageEntity> = arrayListOf()
-                    val reactionEntities: ArrayList<ReactionEntity> = arrayListOf()
-                    messagesCache.forEach { message ->
-                        messageEntities.add(MessageEntity.fromMessage(message))
-                        reactionEntities.addAll(
-                            ReactionToReactionEntityMapper.map(message.reactions, message.id)
-                        )
-                    }
+//        val disposable = messagesReactionsRemoteObservable
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(Schedulers.io())
+//            .subscribeBy(
+//                onNext = { messages ->
+//                    messagesCache = mergeData(messagesCache, messages)
+//                    val messageEntities: ArrayList<MessageEntity> = arrayListOf()
+//                    val reactionEntities: ArrayList<ReactionEntity> = arrayListOf()
+//                    messagesCache.forEach { message ->
+//                        messageEntities.add(MessageEntity.fromMessage(message))
+//                        reactionEntities.addAll(
+//                            ReactionToReactionEntityMapper.map(message.reactions, message.id)
+//                        )
+//                    }
+//
+//                    database.messageWithReactionDao
+//                        .updateMessagesReactions(messageEntities, reactionEntities, topicName)
+//                },
+//                onError = { Log.e(TAG, "messagesReactionsRemoteObservable error") }
+//            )
 
-                    database.messageWithReactionDao
-                        .updateMessagesReactions(messageEntities, reactionEntities, topicName)
-                },
-                onError = { Log.e(TAG, "messagesReactionsRemoteObservable error") }
+//        return if (messagesReactionsDbObservable != null && messagesCache.isNotEmpty()) {
+//            Log.d(TAG, "Returning observable from DB")
+//            messagesReactionsDbObservable
+//        } else {
+//            Log.d(TAG, "Returning observable from network")
+//            messagesReactionsRemoteObservable
+//        }
+
+        return Observable
+            .concat(
+                messagesReactionsDbObservable,
+                messagesReactionsRemoteObservable
             )
-
-        return if (messagesReactionsDbObservable != null && messagesCache.isNotEmpty()) {
-            messagesReactionsDbObservable
-        } else {
-            messagesReactionsRemoteObservable
-        }
+            .filter { messages -> messages.isNotEmpty() }
+            .first(emptyList())
+            .toObservable()
     }
 
     private fun mergeData(oldData: List<Message>, newData: List<Message>): List<Message> {

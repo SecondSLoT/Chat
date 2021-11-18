@@ -87,10 +87,8 @@ object UsersRepositoryImpl : UsersRepository {
 
     override fun getOwnProfile(): Observable<List<User>> {
 
-        var userDbObservable: Observable<List<User>>? = null
-
-        userDbObservable = if (myId != -1) {
-            // Data from DB
+        // Data from DB
+        val userDbObservable = if (myId != -1) {
             database.userDao.getUser(myId)
                 .map { listOf(it.toDomainModel()) }
                 .toObservable()
@@ -112,9 +110,11 @@ object UsersRepositoryImpl : UsersRepository {
                 }
             )
 
-        return Observable.concat(
-            userDbObservable,
-            userRemoteObservable
-        )
+        return Observable
+            .concat(
+                userDbObservable,
+                userRemoteObservable
+            )
+            .filter { it.isNotEmpty() }
     }
 }

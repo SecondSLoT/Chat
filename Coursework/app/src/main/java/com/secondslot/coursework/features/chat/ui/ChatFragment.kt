@@ -46,8 +46,8 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     private val binding get() = requireNotNull(_binding)
 
     private var myId: Int = -1
-    private var chatAdapter: ChatAdapter? = null
     private var chosenMessage: MessageItem? = null
+    private var chatAdapter: ChatAdapter? = null
     private var bottomSheetDialog: BottomSheetDialog? = null
 
     private val compositeDisposable = CompositeDisposable()
@@ -83,7 +83,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     ): View {
         _binding = FragmentChatBinding.inflate(inflater, container, false)
         initViews()
-        setObservers()
+//        setObservers()
         return binding.root
     }
 
@@ -107,6 +107,7 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
                         myId = user[0].userId
                         chatAdapter = ChatAdapter(this, myId)
                         binding.recyclerView.adapter = chatAdapter
+                        getMessages(isScrollToEnd = true)
                     }
                 },
                 onError = {
@@ -159,9 +160,9 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         }
     }
 
-    private fun setObservers() {
-        getMessages(isScrollToEnd = true)
-    }
+//    private fun setObservers() {
+//        getMessages(isScrollToEnd = true)
+//    }
 
     private fun getMessages(anchor: String = "newest", isScrollToEnd: Boolean = false) {
         if (isLoading) return
@@ -189,10 +190,14 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
                 onNext = {
                     Log.d(TAG, "MessageObservable onNext")
                     if (it.isNotEmpty()) {
+                        Log.d(TAG, "Received List<MessageItem> size = ${it.size}")
                         firstMessageId = it[0].id
                         (messages as ArrayList).addAll(0, it)
                         updateMessages(isScrollToEnd)
+                    } else {
+                        Log.d(TAG, "MessageObservable is empty")
                     }
+
                 },
                 onError = {
                     showError(it)
@@ -279,9 +284,10 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
                 )
             )
         }
+
         chatAdapter?.submitList(messages.toList()) {
             if (isScrollToEnd) scrollToEnd()
-        }
+        } ?: Log.d(TAG, "chatAdapter is null")
     }
 
     private fun setSendButtonAction(isMessageEmpty: Boolean) {
