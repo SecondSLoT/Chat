@@ -1,4 +1,4 @@
-package com.secondslot.coursework.core.mapper
+package com.secondslot.coursework.base.mapper
 
 interface BaseMapper<in A, out B> {
 

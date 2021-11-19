@@ -1,6 +1,6 @@
 package com.secondslot.coursework.data.api.model
 
-import com.secondslot.coursework.core.mapper.BaseMapper
+import com.secondslot.coursework.base.mapper.BaseMapper
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.model.Reaction
 import com.secondslot.coursework.extentions.convertEmojiCode

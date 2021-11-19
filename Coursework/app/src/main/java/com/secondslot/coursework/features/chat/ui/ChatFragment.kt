@@ -83,7 +83,6 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     ): View {
         _binding = FragmentChatBinding.inflate(inflater, container, false)
         initViews()
-//        setObservers()
         return binding.root
     }
 
@@ -159,10 +158,6 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
             requireActivity().supportFragmentManager.popBackStack()
         }
     }
-
-//    private fun setObservers() {
-//        getMessages(isScrollToEnd = true)
-//    }
 
     private fun getMessages(anchor: String = "newest", isScrollToEnd: Boolean = false) {
         if (isLoading) return

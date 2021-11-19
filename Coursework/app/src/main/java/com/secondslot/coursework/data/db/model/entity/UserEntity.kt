@@ -3,7 +3,7 @@ package com.secondslot.coursework.data.db.model.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.secondslot.coursework.core.mapper.BaseMapper
+import com.secondslot.coursework.base.mapper.BaseMapper
 import com.secondslot.coursework.domain.model.User
 
 @Entity(tableName = "users")

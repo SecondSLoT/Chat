@@ -9,6 +9,7 @@ import com.secondslot.coursework.data.db.model.entity.UserEntity
 import com.secondslot.coursework.data.db.model.entity.UserEntityToUserMapper
 import com.secondslot.coursework.data.db.model.entity.UserToUserEntityMapper
 import com.secondslot.coursework.data.db.model.entity.toDomainModel
+import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository
 import io.reactivex.Observable
@@ -19,7 +20,7 @@ object UsersRepositoryImpl : UsersRepository {
 
     private const val TAG = "UsersRepoImpl"
 
-    private val database: AppDatabase = App.getAppDatabase()
+    private val database: AppDatabase = GlobalDI.INSTANCE.appDatabase
     private val networkManager = NetworkManager()
 
     private var myId = -1

@@ -2,7 +2,7 @@ package com.secondslot.coursework.data.db.model
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.secondslot.coursework.core.mapper.BaseMapper
+import com.secondslot.coursework.base.mapper.BaseMapper
 import com.secondslot.coursework.data.db.model.entity.MessageEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionEntity
 import com.secondslot.coursework.domain.model.Message

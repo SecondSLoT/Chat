@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
-import com.secondslot.coursework.core.mapper.BaseMapper
+import com.secondslot.coursework.base.mapper.BaseMapper
 import com.secondslot.coursework.domain.model.Stream
 
 @Entity(

@@ -1,6 +1,6 @@
 package com.secondslot.coursework.data.api.model
 
-import com.secondslot.coursework.core.mapper.BaseMapper
+import com.secondslot.coursework.base.mapper.BaseMapper
 import com.secondslot.coursework.domain.model.User
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

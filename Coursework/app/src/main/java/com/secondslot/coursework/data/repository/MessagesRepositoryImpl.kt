@@ -10,17 +10,16 @@ import com.secondslot.coursework.data.db.model.MessageReactionDbToDomainModel
 import com.secondslot.coursework.data.db.model.entity.MessageEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionToReactionEntityMapper
+import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.domain.SendResult
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.repository.MessagesRepository
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
 
 class MessagesRepositoryImpl : MessagesRepository {
 
-    private val database: AppDatabase = App.getAppDatabase()
+    private val database: AppDatabase = GlobalDI.INSTANCE.appDatabase
     private val networkManager = NetworkManager()
     private var messagesCache = emptyList<Message>()
 
