@@ -97,9 +97,11 @@ object UsersRepositoryImpl : UsersRepository {
             Observable.just(emptyList())
         }
 
+        // Data from network
         val userRemoteObservable = networkManager.getOwnUser()
             .map { UserRemoteToUserMapper.map(it) }
 
+        // Save data from network to DB
         val disposable = userRemoteObservable
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())

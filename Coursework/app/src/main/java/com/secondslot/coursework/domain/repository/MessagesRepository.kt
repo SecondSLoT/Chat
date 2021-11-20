@@ -1,6 +1,6 @@
 package com.secondslot.coursework.domain.repository
 
-import com.secondslot.coursework.domain.SendResult
+import com.secondslot.coursework.data.api.model.SendResult
 import com.secondslot.coursework.domain.model.Message
 import io.reactivex.Observable
 import io.reactivex.Single

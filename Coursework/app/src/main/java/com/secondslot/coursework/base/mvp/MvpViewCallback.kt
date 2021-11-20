@@ -1,6 +1,6 @@
-package ru.alexkorrnd.tinkofffintechapp.presentation.base.mvp
+package com.secondslot.coursework.base.mvp
 
-import ru.alexkorrnd.tinkofffintechapp.presentation.base.mvp.presenter.Presenter
+import com.secondslot.coursework.base.mvp.presenter.Presenter
 
 interface MvpViewCallback<View, P: Presenter<View>> {
 

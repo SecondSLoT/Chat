@@ -1,4 +1,4 @@
-package ru.alexkorrnd.tinkofffintechapp.presentation.base.mvp.presenter
+package com.secondslot.coursework.base.mvp.presenter
 
 import androidx.annotation.CallSuper
 
@@ -6,7 +6,7 @@ abstract class BasePresenter<View> protected constructor(
     viewClass: Class<View>
 ): Presenter<View> {
 
-    private var view: View? = null
+    var view: View? = null
 
     @CallSuper
     override fun attachView(view: View) {

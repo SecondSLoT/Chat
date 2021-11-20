@@ -1,41 +1,42 @@
 package com.secondslot.coursework.features.profile.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
+import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentProfileBinding
+import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.usecase.GetOwnProfileUseCase
 import com.secondslot.coursework.domain.usecase.GetProfileUseCase
 import com.secondslot.coursework.extentions.loadImage
-import com.secondslot.coursework.features.profile.ui.ProfileState.Error
-import com.secondslot.coursework.features.profile.ui.ProfileState.Loading
-import com.secondslot.coursework.features.profile.ui.ProfileState.Result
-import io.reactivex.android.schedulers.AndroidSchedulers
+import com.secondslot.coursework.features.profile.presenter.ProfileContract
+import com.secondslot.coursework.features.profile.ui.ProfileState.*
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
 
-class ProfileFragment : Fragment() {
+class ProfileFragment :
+    MvpFragment<ProfileContract.ProfileView, ProfileContract.ProfilePresenter>(),
+    ProfileContract.ProfileView {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-    private val compositeDisposable = CompositeDisposable()
+//    private val compositeDisposable = CompositeDisposable()
+//
+//    private val getProfileUseCase = GetProfileUseCase()
+//    private val getOwnProfileUseCase = GetOwnProfileUseCase()
 
-    private val getProfileUseCase = GetProfileUseCase()
-    private val getOwnProfileUseCase = GetOwnProfileUseCase()
-
-    private var myId: Int = -1
-
+    private var myId = -1
     private val userId: Int by lazy { arguments?.getInt(USER_ID, 0) ?: 0 }
+
+    override fun getPresenter(): ProfileContract.ProfilePresenter =
+        GlobalDI.INSTANCE.profilePresenter
+
+    override fun getMvpView(): ProfileContract.ProfileView = this
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,8 +45,13 @@ class ProfileFragment : Fragment() {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         initViews(userId)
         setListeners()
-        setObservers(userId)
+//        setObservers(userId)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        getPresenter().loadProfile(userId)
     }
 
     private fun initViews(userId: Int) {
@@ -60,27 +66,42 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun setObservers(userId: Int) {
-        val profileObservable = if (userId != -1) {
-            getProfileUseCase.execute(userId)
-        } else {
-            getOwnProfileUseCase.execute()
-        }
-        profileObservable
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = {
-                    Log.d(TAG, "profileObservable onNext")
-                    if (it.isNullOrEmpty()) {
-                        processFragmentState(Loading)
-                    } else {
-                        processFragmentState(Result(it[0]))
-                    }
-                },
-                onError = { processFragmentState(Error(it)) }
-            )
-            .addTo(compositeDisposable)
+//    private fun setObservers(userId: Int) {
+//        val profileObservable = if (userId != -1) {
+//            getProfileUseCase.execute(userId)
+//        } else {
+//            getOwnProfileUseCase.execute()
+//        }
+//        profileObservable
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribeBy(
+//                onNext = {
+//                    Log.d(TAG, "profileObservable onNext")
+//                    if (it.isNullOrEmpty()) {
+//                        processFragmentState(Loading)
+//                    } else {
+//                        processFragmentState(Result(it[0]))
+//                    }
+//                },
+//                onError = { processFragmentState(Error(it)) }
+//            )
+//            .addTo(compositeDisposable)
+//    }
+
+
+    override fun setStateLoading() {
+        processFragmentState(Loading)
+    }
+
+    override fun setStateResult(user: User) {
+        processFragmentState(Result(user))
+
+    }
+
+    override fun setStateError(error: Throwable) {
+        processFragmentState(Error(error))
+
     }
 
     private fun processFragmentState(state: ProfileState) {
@@ -113,11 +134,11 @@ class ProfileFragment : Fragment() {
             }
         }
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
-    }
+//
+//    override fun onDestroy() {
+//        super.onDestroy()
+//        compositeDisposable.dispose()
+//    }
 
     companion object {
         private const val TAG = "ProfileFragment"

@@ -1,7 +1,6 @@
 package com.secondslot.coursework.data.repository
 
 import android.util.Log
-import com.secondslot.coursework.App
 import com.secondslot.coursework.data.api.NetworkManager
 import com.secondslot.coursework.data.api.model.MessageRemoteToMessageMapper
 import com.secondslot.coursework.data.api.model.response.toSendResult
@@ -11,7 +10,7 @@ import com.secondslot.coursework.data.db.model.entity.MessageEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionToReactionEntityMapper
 import com.secondslot.coursework.di.GlobalDI
-import com.secondslot.coursework.domain.SendResult
+import com.secondslot.coursework.data.api.model.SendResult
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.repository.MessagesRepository
 import io.reactivex.Observable

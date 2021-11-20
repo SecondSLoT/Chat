@@ -1,7 +1,7 @@
 package com.secondslot.coursework.domain.usecase
 
 import com.secondslot.coursework.data.repository.MessagesRepositoryImpl
-import com.secondslot.coursework.domain.SendResult
+import com.secondslot.coursework.data.api.model.SendResult
 import com.secondslot.coursework.domain.repository.MessagesRepository
 import io.reactivex.Single
 

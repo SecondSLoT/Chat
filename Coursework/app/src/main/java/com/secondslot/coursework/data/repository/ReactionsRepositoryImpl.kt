@@ -2,7 +2,7 @@ package com.secondslot.coursework.data.repository
 
 import com.secondslot.coursework.data.api.NetworkManager
 import com.secondslot.coursework.data.api.model.response.toSendResult
-import com.secondslot.coursework.domain.SendResult
+import com.secondslot.coursework.data.api.model.SendResult
 import com.secondslot.coursework.domain.repository.ReactionsRepository
 import io.reactivex.Single
 

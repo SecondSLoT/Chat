@@ -1,6 +1,6 @@
 package com.secondslot.coursework.domain.repository
 
-import com.secondslot.coursework.domain.SendResult
+import com.secondslot.coursework.data.api.model.SendResult
 import io.reactivex.Single
 
 interface ReactionsRepository {

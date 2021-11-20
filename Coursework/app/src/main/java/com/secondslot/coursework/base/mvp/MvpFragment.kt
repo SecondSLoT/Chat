@@ -1,10 +1,11 @@
-package ru.alexkorrnd.tinkofffintechapp.presentation.base.mvp
+package com.secondslot.coursework.base.mvp
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import ru.alexkorrnd.tinkofffintechapp.presentation.base.mvp.presenter.Presenter
+import com.secondslot.coursework.base.mvp.presenter.Presenter
 
-abstract class MvpFragment<View, P : Presenter<View>>: Fragment(),
+abstract class MvpFragment<View, P : Presenter<View>> :
+    Fragment(),
     MvpViewCallback<View, P> {
 
     private val mvpHelper: MvpHelper<View, P> by lazy { MvpHelper(this) }

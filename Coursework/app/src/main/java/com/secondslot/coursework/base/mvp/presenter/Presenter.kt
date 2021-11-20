@@ -1,4 +1,4 @@
-package ru.alexkorrnd.tinkofffintechapp.presentation.base.mvp.presenter
+package com.secondslot.coursework.base.mvp.presenter
 
 interface Presenter<View> {
 

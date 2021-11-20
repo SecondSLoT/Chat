@@ -1,4 +1,4 @@
-package com.secondslot.coursework.features.chat.vm
+package com.secondslot.coursework.features.chat.presenter
 
 import androidx.lifecycle.ViewModel
 

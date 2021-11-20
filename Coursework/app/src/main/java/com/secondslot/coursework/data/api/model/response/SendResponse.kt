@@ -1,6 +1,6 @@
 package com.secondslot.coursework.data.api.model.response
 
-import com.secondslot.coursework.domain.SendResult
+import com.secondslot.coursework.data.api.model.SendResult
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
