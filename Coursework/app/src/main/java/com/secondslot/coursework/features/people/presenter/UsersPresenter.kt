@@ -23,11 +23,6 @@ class UsersPresenter(
         Log.d(TAG, "attachView()")
         loadUsers()
         subscribeOnSearchChanges()
-
-        RxJavaPlugins.setErrorHandler {
-            Log.e(TAG, "ErrorHandler: $it")
-            retry()
-        }
     }
 
     override fun detachView(isFinishing: Boolean) {
@@ -62,7 +57,8 @@ class UsersPresenter(
             .distinctUntilChanged()
             .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { view?.setStateLoading() }
-            .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
+            .debounce(500, TimeUnit.MILLISECONDS)
+            .observeOn(Schedulers.io())
             .switchMap { searchQuery -> getAllUsersUseCase.execute(searchQuery) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(

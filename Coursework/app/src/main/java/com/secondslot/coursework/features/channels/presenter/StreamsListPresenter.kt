@@ -29,11 +29,6 @@ class StreamsListPresenter(
         Log.d(TAG, "AttachView()")
         loadStreams()
         subscribeOnSearchChanges()
-
-        RxJavaPlugins.setErrorHandler {
-            Log.e(TAG, "ErrorHandler: $it")
-            retry()
-        }
     }
 
     override fun detachView(isFinishing: Boolean) {
@@ -72,8 +67,8 @@ class StreamsListPresenter(
             .distinctUntilChanged()
             .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { view?.setStateLoading() }
-            .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
-            .retryWhen { searchSubject }
+            .debounce(500, TimeUnit.MILLISECONDS)
+            .observeOn(Schedulers.io())
             .switchMap { searchQuery ->
                 when (view?.getViewType()) {
                     StreamsListContract.SUBSCRIBED -> {
