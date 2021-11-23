@@ -1,7 +1,6 @@
 package com.secondslot.coursework.data.repository
 
 import android.util.Log
-import com.secondslot.coursework.App
 import com.secondslot.coursework.data.api.NetworkManager
 import com.secondslot.coursework.data.api.model.StreamTopicsRemoteToStreamMapper
 import com.secondslot.coursework.data.db.AppDatabase
@@ -9,17 +8,16 @@ import com.secondslot.coursework.data.db.model.StreamWithTopicsDbToDomainMapper
 import com.secondslot.coursework.data.db.model.entity.StreamEntity
 import com.secondslot.coursework.data.db.model.entity.TopicEntity
 import com.secondslot.coursework.data.db.model.entity.TopicToTopicEntityMapper
-import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.repository.StreamsRepository
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 
-class StreamsRepositoryImpl : StreamsRepository {
-
-    private val database: AppDatabase = GlobalDI.INSTANCE.appDatabase
-    private val networkManager = NetworkManager()
+class StreamsRepositoryImpl(
+    private val database: AppDatabase,
+    private val networkManager: NetworkManager
+) : StreamsRepository {
 
     override fun getSubscribedStreams(): Observable<List<Stream>> {
 

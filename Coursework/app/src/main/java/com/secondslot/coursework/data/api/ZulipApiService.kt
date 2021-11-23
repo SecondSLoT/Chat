@@ -67,22 +67,4 @@ interface ZulipApiService {
         @Path("message_id") messageId: Int,
         @Query("emoji_name") emojiName: String
     ): Single<SendResponse>
-
-    companion object {
-        private const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com/api/v1/"
-
-        fun create(): ZulipApiService {
-            val authorizationClient = OkHttpClient.Builder()
-                .addInterceptor(AuthorizationInterceptor())
-                .build()
-
-            return Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(MoshiConverterFactory.create())
-                .client(authorizationClient)
-                .build()
-                .create(ZulipApiService::class.java)
-        }
-    }
 }

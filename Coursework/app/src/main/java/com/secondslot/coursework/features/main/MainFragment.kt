@@ -16,6 +16,8 @@ class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
     private val binding get() = requireNotNull(_binding)
 
+    private var lastSelectedItem: Int? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -43,14 +45,26 @@ class MainFragment : Fragment() {
 
     private fun changePage(menuItemId: Int) {
         when (menuItemId) {
+
             R.id.action_channels -> {
-                loadFragment(StreamsFragment.newInstance())
+                if (lastSelectedItem != R.id.action_channels) {
+                    loadFragment(StreamsFragment.newInstance())
+                    lastSelectedItem = R.id.action_channels
+                }
             }
+
             R.id.action_people -> {
-                loadFragment(PeopleFragment.newInstance())
+                if (lastSelectedItem != R.id.action_people) {
+                    loadFragment(PeopleFragment.newInstance())
+                    lastSelectedItem = R.id.action_people
+                }
             }
+
             else -> {
-                loadFragment(ProfileFragment.newInstance())
+                if (lastSelectedItem != R.id.action_profile) {
+                    loadFragment(ProfileFragment.newInstance())
+                    lastSelectedItem = R.id.action_profile
+                }
             }
         }
     }

@@ -9,9 +9,9 @@ import io.reactivex.Observable
 import io.reactivex.Single
 
 
-class NetworkManager {
-
-    private val apiService = ZulipApiService.create()
+class NetworkManager (
+    private val apiService: ZulipApiService
+    ) {
 
     fun getSubscribedStreams(): Observable<List<StreamWithTopicsRemote>> {
         return mapStreams(apiService.getSubscribedStreams()

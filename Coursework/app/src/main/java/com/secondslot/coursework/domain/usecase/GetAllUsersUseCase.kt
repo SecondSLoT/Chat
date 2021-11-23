@@ -1,13 +1,13 @@
 package com.secondslot.coursework.domain.usecase
 
-import com.secondslot.coursework.data.repository.UsersRepositoryImpl
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository
 import io.reactivex.Observable
 
-class GetAllUsersUseCase {
+class GetAllUsersUseCase(
+    private val usersRepository: UsersRepository
+) {
 
-    private val usersRepository: UsersRepository = UsersRepositoryImpl
 
     fun execute(searchQuery: String = ""): Observable<List<User>> {
         return if (searchQuery.isEmpty()) {

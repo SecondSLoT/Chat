@@ -11,6 +11,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentChannelsBinding
 import com.secondslot.coursework.features.channels.adapter.StreamsPagerAdapter
+import com.secondslot.coursework.features.channels.presenter.StreamsListContract
 
 class StreamsFragment : Fragment() {
 
@@ -18,8 +19,8 @@ class StreamsFragment : Fragment() {
     private val binding get() = requireNotNull(_binding)
 
     private val channelsListFragments = listOf(
-        ChannelsListFragment.newInstance(ChannelsListFragment.SUBSCRIBED),
-        ChannelsListFragment.newInstance(ChannelsListFragment.ALL_STREAMS)
+        ChannelsListFragment.newInstance(StreamsListContract.SUBSCRIBED),
+        ChannelsListFragment.newInstance(StreamsListContract.ALL_STREAMS)
     )
 
     override fun onCreateView(
@@ -42,9 +43,7 @@ class StreamsFragment : Fragment() {
         )
 
         val channelsPagerAdapter = StreamsPagerAdapter(childFragmentManager, lifecycle)
-
         binding.viewPager.adapter = channelsPagerAdapter
-
         channelsPagerAdapter.updateFragments(channelsListFragments)
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
@@ -54,11 +53,11 @@ class StreamsFragment : Fragment() {
 
     private fun setListeners() {
         binding.includedSearchView.searchUsersEditText.doAfterTextChanged {
-            searchChannels(it.toString())
+            searchStreams(it.toString())
         }
 
         binding.includedSearchView.searchImageView.setOnClickListener {
-            searchChannels(binding.includedSearchView.searchUsersEditText.text.toString())
+            searchStreams(binding.includedSearchView.searchUsersEditText.text.toString())
         }
 
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
@@ -69,7 +68,7 @@ class StreamsFragment : Fragment() {
         })
     }
 
-    private fun searchChannels(searchQuery: String) {
+    private fun searchStreams(searchQuery: String) {
         channelsListFragments.forEach {
             (it as SearchQueryListener).search(searchQuery)
         }

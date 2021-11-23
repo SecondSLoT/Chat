@@ -1,7 +1,6 @@
 package com.secondslot.coursework.data.repository
 
 import android.util.Log
-import com.secondslot.coursework.App
 import com.secondslot.coursework.data.api.NetworkManager
 import com.secondslot.coursework.data.api.model.UserRemoteToUserMapper
 import com.secondslot.coursework.data.db.AppDatabase
@@ -9,19 +8,16 @@ import com.secondslot.coursework.data.db.model.entity.UserEntity
 import com.secondslot.coursework.data.db.model.entity.UserEntityToUserMapper
 import com.secondslot.coursework.data.db.model.entity.UserToUserEntityMapper
 import com.secondslot.coursework.data.db.model.entity.toDomainModel
-import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 
-object UsersRepositoryImpl : UsersRepository {
-
-    private const val TAG = "UsersRepoImpl"
-
-    private val database: AppDatabase = GlobalDI.INSTANCE.appDatabase
-    private val networkManager = NetworkManager()
+class UsersRepositoryImpl(
+    private val database: AppDatabase,
+    private val networkManager: NetworkManager
+) : UsersRepository {
 
     private var myId = -1
 
@@ -99,19 +95,13 @@ object UsersRepositoryImpl : UsersRepository {
 
         // Data from network
         val userRemoteObservable = networkManager.getOwnUser()
-            .map { UserRemoteToUserMapper.map(it) }
-
-        // Save data from network to DB
-        val disposable = userRemoteObservable
-            .subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.io())
-            .subscribeBy(
-                onNext = {
-                    Log.d(TAG, "Insert User into DB")
-                    database.userDao.insertUser(UserEntity.fromDomainModel(it[0]))
-                    myId = it[0].userId
-                }
-            )
+            .map {
+                val users = UserRemoteToUserMapper.map(it)
+                Log.d(TAG, "Insert User into DB")
+                database.userDao.insertUser(UserEntity.fromDomainModel(users[0]))
+                myId = users[0].userId
+                users
+            }
 
         return Observable
             .concat(
@@ -119,5 +109,9 @@ object UsersRepositoryImpl : UsersRepository {
                 userRemoteObservable
             )
             .filter { it.isNotEmpty() }
+    }
+
+    companion object {
+        private const val TAG = "UsersRepoImpl"
     }
 }
