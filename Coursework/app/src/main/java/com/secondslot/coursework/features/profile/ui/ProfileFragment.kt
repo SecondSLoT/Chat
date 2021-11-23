@@ -11,12 +11,9 @@ import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentProfileBinding
 import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.domain.model.User
-import com.secondslot.coursework.domain.usecase.GetOwnProfileUseCase
-import com.secondslot.coursework.domain.usecase.GetProfileUseCase
 import com.secondslot.coursework.extentions.loadImage
 import com.secondslot.coursework.features.profile.presenter.ProfileContract
 import com.secondslot.coursework.features.profile.ui.ProfileState.*
-import io.reactivex.disposables.CompositeDisposable
 
 class ProfileFragment :
     MvpFragment<ProfileContract.ProfileView, ProfileContract.ProfilePresenter>(),
@@ -25,16 +22,12 @@ class ProfileFragment :
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-//    private val compositeDisposable = CompositeDisposable()
-//
-//    private val getProfileUseCase = GetProfileUseCase()
-//    private val getOwnProfileUseCase = GetOwnProfileUseCase()
-
     private var myId = -1
     private val userId: Int by lazy { arguments?.getInt(USER_ID, 0) ?: 0 }
 
-    override fun getPresenter(): ProfileContract.ProfilePresenter =
-        GlobalDI.INSTANCE.profilePresenter
+    private val presenter = GlobalDI.INSTANCE.getProfilePresenter()
+
+    override fun getPresenter(): ProfileContract.ProfilePresenter = presenter
 
     override fun getMvpView(): ProfileContract.ProfileView = this
 
@@ -45,13 +38,12 @@ class ProfileFragment :
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         initViews(userId)
         setListeners()
-//        setObservers(userId)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        getPresenter().loadProfile(userId)
+        presenter.loadProfile(userId)
     }
 
     private fun initViews(userId: Int) {
@@ -65,30 +57,6 @@ class ProfileFragment :
             requireActivity().supportFragmentManager.popBackStack()
         }
     }
-
-//    private fun setObservers(userId: Int) {
-//        val profileObservable = if (userId != -1) {
-//            getProfileUseCase.execute(userId)
-//        } else {
-//            getOwnProfileUseCase.execute()
-//        }
-//        profileObservable
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribeBy(
-//                onNext = {
-//                    Log.d(TAG, "profileObservable onNext")
-//                    if (it.isNullOrEmpty()) {
-//                        processFragmentState(Loading)
-//                    } else {
-//                        processFragmentState(Result(it[0]))
-//                    }
-//                },
-//                onError = { processFragmentState(Error(it)) }
-//            )
-//            .addTo(compositeDisposable)
-//    }
-
 
     override fun setStateLoading() {
         processFragmentState(Loading)
@@ -134,11 +102,6 @@ class ProfileFragment :
             }
         }
     }
-//
-//    override fun onDestroy() {
-//        super.onDestroy()
-//        compositeDisposable.dispose()
-//    }
 
     companion object {
         private const val TAG = "ProfileFragment"

@@ -16,10 +16,11 @@ import com.secondslot.coursework.domain.repository.MessagesRepository
 import io.reactivex.Observable
 import io.reactivex.Single
 
-class MessagesRepositoryImpl : MessagesRepository {
+class MessagesRepositoryImpl(
+    private val networkManager: NetworkManager
+) : MessagesRepository {
 
     private val database: AppDatabase = GlobalDI.INSTANCE.appDatabase
-    private val networkManager = NetworkManager()
     private var messagesCache = emptyList<Message>()
 
     override fun getMessages(
@@ -37,20 +38,12 @@ class MessagesRepositoryImpl : MessagesRepository {
             // Data from DB
             messagesReactionsDbObservable = database.messageWithReactionDao
                 .getMessagesReactions(topicName)
-//                .subscribeOn(Schedulers.io())
                 .map { messageReactionDbList ->
                     Log.d(TAG, "MessagesReactionsDb size = ${messageReactionDbList.size}")
                     messagesCache = MessageReactionDbToDomainModel.map(messageReactionDbList)
                     messagesCache
                 }
                 .toObservable()
-
-//            val disposable = messagesReactionsDbObservable
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(Schedulers.io())
-//                .subscribeBy(
-//                    onNext = { messagesCache = it }
-//                )
         }
 
         // Data from network
@@ -75,37 +68,6 @@ class MessagesRepositoryImpl : MessagesRepository {
 
                 messages
             }
-
-
-        // Save data from network to DB
-//        val disposable = messagesReactionsRemoteObservable
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(Schedulers.io())
-//            .subscribeBy(
-//                onNext = { messages ->
-//                    messagesCache = mergeData(messagesCache, messages)
-//                    val messageEntities: ArrayList<MessageEntity> = arrayListOf()
-//                    val reactionEntities: ArrayList<ReactionEntity> = arrayListOf()
-//                    messagesCache.forEach { message ->
-//                        messageEntities.add(MessageEntity.fromMessage(message))
-//                        reactionEntities.addAll(
-//                            ReactionToReactionEntityMapper.map(message.reactions, message.id)
-//                        )
-//                    }
-//
-//                    database.messageWithReactionDao
-//                        .updateMessagesReactions(messageEntities, reactionEntities, topicName)
-//                },
-//                onError = { Log.e(TAG, "messagesReactionsRemoteObservable error") }
-//            )
-
-//        return if (messagesReactionsDbObservable != null && messagesCache.isNotEmpty()) {
-//            Log.d(TAG, "Returning observable from DB")
-//            messagesReactionsDbObservable
-//        } else {
-//            Log.d(TAG, "Returning observable from network")
-//            messagesReactionsRemoteObservable
-//        }
 
         return Observable
             .concat(

@@ -7,38 +7,33 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.R
+import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentUsersBinding
+import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.domain.model.User
-import com.secondslot.coursework.domain.usecase.GetAllUsersUseCase
 import com.secondslot.coursework.features.people.adapter.PeopleListAdapter
 import com.secondslot.coursework.features.people.adapter.UsersItemDecoration
-import com.secondslot.coursework.features.people.ui.UserState.Error
-import com.secondslot.coursework.features.people.ui.UserState.Loading
-import com.secondslot.coursework.features.people.ui.UserState.Result
+import com.secondslot.coursework.features.people.presenter.UsersContract
+import com.secondslot.coursework.features.people.ui.UserState.*
 import com.secondslot.coursework.features.profile.ui.ProfileFragment
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.PublishSubject
-import java.util.concurrent.TimeUnit
 
-class PeopleFragment : Fragment(), OnUserClickListener {
+class PeopleFragment :
+    MvpFragment<UsersContract.UsersView, UsersContract.UsersPresenter>(),
+    UsersContract.UsersView,
+    OnUserClickListener {
 
     private var _binding: FragmentUsersBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-    private val searchSubject: PublishSubject<String> = PublishSubject.create()
-    private val compositeDisposable = CompositeDisposable()
-
-    private val getAllUsersUseCase = GetAllUsersUseCase()
     private val usersAdapter = PeopleListAdapter(this)
 
-    private var users = listOf<User>()
+    private val presenter = GlobalDI.INSTANCE.getUsersPresenter()
+
+    override fun getPresenter(): UsersContract.UsersPresenter = presenter
+
+    override fun getMvpView(): UsersContract.UsersView = this
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,7 +42,6 @@ class PeopleFragment : Fragment(), OnUserClickListener {
         _binding = FragmentUsersBinding.inflate(inflater, container, false)
         initViews()
         setListeners()
-        setObservers()
         return binding.root
     }
 
@@ -67,42 +61,30 @@ class PeopleFragment : Fragment(), OnUserClickListener {
                 searchUsers(it.toString())
             }
 
-            includedRetryButton.retryButton.setOnClickListener { getUsers() }
+            includedRetryButton.retryButton.setOnClickListener { presenter.retry() }
         }
     }
 
     private fun searchUsers(searchQuery: String) {
-        searchSubject.onNext(searchQuery)
+        presenter.searchUsers(searchQuery)
     }
 
-    private fun setObservers() {
-        getUsers()
-        subscribeOnSearchChanges()
+    override fun setStateLoading() {
+        processFragmentState(Loading)
     }
 
-    private fun getUsers() {
-        val usersObservable = getAllUsersUseCase.execute()
-        usersObservable
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = {
-                    if (it.isNullOrEmpty()) {
-                        processFragmentState(Loading)
-                    } else {
-                        processFragmentState(Result(it))
-                    }
-                },
-                onError = { processFragmentState(Error(it)) }
-            )
-            .addTo(compositeDisposable)
+    override fun setStateResult(users: List<User>) {
+        processFragmentState(Result(users))
+    }
+
+    override fun setStateError(error: Throwable) {
+        processFragmentState(Error(error))
     }
 
     private fun processFragmentState(state: UserState) {
         when (state) {
             is Result -> {
-                users = state.items
-                usersAdapter.submitList(users.toList())
+                usersAdapter.submitList(state.items.toList())
 
                 binding.run {
                     shimmer.isVisible = false
@@ -130,28 +112,11 @@ class PeopleFragment : Fragment(), OnUserClickListener {
         }
     }
 
-    private fun subscribeOnSearchChanges() {
-        searchSubject
-            .subscribeOn(Schedulers.io())
-            .distinctUntilChanged()
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { processFragmentState(Loading) }
-            .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
-            .switchMap { searchQuery -> getAllUsersUseCase.execute(searchQuery) }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = { processFragmentState(Result(it)) },
-                onError = { processFragmentState(Error(it)) }
-            )
-            .addTo(compositeDisposable)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
-    }
-
     override fun onUserClick(userId: Int) {
+        presenter.onUserClicked(userId)
+    }
+
+    override fun openUser(userId: Int) {
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.container, ProfileFragment.newInstance(userId))
             .addToBackStack(null)

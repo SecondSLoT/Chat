@@ -15,6 +15,7 @@ interface ProfileContract {
     }
 
     interface ProfilePresenter : Presenter<ProfileView> {
+
         fun loadProfile(userId: Int)
     }
 }

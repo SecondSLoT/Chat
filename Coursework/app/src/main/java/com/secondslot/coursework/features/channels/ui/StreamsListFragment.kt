@@ -12,38 +12,39 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.R
+import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentChannelsListBinding
-import com.secondslot.coursework.domain.model.Stream
-import com.secondslot.coursework.domain.usecase.GetAllStreamsUseCase
-import com.secondslot.coursework.domain.usecase.GetSubscribedStreamsUseCase
+import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.features.channels.adapter.StreamsItemDecoration
 import com.secondslot.coursework.features.channels.adapter.StreamsListAdapter
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
+import com.secondslot.coursework.features.channels.presenter.StreamsListContract
 import com.secondslot.coursework.features.channels.ui.ChannelsState.*
 import com.secondslot.coursework.features.chat.ui.ChatFragment
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.PublishSubject
-import java.util.concurrent.TimeUnit
 
-class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryListener,
+class ChannelsListFragment :
+    MvpFragment<StreamsListContract.StreamsListView, StreamsListContract.StreamsListPresenter>(),
+    StreamsListContract.StreamsListView,
+    ExpandCollapseListener,
+    SearchQueryListener,
     OnTopicClickListener {
 
     private var _binding: FragmentChannelsListBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-    private val getSubscribedStreamsUseCase = GetSubscribedStreamsUseCase()
-    private val getAllStreamsUseCase = GetAllStreamsUseCase()
     private val streamsListAdapter = StreamsListAdapter(this, this)
 
-    private var searchSubject: PublishSubject<String> = PublishSubject.create()
-    private val compositeDisposable = CompositeDisposable()
-
     private var streamModelList = mutableListOf<ExpandableStreamModel>()
+
+    private val presenter = GlobalDI.INSTANCE.getStreamsListPresenter()
+
+    override fun getPresenter(): StreamsListContract.StreamsListPresenter = presenter
+
+    override fun getMvpView(): StreamsListContract.StreamsListView = this
+
+    override fun getViewType(): String {
+        return arguments?.getString(CONTENT_KEY, "") ?: ""
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +54,6 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
             theme.resolveAttribute(android.R.attr.statusBarColor, typedValue, true)
             window.statusBarColor = typedValue.data
         }
-
     }
 
     override fun onCreateView(
@@ -64,7 +64,6 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
         _binding = FragmentChannelsListBinding.inflate(inflater, container, false)
         initViews()
         setListeners()
-        setObservers()
         return binding.root
     }
 
@@ -79,40 +78,20 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
 
     private fun setListeners() {
         binding.includedRetryButton.retryButton.setOnClickListener {
-            setObservers()
+            presenter.retry()
         }
     }
 
-    private fun setObservers() {
-        // Get streams ones when fragment is launched
-        getStreams()
-        // Subscription which will update streams when text in search field changes
-        subscribeOnSearchChanges()
+    override fun setStateLoading() {
+        processFragmentState(Loading)
     }
 
-    private fun getStreams() {
-        val streamsObservable: Observable<List<Stream>> =
-            when (arguments?.getString(CONTENT_KEY, "")) {
-                SUBSCRIBED -> getSubscribedStreamsUseCase.execute()
-                else -> getAllStreamsUseCase.execute()
-            }
+    override fun setStateResult(expandableStreamModel: List<ExpandableStreamModel>) {
+        processFragmentState(Result(expandableStreamModel))
+    }
 
-        streamsObservable
-            .subscribeOn(Schedulers.io())
-            .map { ExpandableStreamModel.fromStream(it) }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = {
-                    Log.d(TAG, "streamsObservable onNext")
-                    if (it.isNullOrEmpty()) {
-                        processFragmentState(Loading)
-                    } else {
-                        processFragmentState(Result(it))
-                    }
-                },
-                onError = { processFragmentState(Error(it)) }
-            )
-            .addTo(compositeDisposable)
+    override fun setStateError(error: Throwable) {
+        processFragmentState(Error(error))
     }
 
     private fun processFragmentState(state: ChannelsState) {
@@ -147,33 +126,6 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
                 }
             }
         }
-    }
-
-    private fun subscribeOnSearchChanges() {
-        searchSubject
-            .subscribeOn(Schedulers.io())
-            .distinctUntilChanged()
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { processFragmentState(Loading) }
-            .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
-            .switchMap { searchQuery ->
-                when (arguments?.getString(CONTENT_KEY, "")) {
-                    SUBSCRIBED -> {
-                        getSubscribedStreamsUseCase.execute(searchQuery)
-                            .map { ExpandableStreamModel.fromStream(it) }
-                    }
-                    else -> {
-                        getAllStreamsUseCase.execute(searchQuery)
-                            .map { ExpandableStreamModel.fromStream(it) }
-                    }
-                }
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = { processFragmentState(Result(it)) },
-                onError = { processFragmentState(Error(it)) }
-            )
-            .addTo(compositeDisposable)
     }
 
     override fun expandRow(position: Int) {
@@ -212,7 +164,7 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
     }
 
     override fun search(searchQuery: String) {
-        searchSubject.onNext(searchQuery)
+        presenter.searchStreams(searchQuery)
     }
 
     override fun onTopicClicked(topicName: String, maxMessageId: Int, streamId: Int) {
@@ -225,17 +177,10 @@ class ChannelsListFragment : Fragment(), ExpandCollapseListener, SearchQueryList
             .commitAllowingStateLoss()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
-    }
-
     companion object {
 
         private const val TAG = "StreamsListFragment"
         private const val CONTENT_KEY = "list_type"
-        const val SUBSCRIBED = "subscribed"
-        const val ALL_STREAMS = "all_streams"
 
         fun newInstance(contentKey: String): Fragment {
             return ChannelsListFragment().apply {

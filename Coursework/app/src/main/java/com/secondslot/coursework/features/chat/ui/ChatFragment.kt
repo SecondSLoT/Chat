@@ -10,64 +10,42 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.widget.doAfterTextChanged
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.secondslot.coursework.R
-import com.secondslot.coursework.data.local.ReactionStorage
-import com.secondslot.coursework.data.local.model.ReactionLocal
+import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentChatBinding
-import com.secondslot.coursework.domain.model.Reaction
-import com.secondslot.coursework.domain.usecase.AddReactionUseCase
-import com.secondslot.coursework.domain.usecase.GetMessagesUseCase
-import com.secondslot.coursework.domain.usecase.GetOwnProfileUseCase
-import com.secondslot.coursework.domain.usecase.RemoveReactionUseCase
-import com.secondslot.coursework.domain.usecase.SendMessageUseCase
-import com.secondslot.coursework.extentions.getDateForChat
+import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.features.chat.adapter.ChatAdapter
 import com.secondslot.coursework.features.chat.adapter.ReactionsAdapter
 import com.secondslot.coursework.features.chat.model.ChatItem
-import com.secondslot.coursework.features.chat.model.DateDivider
-import com.secondslot.coursework.features.chat.model.MessageItem
-import com.secondslot.coursework.features.chat.model.MessageToItemMapper
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
-import java.util.*
-import kotlin.collections.ArrayList
+import com.secondslot.coursework.features.chat.presenter.ChatContract
 
-class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListener {
+class ChatFragment :
+    MvpFragment<ChatContract.ChatView, ChatContract.ChatPresenter>(),
+    ChatContract.ChatView {
 
     private var _binding: FragmentChatBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-    private var myId: Int = -1
-    private var chosenMessage: MessageItem? = null
     private var chatAdapter: ChatAdapter? = null
     private var bottomSheetDialog: BottomSheetDialog? = null
 
-    private val compositeDisposable = CompositeDisposable()
+    private val presenter = GlobalDI.INSTANCE.getChatPresenter()
 
-    private val getMessagesUseCase = GetMessagesUseCase()
-    private val sendMessageUseCase = SendMessageUseCase()
-    private val getOwnProfileUseCase = GetOwnProfileUseCase()
-    private val addReactionUseCase = AddReactionUseCase()
-    private val removeReactionUseCase = RemoveReactionUseCase()
+    override fun getPresenter(): ChatContract.ChatPresenter = presenter
 
-    private var messages: List<ChatItem> = arrayListOf()
-    private var firstMessageId: Int = -1
-    private var isLoading: Boolean = false
-        set(value) {
-            field = value
-            Log.d(TAG, "isLoading = $field")
-        }
+    override fun getMvpView(): ChatContract.ChatView = this
 
-    private val topicName: String by lazy { arguments?.getString(TOPIC_NAME, "") ?: "" }
-    private val streamId: Int by lazy { arguments?.getInt(STREAM_ID, 0) ?: 0 }
+    override fun getStreamId(): Int {
+        return arguments?.getInt(STREAM_ID, 0) ?: 0
+    }
+
+    override fun getTopicName(): String {
+        return arguments?.getString(TOPIC_NAME, "") ?: ""
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,7 +60,6 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatBinding.inflate(inflater, container, false)
-        initViews()
         return binding.root
     }
 
@@ -91,64 +68,52 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         setListeners()
     }
 
-    private fun initViews() {
+    override fun initViews(myId: Int) {
         val linearLayoutManager = LinearLayoutManager(requireContext())
         linearLayoutManager.stackFromEnd = true
-        binding.recyclerView.layoutManager = linearLayoutManager
 
-        // Get own profile for my ID to set it to chatAdapter
-        getOwnProfileUseCase.execute()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = { user ->
-                    if (user.isNotEmpty()) {
-                        myId = user[0].userId
-                        chatAdapter = ChatAdapter(this, myId)
-                        binding.recyclerView.adapter = chatAdapter
-                        getMessages(isScrollToEnd = true)
-                    }
-                },
-                onError = {
-                    Log.d(TAG, "getOwnProfileUseCase.execute() error")
-                    showError(it)
-                }
-            )
-            .addTo(compositeDisposable)
+        chatAdapter = ChatAdapter(presenter as MessageInteractionListener, myId)
+
+        binding.recyclerView.run {
+            layoutManager = linearLayoutManager
+            adapter = chatAdapter
+        }
 
         binding.run {
-            topicTextView.text = getString(R.string.topic, topicName)
+            topicTextView.text = getString(R.string.topic, presenter.getTopicName())
             messageEditText.requestFocus()
         }
+
+        presenter.getMessages(isScrollToEnd = true)
     }
 
     private fun setListeners() {
+
         binding.messageEditText.doAfterTextChanged { text ->
             setSendButtonAction(text.toString() == "")
         }
 
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-
-                // If user scrolls up
-                if (dy < 0 && !isLoading) {
-                    // If item on position to prefetch is visible
-                    if (
+                if (dy < 0) {
+                    presenter.onScrollUp(
                         (binding.recyclerView.layoutManager as LinearLayoutManager)
-                            .findFirstCompletelyVisibleItemPosition() == PREFETCH_DISTANCE
-                    ) {
-
-                        Log.d(TAG, "It's time to prefetch")
-                        getMessages(firstMessageId.toString(), false)
-                    }
+                            .findFirstCompletelyVisibleItemPosition()
+                    )
+                } else {
+                    presenter.onScrollDown(
+                        (binding.recyclerView.layoutManager as LinearLayoutManager)
+                            .findLastCompletelyVisibleItemPosition()
+                    )
                 }
             }
         })
 
         binding.sendButton.setOnClickListener {
             if (binding.messageEditText.text.toString().isNotEmpty()) {
-                sendMessage(binding.messageEditText.text.toString())
+                presenter.onSendMessageClicked(binding.messageEditText.text.toString())
             } else {
                 Log.d(TAG, "Add attachment clicked")
             }
@@ -159,76 +124,13 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         }
     }
 
-    private fun getMessages(anchor: String = "newest", isScrollToEnd: Boolean = false) {
-        if (isLoading) return
-        isLoading = true
-
-        // firstMessageId != -1 means that we already have some loaded messages and
-        // now we need to load a new batch of messages
-        if (firstMessageId != -1) {
-            // Remove item at index 0 - time divider
-            // Remove item at index 1 - first message, because it will be at the next batch
-            (messages as ArrayList).subList(0, 2).clear()
-        }
-
-        val narrow = mapOf(
-            "stream" to streamId,
-            "topic" to topicName
-        )
-
-        Log.d(TAG, "GetMessagesUseCase execute")
-        getMessagesUseCase.execute(anchor = anchor, narrow = narrow)
-            .subscribeOn(Schedulers.io())
-            .map { MessageToItemMapper.map(it) }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = {
-                    Log.d(TAG, "MessageObservable onNext")
-                    if (it.isNotEmpty()) {
-                        Log.d(TAG, "Received List<MessageItem> size = ${it.size}")
-                        firstMessageId = it[0].id
-                        (messages as ArrayList).addAll(0, it)
-                        updateMessages(isScrollToEnd)
-                    } else {
-                        Log.d(TAG, "MessageObservable is empty")
-                    }
-
-                },
-                onError = {
-                    showError(it)
-                    isLoading = false
-                },
-                onComplete = {
-                    isLoading = false
-                }
-            )
-            .also { compositeDisposable.add(it) }
+    override fun updateMessages(messages: List<ChatItem>, isScrollToEnd: Boolean) {
+        chatAdapter?.submitList(messages.toList()) {
+            if (isScrollToEnd) scrollToEnd()
+        } ?: Log.e(TAG, "chatAdapter is null")
     }
 
-    private fun sendMessage(messageText: String) {
-        val sendMessageResultSingle = sendMessageUseCase.execute(
-            streamId = streamId,
-            topicName = topicName,
-            messageText = messageText
-        )
-        sendMessageResultSingle
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onSuccess = {
-                    if (it.result == SERVER_RESULT_SUCCESS) {
-                        binding.messageEditText.text.clear()
-                        getMessages(isScrollToEnd = true)
-                    } else {
-                        showSendMessageError()
-                    }
-                },
-                onError = { showSendMessageError(it) }
-            )
-            .addTo(compositeDisposable)
-    }
-
-    private fun showSendMessageError(error: Throwable? = null) {
+    override fun showSendMessageError(error: Throwable?) {
         Toast.makeText(
             requireContext(),
             R.string.send_message_error,
@@ -241,48 +143,21 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         }
     }
 
-    private fun showError(error: Throwable? = null) {
+    override fun showError(error: Throwable?) {
         Toast.makeText(
             requireContext(),
-            R.string.network_error_message,
+            R.string.error_message,
             Toast.LENGTH_SHORT
         ).show()
         if (error == null) {
-            Log.e(TAG, getString(R.string.network_error_message))
+            Log.e(TAG, getString(R.string.error_message))
         } else {
-            Log.e(TAG, "${getString(R.string.network_error_message)} $error")
+            Log.e(TAG, "${getString(R.string.error_message)} $error")
         }
     }
 
-    private fun updateMessages(isScrollToEnd: Boolean = false) {
-        for (i in messages.size - 1 downTo 1) {
-            if (messages[i - 1] is MessageItem && messages[i] is MessageItem) {
-                if ((messages[i - 1] as MessageItem).timestamp.getDateForChat() !=
-                    (messages[i] as MessageItem).timestamp.getDateForChat()
-                ) {
-
-                    (messages as ArrayList).add(
-                        i, DateDivider(
-                            (messages[i] as MessageItem)
-                                .timestamp.getDateForChat()
-                        )
-                    )
-                }
-            }
-        }
-
-        if (messages[0] !is DateDivider) {
-            (messages as ArrayList).add(
-                0, DateDivider(
-                    (messages[0] as MessageItem)
-                        .timestamp.getDateForChat()
-                )
-            )
-        }
-
-        chatAdapter?.submitList(messages.toList()) {
-            if (isScrollToEnd) scrollToEnd()
-        } ?: Log.d(TAG, "chatAdapter is null")
+    override fun clearMessageEditText() {
+        binding.messageEditText.text.clear()
     }
 
     private fun setSendButtonAction(isMessageEmpty: Boolean) {
@@ -300,8 +175,8 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
     private fun scrollToEnd() = binding.recyclerView.adapter?.itemCount?.minus(1)
         ?.takeIf { it > 0 }?.let(binding.recyclerView::scrollToPosition)
 
-    override fun openReactionsSheet(message: MessageItem) {
-        chosenMessage = message
+    override fun openReactionsSheet() {
+
         bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog?.run {
             setContentView(R.layout.dialog_reactions_bottom_sheet)
@@ -313,79 +188,16 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
             bottomSheetDialog?.findViewById<RecyclerView>(R.id.reactions_recycler_view)
         reactionsRecyclerView?.run {
             layoutManager = GridLayoutManager(requireContext(), 7)
-            adapter = ReactionsAdapter(ReactionStorage.reactions, this@ChatFragment)
+            adapter = ReactionsAdapter(
+                presenter.getReactions(),
+                presenter as ChooseReactionListener)
             setHasFixedSize(true)
         }
         bottomSheetDialog?.show()
     }
 
-    override fun reactionChosen(reaction: ReactionLocal) {
+    override fun closeReactionsSheet() {
         bottomSheetDialog?.dismiss()
-
-        var existingReaction: Reaction? = null
-        chosenMessage?.reactions?.forEach {
-            if (it.key.emojiCode == reaction.emojiCode && it.key.userId == myId) {
-                existingReaction = it.key
-                return
-            }
-        }
-
-        if (existingReaction == null) {
-            chosenMessage?.id?.let { addReaction(it, reaction.emojiName) }
-        } else {
-            chosenMessage?.id?.let { removeReaction(it, reaction.emojiName) }
-        }
-    }
-
-    override fun addReaction(messageId: Int, emojiName: String) {
-        val addReactionResult = addReactionUseCase.execute(messageId, emojiName)
-
-        addReactionResult
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onSuccess = {
-                    if (it.result == SERVER_RESULT_SUCCESS) {
-                        getMessages()
-                    } else {
-                        showError()
-                        Log.e(TAG, "Error adding reaction = ${it.result}")
-                    }
-                },
-                onError = {
-                    showError()
-                    Log.e(TAG, "Error adding reaction = ${it.message}")
-                }
-            )
-            .addTo(compositeDisposable)
-    }
-
-    override fun removeReaction(messageId: Int, emojiName: String) {
-        val removeReactionResult = removeReactionUseCase.execute(messageId, emojiName)
-
-        removeReactionResult
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onSuccess = {
-                    if (it.result == SERVER_RESULT_SUCCESS) {
-                        getMessages()
-                    } else {
-                        showError()
-                        Log.e(TAG, "Error removing reaction = ${it.result}")
-                    }
-                },
-                onError = {
-                    showError()
-                    Log.e(TAG, "Error removing reaction = ${it.message}")
-                }
-            )
-            .addTo(compositeDisposable)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
     }
 
     companion object {
@@ -393,11 +205,6 @@ class ChatFragment : Fragment(), MessageInteractionListener, ChooseReactionListe
         private const val TOPIC_NAME = "topic_name"
         private const val MAX_MESSAGE_ID = "max_message_id"
         private const val STREAM_ID = "stream_id"
-
-        private const val SERVER_RESULT_SUCCESS = "success"
-        private const val SERVER_RESULT_ERROR = "error"
-
-        private const val PREFETCH_DISTANCE = 4
 
         fun newInstance(topicName: String, maxMessageId: Int, streamId: Int): ChatFragment {
             return ChatFragment().apply {
