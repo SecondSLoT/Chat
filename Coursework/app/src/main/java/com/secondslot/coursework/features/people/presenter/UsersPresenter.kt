@@ -4,13 +4,13 @@ import android.util.Log
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
 import com.secondslot.coursework.domain.usecase.GetAllUsersUseCase
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.plugins.RxJavaPlugins
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class UsersPresenter(
+class UsersPresenter @Inject constructor(
     private val getAllUsersUseCase: GetAllUsersUseCase
 ) :
     RxPresenter<UsersContract.UsersView>(UsersContract.UsersView::class.java),

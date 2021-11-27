@@ -7,8 +7,9 @@ import com.secondslot.coursework.data.local.ReactionStorage
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.domain.repository.ReactionsRepository
 import io.reactivex.Single
+import javax.inject.Inject
 
-class ReactionsRepositoryImpl(
+class ReactionsRepositoryImpl @Inject constructor(
     private val networkManager: NetworkManager
 ) : ReactionsRepository {
 

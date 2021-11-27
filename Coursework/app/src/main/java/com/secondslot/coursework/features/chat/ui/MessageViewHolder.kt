@@ -59,7 +59,7 @@ class MessageViewHolder(
         }
 
         if (message.senderId == myId) {
-            binding.messageViewGroup.setMessageBgColor(R.color.username)
+            binding.messageViewGroup.setMessageBgColor(R.color.own_message_background)
             binding.messageViewGroup.setSelfMessageType(true)
         } else {
             binding.messageViewGroup.setMessageBgColor(R.color.on_background)

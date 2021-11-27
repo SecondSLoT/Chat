@@ -8,32 +8,42 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.secondslot.coursework.App
 import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentUsersBinding
-import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.features.people.adapter.PeopleListAdapter
 import com.secondslot.coursework.features.people.adapter.UsersItemDecoration
+import com.secondslot.coursework.features.people.di.DaggerUsersComponent
 import com.secondslot.coursework.features.people.presenter.UsersContract
 import com.secondslot.coursework.features.people.ui.UserState.*
 import com.secondslot.coursework.features.profile.ui.ProfileFragment
+import javax.inject.Inject
 
-class PeopleFragment :
+class UsersFragment :
     MvpFragment<UsersContract.UsersView, UsersContract.UsersPresenter>(),
     UsersContract.UsersView,
     OnUserClickListener {
+
+    @Inject
+    internal lateinit var presenter: UsersContract.UsersPresenter
 
     private var _binding: FragmentUsersBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private val usersAdapter = PeopleListAdapter(this)
 
-    private val presenter = GlobalDI.INSTANCE.getUsersPresenter()
-
     override fun getPresenter(): UsersContract.UsersPresenter = presenter
 
     override fun getMvpView(): UsersContract.UsersView = this
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val usersComponent = DaggerUsersComponent.factory().create(App.appComponent)
+        usersComponent.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -124,7 +134,7 @@ class PeopleFragment :
     }
 
     companion object {
-        fun newInstance() = PeopleFragment()
+        fun newInstance() = UsersFragment()
     }
 }
 

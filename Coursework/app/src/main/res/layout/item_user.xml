@@ -31,7 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:text="Darrell Steward"
+        tools:text="Darrell Steward"
         android:textSize="22sp"
         android:textColor="@color/message"
         app:layout_constraintStart_toEndOf="@+id/user_photo"

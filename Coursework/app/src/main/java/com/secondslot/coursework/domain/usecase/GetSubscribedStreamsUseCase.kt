@@ -3,8 +3,9 @@ package com.secondslot.coursework.domain.usecase
 import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.repository.StreamsRepository
 import io.reactivex.Observable
+import javax.inject.Inject
 
-class GetSubscribedStreamsUseCase(
+class GetSubscribedStreamsUseCase @Inject constructor(
     private val streamsRepository: StreamsRepository
 ) {
 

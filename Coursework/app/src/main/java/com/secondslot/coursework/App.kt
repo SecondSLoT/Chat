@@ -1,13 +1,19 @@
 package com.secondslot.coursework
 
 import android.app.Application
-import com.secondslot.coursework.di.GlobalDI
+import com.secondslot.coursework.di.AppComponent
+import com.secondslot.coursework.di.DaggerAppComponent
 
 class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
 
-        GlobalDI.init(this)
+        appComponent = DaggerAppComponent.factory().create(applicationContext)
+    }
+
+    companion object {
+        lateinit var appComponent: AppComponent
+            private set
     }
 }

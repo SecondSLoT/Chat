@@ -11,23 +11,28 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.secondslot.coursework.App
 import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentChannelsListBinding
-import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.features.channels.adapter.StreamsItemDecoration
 import com.secondslot.coursework.features.channels.adapter.StreamsListAdapter
+import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import com.secondslot.coursework.features.channels.presenter.StreamsListContract
 import com.secondslot.coursework.features.channels.ui.ChannelsState.*
 import com.secondslot.coursework.features.chat.ui.ChatFragment
+import javax.inject.Inject
 
-class ChannelsListFragment :
+class StreamsListFragment :
     MvpFragment<StreamsListContract.StreamsListView, StreamsListContract.StreamsListPresenter>(),
     StreamsListContract.StreamsListView,
     ExpandCollapseListener,
     SearchQueryListener,
     OnTopicClickListener {
+
+    @Inject
+    internal lateinit var presenter: StreamsListContract.StreamsListPresenter
 
     private var _binding: FragmentChannelsListBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -35,8 +40,6 @@ class ChannelsListFragment :
     private val streamsListAdapter = StreamsListAdapter(this, this)
 
     private var streamModelList = mutableListOf<ExpandableStreamModel>()
-
-    private val presenter = GlobalDI.INSTANCE.getStreamsListPresenter()
 
     override fun getPresenter(): StreamsListContract.StreamsListPresenter = presenter
 
@@ -48,6 +51,9 @@ class ChannelsListFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val streamsComponent = DaggerStreamsComponent.factory().create(App.appComponent)
+        streamsComponent.injectStreamsListFragment(this)
 
         val typedValue = TypedValue()
         requireActivity().run {
@@ -183,7 +189,7 @@ class ChannelsListFragment :
         private const val CONTENT_KEY = "list_type"
 
         fun newInstance(contentKey: String): Fragment {
-            return ChannelsListFragment().apply {
+            return StreamsListFragment().apply {
                 arguments = bundleOf(CONTENT_KEY to contentKey)
             }
         }

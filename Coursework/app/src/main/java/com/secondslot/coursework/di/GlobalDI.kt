@@ -30,112 +30,112 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 class GlobalDI private constructor(applicationContext: Context) {
 
-    val appDatabase = Room.databaseBuilder(
-        applicationContext,
-        AppDatabase::class.java,
-        AppDatabase.DATABASE_NAME
-    ).build()
+//    val appDatabase = Room.databaseBuilder(
+//        applicationContext,
+//        AppDatabase::class.java,
+//        AppDatabase.DATABASE_NAME
+//    ).build()
+//
+//    val zulipApiService: ZulipApiService by lazy {
+//        val authorizationClient = OkHttpClient.Builder()
+//            .addInterceptor(AuthorizationInterceptor())
+//            .build()
+//
+//        Retrofit.Builder()
+//            .baseUrl(BASE_URL)
+//            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+//            .addConverterFactory(MoshiConverterFactory.create())
+//            .client(authorizationClient)
+//            .build()
+//            .create(ZulipApiService::class.java)
+//    }
 
-    val zulipApiService: ZulipApiService by lazy {
-        val authorizationClient = OkHttpClient.Builder()
-            .addInterceptor(AuthorizationInterceptor())
-            .build()
+//    val networkManager by lazy {
+//        NetworkManager(zulipApiService)
+//    }
 
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .addConverterFactory(MoshiConverterFactory.create())
-            .client(authorizationClient)
-            .build()
-            .create(ZulipApiService::class.java)
-    }
+//    val addReactionUseCase by lazy {
+//        AddReactionUseCase(reactionsRepository)
+//    }
+//    val getAllStreamsUseCase by lazy {
+//        GetAllStreamsUseCase(streamsRepository)
+//    }
+//    val getAllUsersUseCase by lazy {
+//        GetAllUsersUseCase(usersRepository)
+//    }
+//    val getMessagesUseCase by lazy {
+//        GetMessagesUseCase(messagesRepository)
+//    }
+//    val getOwnProfileUseCase by lazy {
+//        GetOwnProfileUseCase(usersRepository)
+//    }
+//    val getProfileUseCase by lazy {
+//        GetProfileUseCase(usersRepository)
+//    }
+//    val getReactionsUseCase by lazy {
+//        GetReactionsUseCase(reactionsRepository)
+//    }
+//    val getSubscribedStreamsUseCase by lazy {
+//        GetSubscribedStreamsUseCase(streamsRepository)
+//    }
+//    val removeReactionUseCase by lazy {
+//        RemoveReactionUseCase(reactionsRepository)
+//    }
+//    val sendMessagesUseCase by lazy {
+//        SendMessageUseCase(messagesRepository)
+//    }
 
-    val networkManager by lazy {
-        NetworkManager(zulipApiService)
-    }
+//    val messagesRepository: MessagesRepository by lazy {
+//        MessagesRepositoryImpl(appDatabase, networkManager)
+//    }
+//    val reactionsRepository: ReactionsRepository by lazy {
+//        ReactionsRepositoryImpl(networkManager)
+//    }
+//    val streamsRepository: StreamsRepository by lazy {
+//        StreamsRepositoryImpl(appDatabase, networkManager)
+//    }
+//    val usersRepository: UsersRepository by lazy {
+//        UsersRepositoryImpl(appDatabase, networkManager)
+//    }
 
-    val addReactionUseCase by lazy {
-        AddReactionUseCase(reactionsRepository)
-    }
-    val getAllStreamsUseCase by lazy {
-        GetAllStreamsUseCase(streamsRepository)
-    }
-    val getAllUsersUseCase by lazy {
-        GetAllUsersUseCase(usersRepository)
-    }
-    val getMessagesUseCase by lazy {
-        GetMessagesUseCase(messagesRepository)
-    }
-    val getOwnProfileUseCase by lazy {
-        GetOwnProfileUseCase(usersRepository)
-    }
-    val getProfileUseCase by lazy {
-        GetProfileUseCase(usersRepository)
-    }
-    val getReactionsUseCase by lazy {
-        GetReactionsUseCase(reactionsRepository)
-    }
-    val getSubscribedStreamsUseCase by lazy {
-        GetSubscribedStreamsUseCase(streamsRepository)
-    }
-    val removeReactionUseCase by lazy {
-        RemoveReactionUseCase(reactionsRepository)
-    }
-    val sendMessagesUseCase by lazy {
-        SendMessageUseCase(messagesRepository)
-    }
+//    fun getChatPresenter(): ChatContract.ChatPresenter {
+//        return ChatPresenter(
+//            getMessagesUseCase,
+//            sendMessagesUseCase,
+//            getOwnProfileUseCase,
+//            addReactionUseCase,
+//            removeReactionUseCase,
+//            getReactionsUseCase
+//        )
+//    }
+//
+//    fun  getUsersPresenter(): UsersContract.UsersPresenter {
+//        return UsersPresenter(
+//            getAllUsersUseCase
+//        )
+//    }
+//
+//    fun getProfilePresenter(): ProfileContract.ProfilePresenter {
+//        return ProfilePresenter(
+//            getProfileUseCase,
+//            getOwnProfileUseCase
+//        )
+//    }
+//
+//    fun getStreamsListPresenter(): StreamsListContract.StreamsListPresenter {
+//        return StreamsListPresenter(
+//            getSubscribedStreamsUseCase,
+//            getAllStreamsUseCase
+//        )
+//    }
 
-    val messagesRepository: MessagesRepository by lazy {
-        MessagesRepositoryImpl(networkManager)
-    }
-    val reactionsRepository: ReactionsRepository by lazy {
-        ReactionsRepositoryImpl(networkManager)
-    }
-    val streamsRepository: StreamsRepository by lazy {
-        StreamsRepositoryImpl(appDatabase, networkManager)
-    }
-    val usersRepository: UsersRepository by lazy {
-        UsersRepositoryImpl(appDatabase, networkManager)
-    }
-
-    fun getChatPresenter(): ChatContract.ChatPresenter {
-        return ChatPresenter(
-            getMessagesUseCase,
-            sendMessagesUseCase,
-            getOwnProfileUseCase,
-            addReactionUseCase,
-            removeReactionUseCase,
-            getReactionsUseCase
-        )
-    }
-
-    fun  getUsersPresenter(): UsersContract.UsersPresenter {
-        return UsersPresenter(
-            getAllUsersUseCase
-        )
-    }
-
-    fun getProfilePresenter(): ProfileContract.ProfilePresenter {
-        return ProfilePresenter(
-            getProfileUseCase,
-            getOwnProfileUseCase
-        )
-    }
-
-    fun getStreamsListPresenter(): StreamsListContract.StreamsListPresenter {
-        return StreamsListPresenter(
-            getSubscribedStreamsUseCase,
-            getAllStreamsUseCase
-        )
-    }
-
-    companion object {
-        private const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com/api/v1/"
-
-        lateinit var INSTANCE: GlobalDI
-
-        fun init(applicationContext: Context) {
-            INSTANCE = GlobalDI(applicationContext)
-        }
-    }
+//    companion object {
+//        private const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com/api/v1/"
+//
+//        lateinit var INSTANCE: GlobalDI
+//
+//        fun init(applicationContext: Context) {
+//            INSTANCE = GlobalDI(applicationContext)
+//        }
+//    }
 }

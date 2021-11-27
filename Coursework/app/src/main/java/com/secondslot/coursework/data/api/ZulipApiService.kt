@@ -1,24 +1,10 @@
 package com.secondslot.coursework.data.api
 
 import com.secondslot.coursework.data.api.model.UserRemote
-import com.secondslot.coursework.data.api.model.response.AllStreamsResponse
-import com.secondslot.coursework.data.api.model.response.AllUsersResponse
-import com.secondslot.coursework.data.api.model.response.MessagesResponse
-import com.secondslot.coursework.data.api.model.response.SendResponse
-import com.secondslot.coursework.data.api.model.response.SubscriptionsResponse
-import com.secondslot.coursework.data.api.model.response.TopicsResponse
-import com.secondslot.coursework.data.api.model.response.UserResponse
+import com.secondslot.coursework.data.api.model.response.*
 import io.reactivex.Observable
 import io.reactivex.Single
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.moshi.MoshiConverterFactory
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Path
-import retrofit2.http.Query
+import retrofit2.http.*
 
 interface ZulipApiService {
 
@@ -67,4 +53,8 @@ interface ZulipApiService {
         @Path("message_id") messageId: Int,
         @Query("emoji_name") emojiName: String
     ): Single<SendResponse>
+
+    companion object {
+        const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com/api/v1/"
+    }
 }

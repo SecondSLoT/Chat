@@ -2,8 +2,9 @@ package com.secondslot.coursework.domain.usecase
 
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.domain.repository.ReactionsRepository
+import javax.inject.Inject
 
-class GetReactionsUseCase(
+class GetReactionsUseCase @Inject constructor(
     private val reactionsRepository: ReactionsRepository
 ) {
 

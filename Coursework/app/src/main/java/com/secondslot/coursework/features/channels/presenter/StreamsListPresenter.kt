@@ -8,13 +8,13 @@ import com.secondslot.coursework.domain.usecase.GetSubscribedStreamsUseCase
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.plugins.RxJavaPlugins
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class StreamsListPresenter(
+class StreamsListPresenter @Inject constructor(
     private val getSubscribedStreamsUseCase: GetSubscribedStreamsUseCase,
     private val getAllStreamsUseCase: GetAllStreamsUseCase
 ) :
@@ -26,14 +26,14 @@ class StreamsListPresenter(
 
     override fun attachView(view: StreamsListContract.StreamsListView) {
         super.attachView(view)
-        Log.d(TAG, "AttachView()")
+        Log.d(TAG, "$this AttachView() $view")
         loadStreams()
         subscribeOnSearchChanges()
     }
 
     override fun detachView(isFinishing: Boolean) {
+        Log.d(TAG, "DetachView()  $view")
         super.detachView(isFinishing)
-        Log.d(TAG, "DetachView()")
     }
 
     private fun loadStreams() {

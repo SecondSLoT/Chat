@@ -15,8 +15,9 @@ import com.secondslot.coursework.features.chat.ui.MessageInteractionListener
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
-class ChatPresenter(
+class ChatPresenter @Inject constructor(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val getOwnProfileUseCase: GetOwnProfileUseCase,

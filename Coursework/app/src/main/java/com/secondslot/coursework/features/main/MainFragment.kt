@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentMainBinding
 import com.secondslot.coursework.features.channels.ui.StreamsFragment
-import com.secondslot.coursework.features.people.ui.PeopleFragment
+import com.secondslot.coursework.features.people.ui.UsersFragment
 import com.secondslot.coursework.features.profile.ui.ProfileFragment
 
 class MainFragment : Fragment() {
@@ -55,7 +55,7 @@ class MainFragment : Fragment() {
 
             R.id.action_people -> {
                 if (lastSelectedItem != R.id.action_people) {
-                    loadFragment(PeopleFragment.newInstance())
+                    loadFragment(UsersFragment.newInstance())
                     lastSelectedItem = R.id.action_people
                 }
             }

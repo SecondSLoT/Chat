@@ -7,9 +7,10 @@ import com.secondslot.coursework.data.api.model.UserRemote
 import com.secondslot.coursework.data.api.model.response.SendResponse
 import io.reactivex.Observable
 import io.reactivex.Single
+import javax.inject.Inject
 
 
-class NetworkManager (
+class NetworkManager @Inject constructor(
     private val apiService: ZulipApiService
     ) {
 

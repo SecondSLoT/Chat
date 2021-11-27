@@ -13,8 +13,9 @@ import com.secondslot.coursework.domain.repository.UsersRepository
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
-class UsersRepositoryImpl(
+class UsersRepositoryImpl @Inject constructor(
     private val database: AppDatabase,
     private val networkManager: NetworkManager
 ) : UsersRepository {

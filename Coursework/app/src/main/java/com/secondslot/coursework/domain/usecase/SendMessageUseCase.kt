@@ -3,8 +3,9 @@ package com.secondslot.coursework.domain.usecase
 import com.secondslot.coursework.data.api.model.SendResult
 import com.secondslot.coursework.domain.repository.MessagesRepository
 import io.reactivex.Single
+import javax.inject.Inject
 
-class SendMessageUseCase(
+class SendMessageUseCase @Inject constructor(
     private val messagesRepository: MessagesRepository
 ) {
 

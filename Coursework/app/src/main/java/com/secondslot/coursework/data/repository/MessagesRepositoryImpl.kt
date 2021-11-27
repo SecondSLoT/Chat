@@ -15,12 +15,13 @@ import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.repository.MessagesRepository
 import io.reactivex.Observable
 import io.reactivex.Single
+import javax.inject.Inject
 
-class MessagesRepositoryImpl(
+class MessagesRepositoryImpl @Inject constructor(
+    private val database: AppDatabase,
     private val networkManager: NetworkManager
 ) : MessagesRepository {
 
-    private val database: AppDatabase = GlobalDI.INSTANCE.appDatabase
     private var messagesCache = emptyList<Message>()
 
     override fun getMessages(

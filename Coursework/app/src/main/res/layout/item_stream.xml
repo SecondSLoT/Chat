@@ -36,6 +36,6 @@
         android:contentDescription="@string/collapse_group_content_description"
         android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
         android:visibility="gone"
-        app:tint="@color/white" />
+        app:tint="@color/collapse_arrow" />
 
 </LinearLayout>

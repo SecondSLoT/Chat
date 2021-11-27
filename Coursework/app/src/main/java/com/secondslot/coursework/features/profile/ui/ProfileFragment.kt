@@ -7,17 +7,22 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import com.secondslot.coursework.App
 import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentProfileBinding
-import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.extentions.loadImage
+import com.secondslot.coursework.features.profile.di.DaggerProfileComponent
 import com.secondslot.coursework.features.profile.presenter.ProfileContract
 import com.secondslot.coursework.features.profile.ui.ProfileState.*
+import javax.inject.Inject
 
 class ProfileFragment :
     MvpFragment<ProfileContract.ProfileView, ProfileContract.ProfilePresenter>(),
     ProfileContract.ProfileView {
+
+    @Inject
+    internal lateinit var presenter: ProfileContract.ProfilePresenter
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -25,11 +30,16 @@ class ProfileFragment :
     private var myId = -1
     private val userId: Int by lazy { arguments?.getInt(USER_ID, 0) ?: 0 }
 
-    private val presenter = GlobalDI.INSTANCE.getProfilePresenter()
-
     override fun getPresenter(): ProfileContract.ProfilePresenter = presenter
 
     override fun getMvpView(): ProfileContract.ProfileView = this
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val profileComponent = DaggerProfileComponent.factory().create(App.appComponent)
+        profileComponent.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

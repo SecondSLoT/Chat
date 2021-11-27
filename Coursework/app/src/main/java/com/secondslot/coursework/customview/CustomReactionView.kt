@@ -10,6 +10,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import androidx.core.content.ContextCompat
 import com.secondslot.coursework.R
 import com.secondslot.coursework.extentions.toPx
 
@@ -70,7 +71,7 @@ class CustomReactionView @JvmOverloads constructor(
             color =
                 styledAttrs.getColor(
                     R.styleable.CustomReactionView_reactionTextColor,
-                    Color.parseColor("#CCCCCC")
+                    ContextCompat.getColor(context, R.color.custom_reaction_text)
                 )
 
             textSize =
@@ -82,12 +83,12 @@ class CustomReactionView @JvmOverloads constructor(
 
         selectedBgColor = styledAttrs.getColor(
             R.styleable.CustomReactionView_reactionSelectedColor,
-            Color.parseColor("#464646")
+            ContextCompat.getColor(context, R.color.bg_custom_reaction_selected)
         )
 
         unselectedBgColor = styledAttrs.getColor(
             R.styleable.CustomReactionView_reactionUnselectedColor,
-            Color.parseColor("#282828")
+            ContextCompat.getColor(context, R.color.on_background)
         )
 
         setBackgroundPaintColor(isSelected)

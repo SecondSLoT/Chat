@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="background">#121212</color>
+    <color name="on_background">#282828</color>
+    <color name="panel_background">#1E1E1E</color>
+    <color name="edit_text_bottom_line">#323232</color>
+    <color name="bg_custom_reaction_selected">#464646</color>
+    <color name="custom_reaction_text">#CCCCCC</color>
+    <color name="username">#2A9D8F</color>
+    <color name="dark_green">#006153</color>
+    <color name="message">#FAFAFA</color>
+    <color name="date_divider_text">#999999</color>
+    <color name="bg_date_divider">#070707</color>
+    <color name="bd_edit_message_field">#282828</color>
+    <color name="about_text">#BCBCBC</color>
+    <color name="log_out_button">#1B1B1B</color>
+    <color name="bottom_navigation_element">#919191</color>
+    <color name="email_text">#A1A1A1</color>
+    <color name="group_additional_text">#F5F5F5</color>
+    <color name="tab_indicator">#219653</color>
+    <color name="topic_text">#CCCCCC</color>
+    <color name="icon">@color/white</color>
+    <color name="topic_background">#2A9D8F</color>
+    <color name="collapse_arrow">@color/white</color>
+    <color name="own_message_background">#2A9D8F</color>
+
+
+    <color name="status_online">#4AB54D</color>
+
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

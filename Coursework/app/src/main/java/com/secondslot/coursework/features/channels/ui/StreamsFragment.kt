@@ -5,23 +5,37 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doAfterTextChanged
-import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
+import com.secondslot.coursework.App
 import com.secondslot.coursework.R
+import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentChannelsBinding
 import com.secondslot.coursework.features.channels.adapter.StreamsPagerAdapter
-import com.secondslot.coursework.features.channels.presenter.StreamsListContract
+import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
+import com.secondslot.coursework.features.channels.presenter.StreamsContract
+import javax.inject.Inject
 
-class StreamsFragment : Fragment() {
+class StreamsFragment :
+    MvpFragment<StreamsContract.StreamsView, StreamsContract.StreamsPresenter>(),
+    StreamsContract.StreamsView {
 
     private var _binding: FragmentChannelsBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-    private val channelsListFragments = listOf(
-        ChannelsListFragment.newInstance(StreamsListContract.SUBSCRIBED),
-        ChannelsListFragment.newInstance(StreamsListContract.ALL_STREAMS)
-    )
+    @Inject
+    internal lateinit var presenter: StreamsContract.StreamsPresenter
+
+    override fun getPresenter(): StreamsContract.StreamsPresenter = presenter
+
+    override fun getMvpView(): StreamsContract.StreamsView = this
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val streamsComponent = DaggerStreamsComponent.factory().create(App.appComponent)
+        streamsComponent.injectStreamsFragment(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,7 +58,7 @@ class StreamsFragment : Fragment() {
 
         val channelsPagerAdapter = StreamsPagerAdapter(childFragmentManager, lifecycle)
         binding.viewPager.adapter = channelsPagerAdapter
-        channelsPagerAdapter.updateFragments(channelsListFragments)
+        channelsPagerAdapter.updateFragments(presenter.getStreamsFragments())
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = tabs[position]
@@ -52,26 +66,23 @@ class StreamsFragment : Fragment() {
     }
 
     private fun setListeners() {
+
         binding.includedSearchView.searchUsersEditText.doAfterTextChanged {
-            searchStreams(it.toString())
+            val currentPosition = binding.viewPager.currentItem
+            presenter.searchStreams(currentPosition, it.toString())
         }
 
         binding.includedSearchView.searchImageView.setOnClickListener {
-            searchStreams(binding.includedSearchView.searchUsersEditText.text.toString())
+            val currentPosition = binding.viewPager.currentItem
+            presenter.searchStreams(
+                currentPosition,
+                binding.includedSearchView.searchUsersEditText.text.toString()
+            )
         }
-
-        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                binding.includedSearchView.searchUsersEditText.text.clear()
-            }
-        })
     }
 
-    private fun searchStreams(searchQuery: String) {
-        channelsListFragments.forEach {
-            (it as SearchQueryListener).search(searchQuery)
-        }
+    override fun clearSearchView() {
+        binding.includedSearchView.searchUsersEditText.text.clear()
     }
 
     companion object {

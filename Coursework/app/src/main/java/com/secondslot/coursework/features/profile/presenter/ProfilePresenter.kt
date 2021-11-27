@@ -7,8 +7,9 @@ import com.secondslot.coursework.domain.usecase.GetProfileUseCase
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
-class ProfilePresenter(
+class ProfilePresenter @Inject constructor(
     private val getProfileUseCase: GetProfileUseCase,
     private val getOwnProfileUseCase: GetOwnProfileUseCase
 ) :

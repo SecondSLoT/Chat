@@ -14,26 +14,30 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.secondslot.coursework.App
 import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentChatBinding
 import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.features.chat.adapter.ChatAdapter
 import com.secondslot.coursework.features.chat.adapter.ReactionsAdapter
+import com.secondslot.coursework.features.chat.di.DaggerChatComponent
 import com.secondslot.coursework.features.chat.model.ChatItem
 import com.secondslot.coursework.features.chat.presenter.ChatContract
+import javax.inject.Inject
 
 class ChatFragment :
     MvpFragment<ChatContract.ChatView, ChatContract.ChatPresenter>(),
     ChatContract.ChatView {
+
+    @Inject
+    internal lateinit var presenter: ChatContract.ChatPresenter
 
     private var _binding: FragmentChatBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private var chatAdapter: ChatAdapter? = null
     private var bottomSheetDialog: BottomSheetDialog? = null
-
-    private val presenter = GlobalDI.INSTANCE.getChatPresenter()
 
     override fun getPresenter(): ChatContract.ChatPresenter = presenter
 
@@ -49,6 +53,9 @@ class ChatFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val chatComponent = DaggerChatComponent.factory().create(App.appComponent)
+        chatComponent.inject(this)
 
         requireActivity().window.statusBarColor =
             ContextCompat.getColor(requireContext(), R.color.username)
