@@ -32,6 +32,8 @@ interface ChatContract {
 
         fun getTopicName(): String
 
+        fun getStreamName(): String
+
         fun getChosenMessage(): MessageItem?
 
         fun getMessages(

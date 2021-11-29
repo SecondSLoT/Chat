@@ -18,6 +18,7 @@ import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class ChatPresenter @Inject constructor(
+    private val getStreamByIdUseCase: GetStreamByIdUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val getOwnProfileUseCase: GetOwnProfileUseCase,
@@ -38,7 +39,7 @@ class ChatPresenter @Inject constructor(
 
     private var streamId: Int? = null
     private var topicName: String? = null
-
+    private var streamName: String? = null
 
     private var isLoading: Boolean = false
         set(value) {
@@ -48,6 +49,8 @@ class ChatPresenter @Inject constructor(
 
     override fun getTopicName(): String = topicName ?: ""
 
+    override fun getStreamName(): String = streamName ?: ""
+
     override fun getChosenMessage(): MessageItem? = chosenMessage
 
     override fun attachView(view: ChatContract.ChatView) {
@@ -56,6 +59,18 @@ class ChatPresenter @Inject constructor(
 
         streamId = view.getStreamId()
         topicName = view.getTopicName()
+        streamId?.let {
+            getStreamByIdUseCase.execute(streamId!!)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeBy(
+                    onNext = { streamName = it.streamName },
+                    onError = {
+                        Log.d(TAG, "getStreamByIdUseCase.execute() error")
+                        view.showError(it)
+                    }
+                )
+        }
 
         // Get own profile for using it to view initializing
         getOwnProfileUseCase.execute()

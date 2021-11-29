@@ -43,8 +43,8 @@ class StreamsListAdapter(
         when (row.type) {
             ExpandableStreamModel.PARENT -> {
 
-                (holder as StreamViewHolder).groupTitle.text =
-                    row.stream.streamName
+                val groupTitle = "#${row.stream.streamName}"
+                (holder as StreamViewHolder).groupTitle.text = groupTitle
 
                 // Set initial holder state to get rid of dirty holders because of reusing
                 holder.collapseArrow.visibility = View.GONE

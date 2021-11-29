@@ -8,6 +8,7 @@ import com.secondslot.coursework.data.db.model.StreamWithTopicsDbToDomainMapper
 import com.secondslot.coursework.data.db.model.entity.StreamEntity
 import com.secondslot.coursework.data.db.model.entity.TopicEntity
 import com.secondslot.coursework.data.db.model.entity.TopicToTopicEntityMapper
+import com.secondslot.coursework.data.db.model.entity.toDomainModel
 import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.repository.StreamsRepository
 import io.reactivex.Observable
@@ -99,6 +100,16 @@ class StreamsRepositoryImpl @Inject constructor(
             streamTopicDbObservable,
             streamTopicRemoteObservable
         )
+    }
+
+    override fun getStreamById(streamId: Int): Observable<Stream> {
+
+        // Data from DB
+        val streamTopicDbObservable = database.streamDao.getStream(streamId)
+            .map {it.toDomainModel() }
+            .toObservable()
+
+        return streamTopicDbObservable
     }
 
     companion object {

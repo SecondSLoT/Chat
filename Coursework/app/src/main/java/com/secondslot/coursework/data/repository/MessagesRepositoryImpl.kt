@@ -9,7 +9,6 @@ import com.secondslot.coursework.data.db.model.MessageReactionDbToDomainModel
 import com.secondslot.coursework.data.db.model.entity.MessageEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionToReactionEntityMapper
-import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.data.api.model.SendResult
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.repository.MessagesRepository

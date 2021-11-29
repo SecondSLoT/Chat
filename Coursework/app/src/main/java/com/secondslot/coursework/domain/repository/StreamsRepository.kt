@@ -8,4 +8,6 @@ interface StreamsRepository {
     fun getSubscribedStreams(): Observable<List<Stream>>
 
     fun getAllStreams(): Observable<List<Stream>>
+
+    fun getStreamById(streamId: Int): Observable<Stream>
 }
