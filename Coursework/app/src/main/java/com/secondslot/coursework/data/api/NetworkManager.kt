@@ -12,52 +12,32 @@ import javax.inject.Inject
 
 class NetworkManager @Inject constructor(
     private val apiService: ZulipApiService
-    ) {
+) {
 
-    fun getSubscribedStreams(): Observable<List<StreamWithTopicsRemote>> {
-        return mapStreams(apiService.getSubscribedStreams()
-            // Convert SubscriptionsResponse to List<StreamRemote>
-            .map { it.streams }
-        )
+    suspend fun getSubscribedStreams(): List<StreamWithTopicsRemote> {
+        return mapStreams(apiService.getSubscribedStreams().streams)
     }
 
-    fun getAllStreams(): Observable<List<StreamWithTopicsRemote>> {
-        return mapStreams(apiService.getAllStreams()
-            // Convert AllStreamsResponse to List<StreamRemote>
-            .map { it.streams }
-        )
+    suspend fun getAllStreams(): List<StreamWithTopicsRemote> {
+        return mapStreams(apiService.getAllStreams().streams)
     }
 
-    private fun mapStreams(
-        streamsObservable: Observable<List<StreamRemote>>
-    ): Observable<List<StreamWithTopicsRemote>> {
-        // Convert List<StreamRemote> to StreamRemote
-        return streamsObservable
-            .flatMap { streamRemoteList -> Observable.fromIterable(streamRemoteList) }
-            .flatMap(
-                // Load List<TopicRemote> for certain StreamRemote
-                { streamRemote -> apiService.getTopics(streamRemote.id).map { it.topics } },
-                // Create StreamWithTopicsRemote and set StreamRemote and List<TopicRemote> to it
-                { streamRemote, topics ->
-                    StreamWithTopicsRemote(
-                        streamRemote = streamRemote,
-                        topics = topics
-                    )
-                }
-            )
-            // Gather all StreamWithTopicsRemote in one list
-            .toList()
-            // Convert Single<List<StreamWithTopicsRemote>> to Observable
-            .toObservable()
+    private suspend fun mapStreams(streamRemoteList: List<StreamRemote>):
+        List<StreamWithTopicsRemote> {
+        return streamRemoteList
+            .map { streamRemote ->
+                val topics = apiService.getTopics(streamRemote.id).topics
+                StreamWithTopicsRemote(streamRemote, topics)
+            }
     }
 
-    fun getAllUsers(): Observable<List<UserRemote>> =
-        apiService.getAllUsers().map { it.users.sortedBy { user -> user.fullName } }
+    suspend fun getAllUsers(): List<UserRemote> =
+        apiService.getAllUsers().users.sortedBy { user -> user.fullName }
 
-    fun getUser(userId: Int): Observable<List<UserRemote>> =
-        apiService.getUser(userId).map { listOf(it.user) }
+    suspend fun getUser(userId: Int): List<UserRemote> =
+        listOf(apiService.getUser(userId).user)
 
-    fun getOwnUser(): Observable<List<UserRemote>> = apiService.getOwnUser().map { listOf(it) }
+    suspend fun getOwnUser(): List<UserRemote> = listOf(apiService.getOwnUser())
 
     fun getMessages(
         anchor: String,
@@ -129,7 +109,7 @@ class NetworkManager @Inject constructor(
     }
 }
 
-    class NarrowDto(
-        val operator: String,
-        val operand: String
-    )
+class NarrowDto(
+    val operator: String,
+    val operand: String
+)

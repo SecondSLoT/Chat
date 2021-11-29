@@ -12,17 +12,17 @@ import io.reactivex.Single
 interface UserDao {
 
     @Query("SELECT * FROM users ORDER BY full_name")
-    fun getAllUsers(): Single<List<UserEntity>>
+    suspend fun getAllUsers(): List<UserEntity>
 
     @Query("SELECT * FROM users WHERE user_id = :userId")
-    fun getUser(userId: Int): Single<UserEntity>
+    suspend fun getUser(userId: Int): UserEntity
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertUsers(users: List<UserEntity>): Completable
+    suspend fun insertUsers(users: List<UserEntity>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertUser(user: UserEntity): Completable
+    suspend fun insertUser(user: UserEntity)
 
     @Query("DELETE FROM users")
-    fun deleteAllUsers(): Completable
+    suspend fun deleteAllUsers()
 }

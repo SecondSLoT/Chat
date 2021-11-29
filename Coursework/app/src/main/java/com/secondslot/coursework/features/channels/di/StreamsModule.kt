@@ -1,9 +1,7 @@
 package com.secondslot.coursework.features.channels.di
 
-import com.secondslot.coursework.features.channels.presenter.StreamsContract
-import com.secondslot.coursework.features.channels.presenter.StreamsListContract
-import com.secondslot.coursework.features.channels.presenter.StreamsListPresenter
-import com.secondslot.coursework.features.channels.presenter.StreamsPresenter
+import androidx.lifecycle.ViewModelProvider
+import com.secondslot.coursework.features.channels.vm.*
 import dagger.Binds
 import dagger.Module
 
@@ -18,7 +16,7 @@ interface StreamsModule {
 
     @StreamsScope
     @Binds
-    fun bindStreamsListPresenter(
-        impl: StreamsListPresenter
-    ): StreamsListContract.StreamsListPresenter
+    fun bindStreamsListViewModelFactory(
+        impl: StreamsListViewModelFactory
+    ): ViewModelProvider.Factory
 }

@@ -1,38 +1,40 @@
 package com.secondslot.coursework.features.profile.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.secondslot.coursework.App
-import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentProfileBinding
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.extentions.loadImage
 import com.secondslot.coursework.features.profile.di.DaggerProfileComponent
-import com.secondslot.coursework.features.profile.presenter.ProfileContract
 import com.secondslot.coursework.features.profile.ui.ProfileState.*
+import com.secondslot.coursework.features.profile.vm.ProfileViewModel
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
-class ProfileFragment :
-    MvpFragment<ProfileContract.ProfileView, ProfileContract.ProfilePresenter>(),
-    ProfileContract.ProfileView {
+class ProfileFragment : Fragment() {
 
     @Inject
-    internal lateinit var presenter: ProfileContract.ProfilePresenter
+    internal lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    private var _viewModel: ProfileViewModel? = null
+    private val viewModel get() = requireNotNull(_viewModel)
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private var myId = -1
     private val userId: Int by lazy { arguments?.getInt(USER_ID, 0) ?: 0 }
-
-    override fun getPresenter(): ProfileContract.ProfilePresenter = presenter
-
-    override fun getMvpView(): ProfileContract.ProfileView = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,17 +48,16 @@ class ProfileFragment :
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
-        initViews(userId)
+
+        _viewModel = ViewModelProvider(this, viewModelFactory)[ProfileViewModel::class.java]
+
+        initViews()
         setListeners()
+        setObservers()
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        presenter.loadProfile(userId)
-    }
-
-    private fun initViews(userId: Int) {
+    private fun initViews() {
         if (userId == -1) {
             binding.toolbar.isVisible = false
         }
@@ -68,18 +69,19 @@ class ProfileFragment :
         }
     }
 
-    override fun setStateLoading() {
-        processFragmentState(Loading)
-    }
+    private fun setObservers() {
 
-    override fun setStateResult(user: User) {
-        processFragmentState(Result(user))
-
-    }
-
-    override fun setStateError(error: Throwable) {
-        processFragmentState(Error(error))
-
+        lifecycleScope.launchWhenStarted {
+            viewModel.loadProfile(userId)
+                .catch { processFragmentState(Error(it)) }
+                .collect {
+                if (it.isNullOrEmpty()) {
+                    processFragmentState(Loading)
+                } else {
+                    processFragmentState(Result(it[0]))
+                }
+            }
+        }
     }
 
     private fun processFragmentState(state: ProfileState) {
@@ -104,6 +106,7 @@ class ProfileFragment :
             }
 
             is Error -> {
+                Log.e(TAG, "Error: ${state.error.message}")
                 Toast.makeText(requireContext(), state.error.message, Toast.LENGTH_SHORT).show()
                 binding.run {
                     shimmer.isVisible = false

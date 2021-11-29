@@ -1,26 +1,23 @@
 package com.secondslot.coursework.features.channels.ui
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.core.widget.doAfterTextChanged
-import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
-import com.secondslot.coursework.databinding.FragmentChannelsBinding
+import com.secondslot.coursework.databinding.FragmentStreamsBinding
 import com.secondslot.coursework.features.channels.adapter.StreamsPagerAdapter
 import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
-import com.secondslot.coursework.features.channels.presenter.StreamsContract
+import com.secondslot.coursework.features.channels.vm.StreamsContract
 import javax.inject.Inject
 
 class StreamsFragment :
     MvpFragment<StreamsContract.StreamsView, StreamsContract.StreamsPresenter>(),
     StreamsContract.StreamsView {
 
-    private var _binding: FragmentChannelsBinding? = null
+    private var _binding: FragmentStreamsBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     @Inject
@@ -41,7 +38,7 @@ class StreamsFragment :
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentChannelsBinding.inflate(inflater, container, false)
+        _binding = FragmentStreamsBinding.inflate(inflater, container, false)
         initViews()
         setListeners()
         return binding.root
@@ -79,6 +76,11 @@ class StreamsFragment :
                 binding.includedSearchView.searchUsersEditText.text.toString()
             )
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_main, menu)
     }
 
     override fun clearSearchView() {

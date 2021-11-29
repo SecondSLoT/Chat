@@ -1,7 +1,8 @@
-package com.secondslot.coursework.features.channels.presenter
+package com.secondslot.coursework.features.channels.vm
 
 import androidx.fragment.app.Fragment
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
+import com.secondslot.coursework.features.channels.core.StreamsListType
 import com.secondslot.coursework.features.channels.ui.SearchQueryListener
 import com.secondslot.coursework.features.channels.ui.StreamsListFragment
 import javax.inject.Inject
@@ -11,8 +12,8 @@ class StreamsPresenter @Inject constructor() :
     StreamsContract.StreamsPresenter {
 
     private var streamsFragmentsList = listOf(
-        StreamsListFragment.newInstance(StreamsListContract.SUBSCRIBED),
-        StreamsListFragment.newInstance(StreamsListContract.ALL_STREAMS)
+        StreamsListFragment.newInstance(StreamsListType.SUBSCRIBED),
+        StreamsListFragment.newInstance(StreamsListType.ALL_STREAMS)
     )
 
     override fun getStreamsFragments(): List<Fragment> {

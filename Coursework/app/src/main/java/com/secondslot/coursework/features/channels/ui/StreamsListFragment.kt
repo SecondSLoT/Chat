@@ -10,44 +10,44 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
-import com.secondslot.coursework.base.mvp.MvpFragment
-import com.secondslot.coursework.databinding.FragmentChannelsListBinding
+import com.secondslot.coursework.databinding.FragmentStreamsListBinding
 import com.secondslot.coursework.features.channels.adapter.StreamsItemDecoration
 import com.secondslot.coursework.features.channels.adapter.StreamsListAdapter
 import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
-import com.secondslot.coursework.features.channels.presenter.StreamsListContract
 import com.secondslot.coursework.features.channels.ui.ChannelsState.*
+import com.secondslot.coursework.features.channels.vm.StreamsListViewModel
 import com.secondslot.coursework.features.chat.ui.ChatFragment
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onCompletion
 import javax.inject.Inject
 
 class StreamsListFragment :
-    MvpFragment<StreamsListContract.StreamsListView, StreamsListContract.StreamsListPresenter>(),
-    StreamsListContract.StreamsListView,
+    Fragment(),
     ExpandCollapseListener,
     SearchQueryListener,
     OnTopicClickListener {
 
     @Inject
-    internal lateinit var presenter: StreamsListContract.StreamsListPresenter
+    internal lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    private var _binding: FragmentChannelsListBinding? = null
+    private var _viewModel: StreamsListViewModel? = null
+    private val viewModel get() = requireNotNull(_viewModel)
+
+    private var _binding: FragmentStreamsListBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private val streamsListAdapter = StreamsListAdapter(this, this)
 
     private var streamModelList = mutableListOf<ExpandableStreamModel>()
 
-    override fun getPresenter(): StreamsListContract.StreamsListPresenter = presenter
-
-    override fun getMvpView(): StreamsListContract.StreamsListView = this
-
-    override fun getViewType(): String {
-        return arguments?.getString(CONTENT_KEY, "") ?: ""
-    }
+    private val viewType by lazy { arguments?.getString(CONTENT_KEY, "") ?: "" }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,9 +67,14 @@ class StreamsListFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentChannelsListBinding.inflate(inflater, container, false)
+        _binding = FragmentStreamsListBinding.inflate(inflater, container, false)
+
+        _viewModel =
+            ViewModelProvider(this, viewModelFactory)[StreamsListViewModel::class.java]
+
         initViews()
         setListeners()
+        setObservers()
         return binding.root
     }
 
@@ -84,20 +89,38 @@ class StreamsListFragment :
 
     private fun setListeners() {
         binding.includedRetryButton.retryButton.setOnClickListener {
-            presenter.retry()
+            viewModel.onRetryClicked(viewType)
         }
     }
 
-    override fun setStateLoading() {
-        processFragmentState(Loading)
-    }
+    private fun setObservers() {
+        lifecycleScope.run {
+            launchWhenStarted {
+                viewModel.loadStreams(viewType)
+                    .catch { processFragmentState(Error(it)) }
+                    .onCompletion {  }
+                    .collect {
+                        if (it.isNullOrEmpty()) {
+                            processFragmentState(Loading)
+                        } else {
+                            processFragmentState(Result(it))
+                        }
+                    }
+            }
 
-    override fun setStateResult(expandableStreamModel: List<ExpandableStreamModel>) {
-        processFragmentState(Result(expandableStreamModel))
-    }
-
-    override fun setStateError(error: Throwable) {
-        processFragmentState(Error(error))
+            var justLaunched = true
+            launchWhenStarted {
+                viewModel.observeSearchChanges(viewType)
+                    .catch { processFragmentState(Error(it)) }
+                    .collect {
+                        if (justLaunched) {
+                            justLaunched = false
+                        } else {
+                            processFragmentState(Result(it))
+                        }
+                    }
+            }
+        }
     }
 
     private fun processFragmentState(state: ChannelsState) {
@@ -170,7 +193,7 @@ class StreamsListFragment :
     }
 
     override fun search(searchQuery: String) {
-        presenter.searchStreams(searchQuery)
+        viewModel.searchStreams(searchQuery)
     }
 
     override fun onTopicClicked(topicName: String, maxMessageId: Int, streamId: Int) {

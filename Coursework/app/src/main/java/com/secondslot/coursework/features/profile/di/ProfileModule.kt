@@ -1,7 +1,7 @@
 package com.secondslot.coursework.features.profile.di
 
-import com.secondslot.coursework.features.profile.presenter.ProfileContract
-import com.secondslot.coursework.features.profile.presenter.ProfilePresenter
+import androidx.lifecycle.ViewModelProvider
+import com.secondslot.coursework.features.profile.vm.ProfileViewModelFactory
 import dagger.Binds
 import dagger.Module
 
@@ -10,7 +10,7 @@ interface ProfileModule {
 
     @ProfileScope
     @Binds
-    fun bindProfilePresenter(
-        impl: ProfilePresenter
-    ): ProfileContract.ProfilePresenter
+    fun bindProfileViewModelFactory(
+        impl: ProfileViewModelFactory
+    ): ViewModelProvider.Factory
 }

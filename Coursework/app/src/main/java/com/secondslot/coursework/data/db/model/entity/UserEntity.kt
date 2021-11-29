@@ -39,23 +39,13 @@ fun UserEntity.toDomainModel(): User = User(
 object UserEntityToUserMapper : BaseMapper<List<UserEntity>, List<User>> {
 
     override fun map(type: List<UserEntity>?): List<User> {
-        return type?.map {
-            it.toDomainModel()
-        } ?: emptyList()
+        return type?.map { it.toDomainModel() } ?: emptyList()
     }
 }
 
 object UserToUserEntityMapper : BaseMapper<List<User>, List<UserEntity>> {
 
     override fun map(type: List<User>?): List<UserEntity> {
-        return type?.map {
-            UserEntity(
-                userId = it.userId,
-                fullName = it.fullName,
-                avatarUrl = it.avatarUrl,
-                email = it.email,
-                dateJoined = it.dateJoined
-            )
-        } ?: emptyList()
+        return type?.map { UserEntity.fromDomainModel(it) } ?: emptyList()
     }
 }

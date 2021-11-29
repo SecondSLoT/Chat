@@ -58,22 +58,22 @@ class ChatPresenter @Inject constructor(
         topicName = view.getTopicName()
 
         // Get own profile for using it to view initializing
-        getOwnProfileUseCase.execute()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = { user ->
-                    if (user.isNotEmpty()) {
-                        myId = user[0].userId
-                        view.initViews(myId)
-                    }
-                },
-                onError = {
-                    Log.d(TAG, "getOwnProfileUseCase.execute() error")
-                    view.showError(it)
-                }
-            )
-            .disposeOnFinish()
+//        getOwnProfileUseCase.execute()
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribeBy(
+//                onNext = { user ->
+//                    if (user.isNotEmpty()) {
+//                        myId = user[0].userId
+//                        view.initViews(myId)
+//                    }
+//                },
+//                onError = {
+//                    Log.d(TAG, "getOwnProfileUseCase.execute() error")
+//                    view.showError(it)
+//                }
+//            )
+//            .disposeOnFinish()
     }
 
     override fun detachView(isFinishing: Boolean) {

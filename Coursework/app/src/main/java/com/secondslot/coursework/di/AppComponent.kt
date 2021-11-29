@@ -24,10 +24,6 @@ interface AppComponent {
 
     fun provideUsersRepository(): UsersRepository
 
-//    fun provideZulipApiService(): ZulipApiService
-
-//    fun provideAppDatabase(): AppDatabase
-
     @Component.Factory
     interface Factory {
         fun create(

@@ -7,36 +7,37 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
-import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentUsersBinding
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.features.people.adapter.PeopleListAdapter
 import com.secondslot.coursework.features.people.adapter.UsersItemDecoration
 import com.secondslot.coursework.features.people.di.DaggerUsersComponent
-import com.secondslot.coursework.features.people.presenter.UsersContract
 import com.secondslot.coursework.features.people.ui.UserState.*
+import com.secondslot.coursework.features.people.vm.UsersViewModel
 import com.secondslot.coursework.features.profile.ui.ProfileFragment
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
-class UsersFragment :
-    MvpFragment<UsersContract.UsersView, UsersContract.UsersPresenter>(),
-    UsersContract.UsersView,
-    OnUserClickListener {
+class UsersFragment : Fragment(), OnUserClickListener {
 
     @Inject
-    internal lateinit var presenter: UsersContract.UsersPresenter
+    internal lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    private var _viewModel: UsersViewModel? = null
+    private val viewModel get() = requireNotNull(_viewModel)
 
     private var _binding: FragmentUsersBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private val usersAdapter = PeopleListAdapter(this)
-
-    override fun getPresenter(): UsersContract.UsersPresenter = presenter
-
-    override fun getMvpView(): UsersContract.UsersView = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,8 +51,12 @@ class UsersFragment :
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentUsersBinding.inflate(inflater, container, false)
+
+        _viewModel = ViewModelProvider(this, viewModelFactory)[UsersViewModel::class.java]
+
         initViews()
         setListeners()
+        setObservers()
         return binding.root
     }
 
@@ -65,30 +70,60 @@ class UsersFragment :
         }
     }
 
+    @FlowPreview
+    @ExperimentalCoroutinesApi
     private fun setListeners() {
         binding.run {
             includedSearchView.searchUsersEditText.doAfterTextChanged {
                 searchUsers(it.toString())
             }
 
-            includedRetryButton.retryButton.setOnClickListener { presenter.retry() }
+            includedRetryButton.retryButton.setOnClickListener { viewModel.onRetryClicked() }
+        }
+    }
+
+    @FlowPreview
+    @ExperimentalCoroutinesApi
+    private fun setObservers() {
+        lifecycleScope.run {
+            launchWhenStarted {
+                viewModel.loadUsers()
+                    .catch { processFragmentState(Error(it)) }
+                    .onCompletion {  }
+                    .collect {
+                        if (it.isNullOrEmpty()) {
+                            processFragmentState(Loading)
+                        } else {
+                            processFragmentState(Result(it))
+                        }
+                    }
+            }
+
+            var justLaunched = true
+            launchWhenStarted {
+                viewModel.observeSearchChanges()
+                    .catch { processFragmentState(Error(it)) }
+                    .collect {
+                        if (justLaunched) {
+                            justLaunched = false
+                        } else {
+                            processFragmentState(Result(it))
+                        }
+                    }
+            }
+
+            launchWhenStarted {
+                viewModel.openUserFlow.collect { userIdEvent ->
+                    userIdEvent.getContentIfNotHandled()?.let {
+                        if (it != -1) openUser(it)
+                    }
+                }
+            }
         }
     }
 
     private fun searchUsers(searchQuery: String) {
-        presenter.searchUsers(searchQuery)
-    }
-
-    override fun setStateLoading() {
-        processFragmentState(Loading)
-    }
-
-    override fun setStateResult(users: List<User>) {
-        processFragmentState(Result(users))
-    }
-
-    override fun setStateError(error: Throwable) {
-        processFragmentState(Error(error))
+        viewModel.searchUsers(searchQuery)
     }
 
     private fun processFragmentState(state: UserState) {
@@ -123,10 +158,10 @@ class UsersFragment :
     }
 
     override fun onUserClick(userId: Int) {
-        presenter.onUserClicked(userId)
+        viewModel.onUserClicked(userId)
     }
 
-    override fun openUser(userId: Int) {
+    private fun openUser(userId: Int) {
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.container, ProfileFragment.newInstance(userId))
             .addToBackStack(null)

@@ -47,9 +47,10 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$constraintLayoutVersion"
     implementation "androidx.recyclerview:recyclerview:$recyclerViewVersion"
     implementation "androidx.fragment:fragment-ktx:$fragmentVersion"
+    implementation "androidx.preference:preference-ktx:$preferenceVersion"
 
     // Lifecycle
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$viewModelVersion"
 
     // Support Libraries
     implementation "androidx.appcompat:appcompat:$androidXAppCompatVersion"
@@ -80,6 +81,13 @@ dependencies {
     implementation "androidx.room:room-runtime:$roomVersion"
     kapt "androidx.room:room-compiler:$roomVersion"
     implementation "androidx.room:room-rxjava2:$roomVersion"
+
+    // Kotlin Extensions and Coroutines support for Room
+    implementation "androidx.room:room-ktx:$roomVersion"
+
+    // Coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
 
     // Dagger
     implementation "com.google.dagger:dagger:$daggerVersion"

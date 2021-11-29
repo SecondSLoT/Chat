@@ -10,5 +10,5 @@ import io.reactivex.Completable
 interface TopicDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertTopics(topics: List<TopicEntity>): Completable
+    suspend fun insertTopics(topics: List<TopicEntity>)
 }

@@ -9,22 +9,22 @@ import retrofit2.http.*
 interface ZulipApiService {
 
     @GET("users/me/subscriptions")
-    fun getSubscribedStreams(): Observable<SubscriptionsResponse>
+    suspend fun getSubscribedStreams(): SubscriptionsResponse
 
     @GET("streams")
-    fun getAllStreams(): Observable<AllStreamsResponse>
+    suspend fun getAllStreams(): AllStreamsResponse
 
     @GET("users/me/{stream_id}/topics")
-    fun getTopics(@Path("stream_id") streamId: Int): Observable<TopicsResponse>
+    suspend fun getTopics(@Path("stream_id") streamId: Int): TopicsResponse
 
     @GET("users")
-    fun getAllUsers(): Observable<AllUsersResponse>
+    suspend fun getAllUsers(): AllUsersResponse
 
     @GET("users/{user_id}")
-    fun getUser(@Path("user_id") userId: Int): Observable<UserResponse>
+    suspend fun getUser(@Path("user_id") userId: Int): UserResponse
 
     @GET("users/me")
-    fun getOwnUser(): Observable<UserRemote>
+    suspend fun getOwnUser(): UserRemote
 
     @GET("messages")
     fun getMessages(

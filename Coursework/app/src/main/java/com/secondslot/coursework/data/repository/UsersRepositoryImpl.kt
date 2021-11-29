@@ -2,17 +2,16 @@ package com.secondslot.coursework.data.repository
 
 import android.util.Log
 import com.secondslot.coursework.data.api.NetworkManager
-import com.secondslot.coursework.data.api.model.UserRemoteToUserMapper
+import com.secondslot.coursework.data.api.model.toDomainModel
 import com.secondslot.coursework.data.db.AppDatabase
 import com.secondslot.coursework.data.db.model.entity.UserEntity
-import com.secondslot.coursework.data.db.model.entity.UserEntityToUserMapper
 import com.secondslot.coursework.data.db.model.entity.UserToUserEntityMapper
 import com.secondslot.coursework.data.db.model.entity.toDomainModel
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository
-import io.reactivex.Observable
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import java.lang.Exception
 import javax.inject.Inject
 
 class UsersRepositoryImpl @Inject constructor(
@@ -22,94 +21,59 @@ class UsersRepositoryImpl @Inject constructor(
 
     private var myId = -1
 
-    override fun getUsers(): Observable<List<User>> {
+    override fun getUsers(): Flow<List<User>> = flow {
 
         // Data from DB
-        val usersDbObservable = database.userDao
-            .getAllUsers().map { userEntitiesList ->
-                Log.d(TAG, "usersObservableDb size = ${userEntitiesList.size}")
-                UserEntityToUserMapper.map(userEntitiesList)
-            }.toObservable()
+        val usersFromDb = database.userDao.getAllUsers().map { it.toDomainModel() }
+        Log.d(TAG, "usersFromDb size = ${usersFromDb.size}")
+        emit(usersFromDb)
 
         // Data from network
-        val usersRemoteObservable = networkManager.getAllUsers().map { usersRemoteList ->
-            UserRemoteToUserMapper.map(usersRemoteList)
-        }
+        val usersFromNetwork = networkManager.getAllUsers().map { it.toDomainModel() }
+        emit(usersFromNetwork)
 
         // Save data from network to DB
-        val disposable = usersRemoteObservable.subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.io())
-            .subscribeBy(
-                onNext = { users ->
-                    val deleteCompletable = database.userDao.deleteAllUsers()
-                    val insertCompletable = database.userDao.insertUsers(
-                        UserToUserEntityMapper.map(users)
-                    )
-
-                    val disposable = deleteCompletable.concatWith(insertCompletable)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(Schedulers.io())
-                        .subscribeBy(
-                            onComplete = {
-                                Log.d(TAG, "updateUsers complete")
-                            },
-                            onError = { Log.d(TAG, "updateUsers error") }
-                        )
-                },
-                onError = { Log.e(TAG, "usersRemoteObservable error") }
-            )
-
-        // Return data from DB first, then from network
-        return Observable.concat(
-            usersDbObservable,
-            usersRemoteObservable
-        )
+        database.userDao.deleteAllUsers()
+        database.userDao.insertUsers(UserToUserEntityMapper.map(usersFromNetwork))
     }
 
-    override fun getProfileInfo(userId: Int): Observable<List<User>> {
+    override fun getProfileInfo(userId: Int): Flow<List<User>> = flow {
 
         // Data from DB
-        val userDbObservable = database.userDao.getUser(userId)
-            .map { listOf(it.toDomainModel()) }
-            .toObservable()
-
-        // Data from network
-        val userRemoteObservable = networkManager.getUser(userId)
-            .map { UserRemoteToUserMapper.map(it) }
-
-        return Observable.concat(
-            userDbObservable,
-            userRemoteObservable
-        )
-    }
-
-    override fun getOwnProfile(): Observable<List<User>> {
-
-        // Data from DB
-        val userDbObservable = if (myId != -1) {
-            database.userDao.getUser(myId)
-                .map { listOf(it.toDomainModel()) }
-                .toObservable()
-        } else {
-            Observable.just(emptyList())
+        try {
+            val userFromDb = listOf(database.userDao.getUser(userId).toDomainModel())
+            emit(userFromDb)
+        } catch (e: Exception) {
+            Log.d(TAG, "Can't find user in DB")
         }
 
         // Data from network
-        val userRemoteObservable = networkManager.getOwnUser()
-            .map {
-                val users = UserRemoteToUserMapper.map(it)
-                Log.d(TAG, "Insert User into DB")
-                database.userDao.insertUser(UserEntity.fromDomainModel(users[0]))
-                myId = users[0].userId
-                users
-            }
+        val userFromNetwork = networkManager.getUser(userId).map { it.toDomainModel() }
 
-        return Observable
-            .concat(
-                userDbObservable,
-                userRemoteObservable
-            )
-            .filter { it.isNotEmpty() }
+        emit(userFromNetwork)
+    }
+
+    override fun getOwnProfile(): Flow<List<User>> = flow {
+
+        // Data from DB
+        val userFromDb = if (myId != -1) {
+            listOf(database.userDao.getUser(myId).toDomainModel())
+        } else {
+            emptyList()
+        }
+
+        if (userFromDb.isNotEmpty()) emit(userFromDb)
+
+        // Data from network
+        val userFromNetwork = networkManager.getOwnUser().map { it.toDomainModel() }
+
+        myId = userFromNetwork[0].userId
+
+        // Save data from network to DB
+        Log.d(TAG, "Insert User into DB")
+        database.userDao.insertUser(UserEntity.fromDomainModel(userFromNetwork[0]))
+
+        emit(userFromNetwork)
     }
 
     companion object {

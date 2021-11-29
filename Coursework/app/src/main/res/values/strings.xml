@@ -26,6 +26,10 @@
     <string name="status_online">online</string>
     <string name="status_offline">offline</string>
 
+    <string name="theme">Theme</string>
+    <string name="light_theme">Light theme</string>
+    <string name="dark_theme">Dark theme</string>
+
     <string name="custom_message_view_group_child_count_error">
         ChildCount expected %d, but found %d</string>
     <string name="send_message_error">Error sending message</string>

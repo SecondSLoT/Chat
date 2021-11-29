@@ -18,7 +18,6 @@ import com.secondslot.coursework.App
 import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentChatBinding
-import com.secondslot.coursework.di.GlobalDI
 import com.secondslot.coursework.features.chat.adapter.ChatAdapter
 import com.secondslot.coursework.features.chat.adapter.ReactionsAdapter
 import com.secondslot.coursework.features.chat.di.DaggerChatComponent

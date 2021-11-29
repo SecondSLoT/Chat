@@ -16,23 +16,23 @@ class StreamWithTopicsDb(
     val topics: List<TopicEntity>
 )
 
+fun StreamWithTopicsDb.toDomainModel(): Stream = Stream(
+    id = this.streamEntity.id,
+    streamName = this.streamEntity.streamName,
+    description = this.streamEntity.description,
+    topics = this.topics.map { topicEntity ->
+        Stream.Topic(
+            topicName = topicEntity.topicName,
+            maxMessageId = topicEntity.maxMessageId,
+            streamId = topicEntity.streamId,
+            isSubscribed = topicEntity.isSubscribed
+        )
+    }
+)
+
 object StreamWithTopicsDbToDomainMapper : BaseMapper<List<StreamWithTopicsDb>, List<Stream>> {
 
     override fun map(type: List<StreamWithTopicsDb>?): List<Stream> {
-        return type?.map {
-            Stream(
-                id = it.streamEntity.id,
-                streamName = it.streamEntity.streamName,
-                description = it.streamEntity.description,
-                topics = it.topics.map { topicEntity ->
-                    Stream.Topic(
-                        topicName = topicEntity.topicName,
-                        maxMessageId = topicEntity.maxMessageId,
-                        streamId = topicEntity.streamId,
-                        isSubscribed = topicEntity.isSubscribed
-                    )
-                }
-            )
-        } ?: emptyList()
+        return type?.map { it.toDomainModel() } ?: emptyList()
     }
 }

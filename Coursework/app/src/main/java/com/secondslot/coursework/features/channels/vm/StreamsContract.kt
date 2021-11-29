@@ -1,4 +1,4 @@
-package com.secondslot.coursework.features.channels.presenter
+package com.secondslot.coursework.features.channels.vm
 
 import androidx.fragment.app.Fragment
 import com.secondslot.coursework.base.mvp.presenter.Presenter
