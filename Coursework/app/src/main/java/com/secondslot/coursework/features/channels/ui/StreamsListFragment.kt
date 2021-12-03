@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -20,9 +21,13 @@ import com.secondslot.coursework.features.channels.adapter.StreamsItemDecoration
 import com.secondslot.coursework.features.channels.adapter.StreamsListAdapter
 import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
-import com.secondslot.coursework.features.channels.ui.ChannelsState.*
+import com.secondslot.coursework.features.channels.ui.ChannelsState.Error
+import com.secondslot.coursework.features.channels.ui.ChannelsState.Loading
+import com.secondslot.coursework.features.channels.ui.ChannelsState.Result
 import com.secondslot.coursework.features.channels.vm.StreamsListViewModel
 import com.secondslot.coursework.features.chat.ui.ChatFragment
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onCompletion
@@ -54,12 +59,6 @@ class StreamsListFragment :
 
         val streamsComponent = DaggerStreamsComponent.factory().create(App.appComponent)
         streamsComponent.injectStreamsListFragment(this)
-
-        val typedValue = TypedValue()
-        requireActivity().run {
-            theme.resolveAttribute(android.R.attr.statusBarColor, typedValue, true)
-            window.statusBarColor = typedValue.data
-        }
     }
 
     override fun onCreateView(
@@ -78,6 +77,16 @@ class StreamsListFragment :
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        val typedValue = TypedValue()
+        requireActivity().run {
+            theme.resolveAttribute(android.R.attr.statusBarColor, typedValue, true)
+            window.statusBarColor = typedValue.data
+        }
+    }
+
     private fun initViews() {
         binding.recyclerView.run {
             layoutManager = LinearLayoutManager(requireContext())
@@ -87,18 +96,35 @@ class StreamsListFragment :
         }
     }
 
+    @FlowPreview
+    @ExperimentalCoroutinesApi
     private fun setListeners() {
         binding.includedRetryButton.retryButton.setOnClickListener {
             viewModel.onRetryClicked(viewType)
         }
     }
 
+    @ExperimentalCoroutinesApi
     private fun setObservers() {
+        observeStreams()
+
+        lifecycleScope.launchWhenStarted {
+            viewModel.retryFlow.collect { retryEvent ->
+                retryEvent.getContentIfNotHandled()?.let {
+                    if (it) observeStreams()
+                }
+            }
+        }
+    }
+
+    @FlowPreview
+    @ExperimentalCoroutinesApi
+    private fun observeStreams() {
         lifecycleScope.run {
             launchWhenStarted {
                 viewModel.loadStreams(viewType)
                     .catch { processFragmentState(Error(it)) }
-                    .onCompletion {  }
+                    .onCompletion { }
                     .collect {
                         if (it.isNullOrEmpty()) {
                             processFragmentState(Loading)

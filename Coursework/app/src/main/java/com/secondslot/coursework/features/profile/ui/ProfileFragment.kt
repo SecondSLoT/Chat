@@ -16,7 +16,9 @@ import com.secondslot.coursework.databinding.FragmentProfileBinding
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.extentions.loadImage
 import com.secondslot.coursework.features.profile.di.DaggerProfileComponent
-import com.secondslot.coursework.features.profile.ui.ProfileState.*
+import com.secondslot.coursework.features.profile.ui.ProfileState.Error
+import com.secondslot.coursework.features.profile.ui.ProfileState.Loading
+import com.secondslot.coursework.features.profile.ui.ProfileState.Result
 import com.secondslot.coursework.features.profile.vm.ProfileViewModel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
@@ -44,7 +46,8 @@ class ProfileFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)

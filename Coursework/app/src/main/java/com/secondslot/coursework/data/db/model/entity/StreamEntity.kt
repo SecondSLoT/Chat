@@ -28,4 +28,9 @@ class StreamEntity(
     }
 }
 
-
+fun StreamEntity.toDomainModel(): Stream = Stream(
+    id = this.id,
+    streamName = this.streamName,
+    description = this.description,
+    topics = emptyList()
+)

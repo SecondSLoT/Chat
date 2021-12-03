@@ -18,12 +18,15 @@ import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.features.people.adapter.PeopleListAdapter
 import com.secondslot.coursework.features.people.adapter.UsersItemDecoration
 import com.secondslot.coursework.features.people.di.DaggerUsersComponent
-import com.secondslot.coursework.features.people.ui.UserState.*
+import com.secondslot.coursework.features.people.ui.UserState.Error
+import com.secondslot.coursework.features.people.ui.UserState.Loading
+import com.secondslot.coursework.features.people.ui.UserState.Result
 import com.secondslot.coursework.features.people.vm.UsersViewModel
 import com.secondslot.coursework.features.profile.ui.ProfileFragment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 class UsersFragment : Fragment(), OnUserClickListener {
@@ -47,7 +50,8 @@ class UsersFragment : Fragment(), OnUserClickListener {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentUsersBinding.inflate(inflater, container, false)
@@ -85,11 +89,34 @@ class UsersFragment : Fragment(), OnUserClickListener {
     @FlowPreview
     @ExperimentalCoroutinesApi
     private fun setObservers() {
+        observeUsers()
+
+        lifecycleScope.run {
+            launchWhenStarted {
+                viewModel.openUserFlow.collect { userIdEvent ->
+                    userIdEvent.getContentIfNotHandled()?.let {
+                        if (it != -1) openUser(it)
+                    }
+                }
+            }
+
+            launchWhenStarted {
+                viewModel.retryFlow.collect { retryEvent ->
+                    retryEvent.getContentIfNotHandled()?.let {
+                        if (it) observeUsers()
+                    }
+                }
+            }
+        }
+    }
+
+    @FlowPreview
+    @ExperimentalCoroutinesApi
+    private fun observeUsers() {
         lifecycleScope.run {
             launchWhenStarted {
                 viewModel.loadUsers()
                     .catch { processFragmentState(Error(it)) }
-                    .onCompletion {  }
                     .collect {
                         if (it.isNullOrEmpty()) {
                             processFragmentState(Loading)
@@ -110,14 +137,6 @@ class UsersFragment : Fragment(), OnUserClickListener {
                             processFragmentState(Result(it))
                         }
                     }
-            }
-
-            launchWhenStarted {
-                viewModel.openUserFlow.collect { userIdEvent ->
-                    userIdEvent.getContentIfNotHandled()?.let {
-                        if (it != -1) openUser(it)
-                    }
-                }
             }
         }
     }

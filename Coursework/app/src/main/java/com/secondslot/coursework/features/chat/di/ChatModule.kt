@@ -1,7 +1,7 @@
 package com.secondslot.coursework.features.chat.di
 
-import com.secondslot.coursework.features.chat.presenter.ChatContract
-import com.secondslot.coursework.features.chat.presenter.ChatPresenter
+import androidx.lifecycle.ViewModelProvider
+import com.secondslot.coursework.features.chat.vm.ChatViewModelFactory
 import dagger.Binds
 import dagger.Module
 
@@ -10,5 +10,5 @@ interface ChatModule {
 
     @ChatScope
     @Binds
-    fun bindChatPresenter(impl: ChatPresenter) : ChatContract.ChatPresenter
+    fun bindChatViewModelFactory(impl: ChatViewModelFactory): ViewModelProvider.Factory
 }

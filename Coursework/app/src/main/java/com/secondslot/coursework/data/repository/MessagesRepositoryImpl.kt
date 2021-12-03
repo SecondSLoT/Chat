@@ -2,18 +2,18 @@ package com.secondslot.coursework.data.repository
 
 import android.util.Log
 import com.secondslot.coursework.data.api.NetworkManager
-import com.secondslot.coursework.data.api.model.MessageRemoteToMessageMapper
+import com.secondslot.coursework.data.api.model.SendResult
 import com.secondslot.coursework.data.api.model.response.toSendResult
+import com.secondslot.coursework.data.api.model.toDomainModel
 import com.secondslot.coursework.data.db.AppDatabase
-import com.secondslot.coursework.data.db.model.MessageReactionDbToDomainModel
 import com.secondslot.coursework.data.db.model.entity.MessageEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionToReactionEntityMapper
-import com.secondslot.coursework.data.api.model.SendResult
+import com.secondslot.coursework.data.db.model.toDomainModel
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.repository.MessagesRepository
-import io.reactivex.Observable
-import io.reactivex.Single
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class MessagesRepositoryImpl @Inject constructor(
@@ -28,55 +28,47 @@ class MessagesRepositoryImpl @Inject constructor(
         numBefore: String,
         numAfter: String,
         narrow: Map<String, Any>
-    ): Observable<List<Message>> {
+    ): Flow<List<Message>> = flow {
 
         val topicName = narrow["topic"] as String
-        var messagesReactionsDbObservable: Observable<List<Message>> = Observable.just(emptyList())
 
         if (anchor == "newest" || anchor == "first_unread") {
 
             // Data from DB
-            messagesReactionsDbObservable = database.messageWithReactionDao
+            val messagesReactionsFromDb = database.messageWithReactionDao
                 .getMessagesReactions(topicName)
-                .map { messageReactionDbList ->
-                    Log.d(TAG, "MessagesReactionsDb size = ${messageReactionDbList.size}")
-                    messagesCache = MessageReactionDbToDomainModel.map(messageReactionDbList)
-                    messagesCache
-                }
-                .toObservable()
+                .map { it.toDomainModel() }
+
+            Log.d(TAG, "MessagesReactionsDb size = ${messagesReactionsFromDb.size}")
+
+            messagesCache = messagesReactionsFromDb
+            if (messagesReactionsFromDb.isNotEmpty()) {
+                emit(messagesReactionsFromDb)
+                return@flow
+            }
         }
 
         // Data from network
-        val messagesReactionsRemoteObservable = networkManager
+        val messagesReactionsFromNetwork = networkManager
             .getMessages(anchor, numBefore, numAfter, narrow)
-            .map { messageRemoteList ->
-                val messages = MessageRemoteToMessageMapper.map(messageRemoteList)
+            .map { it.toDomainModel() }
+        if (messagesReactionsFromNetwork.isNotEmpty()) emit(messagesReactionsFromNetwork)
 
-                messagesCache = mergeData(messagesCache, messages)
-                val messageEntities: ArrayList<MessageEntity> = arrayListOf()
-                val reactionEntities: ArrayList<ReactionEntity> = arrayListOf()
+        // Save data to DB
+        messagesCache = mergeData(messagesCache, messagesReactionsFromNetwork)
 
-                messagesCache.forEach { message ->
-                    messageEntities.add(MessageEntity.fromMessage(message))
-                    reactionEntities.addAll(
-                        ReactionToReactionEntityMapper.map(message.reactions, message.id)
-                    )
-                }
+        val messageEntities: ArrayList<MessageEntity> = arrayListOf()
+        val reactionEntities: ArrayList<ReactionEntity> = arrayListOf()
 
-                database.messageWithReactionDao
-                    .updateMessagesReactions(messageEntities, reactionEntities, topicName)
-
-                messages
-            }
-
-        return Observable
-            .concat(
-                messagesReactionsDbObservable,
-                messagesReactionsRemoteObservable
+        messagesCache.forEach { message ->
+            messageEntities.add(MessageEntity.fromMessage(message))
+            reactionEntities.addAll(
+                ReactionToReactionEntityMapper.map(message.reactions, message.id)
             )
-            .filter { messages -> messages.isNotEmpty() }
-            .first(emptyList())
-            .toObservable()
+        }
+
+        database.messageWithReactionDao
+            .updateMessagesReactions(messageEntities, reactionEntities, topicName)
     }
 
     private fun mergeData(oldData: List<Message>, newData: List<Message>): List<Message> {
@@ -95,14 +87,13 @@ class MessagesRepositoryImpl @Inject constructor(
         return result
     }
 
-    override fun sendMessage(
+    override suspend fun sendMessage(
         type: String,
         streamId: Int,
         topicName: String,
         messageText: String
-    ): Single<SendResult> {
-        return networkManager.sendMessage(type, streamId, topicName, messageText)
-            .map { it.toSendResult() }
+    ): SendResult {
+        return networkManager.sendMessage(type, streamId, topicName, messageText).toSendResult()
     }
 
     companion object {

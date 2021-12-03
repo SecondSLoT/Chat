@@ -10,45 +10,38 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
-import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentChatBinding
 import com.secondslot.coursework.features.chat.adapter.ChatAdapter
 import com.secondslot.coursework.features.chat.adapter.ReactionsAdapter
 import com.secondslot.coursework.features.chat.di.DaggerChatComponent
 import com.secondslot.coursework.features.chat.model.ChatItem
-import com.secondslot.coursework.features.chat.presenter.ChatContract
+import com.secondslot.coursework.features.chat.vm.ChatViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class ChatFragment :
-    MvpFragment<ChatContract.ChatView, ChatContract.ChatPresenter>(),
-    ChatContract.ChatView {
+class ChatFragment : Fragment() {
 
     @Inject
-    internal lateinit var presenter: ChatContract.ChatPresenter
+    internal lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    private var _viewModel: ChatViewModel? = null
+    private val viewModel get() = requireNotNull(_viewModel)
 
     private var _binding: FragmentChatBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private var chatAdapter: ChatAdapter? = null
     private var bottomSheetDialog: BottomSheetDialog? = null
-
-    override fun getPresenter(): ChatContract.ChatPresenter = presenter
-
-    override fun getMvpView(): ChatContract.ChatView = this
-
-    override fun getStreamId(): Int {
-        return arguments?.getInt(STREAM_ID, 0) ?: 0
-    }
-
-    override fun getTopicName(): String {
-        return arguments?.getString(TOPIC_NAME, "") ?: ""
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,31 +59,40 @@ class ChatFragment :
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatBinding.inflate(inflater, container, false)
+
+        _viewModel = ViewModelProvider(this, viewModelFactory)[ChatViewModel::class.java]
+
+        viewModel.streamId = arguments?.getInt(STREAM_ID, 0) ?: 0
+        viewModel.topicName = arguments?.getString(TOPIC_NAME, "") ?: ""
+
+        initViews()
+        setListeners()
+        setObservers()
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setListeners()
-    }
+    private fun initViews() {
+        lifecycleScope.launch {
+            viewModel.getMyId().collect { myId ->
+                val linearLayoutManager = LinearLayoutManager(requireContext())
+                linearLayoutManager.stackFromEnd = true
 
-    override fun initViews(myId: Int) {
-        val linearLayoutManager = LinearLayoutManager(requireContext())
-        linearLayoutManager.stackFromEnd = true
+                chatAdapter = ChatAdapter(viewModel as MessageInteractionListener, myId)
 
-        chatAdapter = ChatAdapter(presenter as MessageInteractionListener, myId)
+                binding.recyclerView.run {
+                    layoutManager = linearLayoutManager
+                    adapter = chatAdapter
+                }
 
-        binding.recyclerView.run {
-            layoutManager = linearLayoutManager
-            adapter = chatAdapter
+                binding.run {
+                    toolbar.title = viewModel.getStreamName()
+                    topicTextView.text = getString(R.string.topic, viewModel.topicName)
+                    messageEditText.requestFocus()
+                }
+
+                viewModel.getMessages(isScrollToEnd = true)
+            }
         }
-
-        binding.run {
-            topicTextView.text = getString(R.string.topic, presenter.getTopicName())
-            messageEditText.requestFocus()
-        }
-
-        presenter.getMessages(isScrollToEnd = true)
     }
 
     private fun setListeners() {
@@ -104,12 +106,12 @@ class ChatFragment :
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 if (dy < 0) {
-                    presenter.onScrollUp(
+                    viewModel.onScrollUp(
                         (binding.recyclerView.layoutManager as LinearLayoutManager)
                             .findFirstCompletelyVisibleItemPosition()
                     )
                 } else {
-                    presenter.onScrollDown(
+                    viewModel.onScrollDown(
                         (binding.recyclerView.layoutManager as LinearLayoutManager)
                             .findLastCompletelyVisibleItemPosition()
                     )
@@ -119,7 +121,7 @@ class ChatFragment :
 
         binding.sendButton.setOnClickListener {
             if (binding.messageEditText.text.toString().isNotEmpty()) {
-                presenter.onSendMessageClicked(binding.messageEditText.text.toString())
+                viewModel.onSendMessageClicked(binding.messageEditText.text.toString())
             } else {
                 Log.d(TAG, "Add attachment clicked")
             }
@@ -130,13 +132,81 @@ class ChatFragment :
         }
     }
 
-    override fun updateMessages(messages: List<ChatItem>, isScrollToEnd: Boolean) {
+    private fun setObservers() {
+        lifecycleScope.run {
+
+            var updateMessagesJustLaunched = true
+            launchWhenStarted {
+                viewModel.updateMessagesFlow.collect { updateEvent ->
+                    if (updateMessagesJustLaunched) {
+                        updateMessagesJustLaunched = false
+                    } else {
+                        updateEvent.getContentIfNotHandled()?.let {
+                            updateMessages(it.first, it.second)
+                        }
+                    }
+                }
+            }
+
+            var showErrorJustLaunched = true
+            launchWhenStarted {
+                viewModel.showErrorFlow.collect { isShowErrorEvent ->
+                    if (showErrorJustLaunched) {
+                        showErrorJustLaunched = false
+                    } else {
+                        isShowErrorEvent.getContentIfNotHandled()?.let { error ->
+                            showError(error)
+                        }
+                    }
+                }
+            }
+
+            var showSendErrorJustLaunched = true
+            launchWhenStarted {
+                viewModel.showSendMessageErrorFlow.collect { isShowErrorEvent ->
+                    if (showSendErrorJustLaunched) {
+                        showSendErrorJustLaunched = false
+                    } else {
+                        isShowErrorEvent.getContentIfNotHandled()?.let { error ->
+                            showSendMessageError(error)
+                        }
+                    }
+                }
+            }
+
+            launchWhenStarted {
+                viewModel.clearMessageFlow.collect { isClearEvent ->
+                    isClearEvent.getContentIfNotHandled()?.let { isClearMessageEditText ->
+                        if (isClearMessageEditText) clearMessageEditText()
+                    }
+                }
+            }
+
+            launchWhenStarted {
+                viewModel.openReactionsSheet.collect { isOpenEvent ->
+                    isOpenEvent.getContentIfNotHandled()?.let { isOpen ->
+                        if (isOpen) openReactionsSheet()
+                    }
+                }
+            }
+
+            launchWhenStarted {
+                viewModel.closeReactionsSheet.collect { isCloseEvent ->
+                    isCloseEvent.getContentIfNotHandled()?.let { isClose ->
+                        if (isClose) closeReactionsSheet()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateMessages(messages: List<ChatItem>, isScrollToEnd: Boolean) {
         chatAdapter?.submitList(messages.toList()) {
             if (isScrollToEnd) scrollToEnd()
         } ?: Log.e(TAG, "chatAdapter is null")
     }
 
-    override fun showSendMessageError(error: Throwable?) {
+    private fun showSendMessageError(error: Throwable?) {
         Toast.makeText(
             requireContext(),
             R.string.send_message_error,
@@ -149,7 +219,7 @@ class ChatFragment :
         }
     }
 
-    override fun showError(error: Throwable?) {
+    private fun showError(error: Throwable?) {
         Toast.makeText(
             requireContext(),
             R.string.error_message,
@@ -162,7 +232,7 @@ class ChatFragment :
         }
     }
 
-    override fun clearMessageEditText() {
+    private fun clearMessageEditText() {
         binding.messageEditText.text.clear()
     }
 
@@ -181,7 +251,7 @@ class ChatFragment :
     private fun scrollToEnd() = binding.recyclerView.adapter?.itemCount?.minus(1)
         ?.takeIf { it > 0 }?.let(binding.recyclerView::scrollToPosition)
 
-    override fun openReactionsSheet() {
+    private fun openReactionsSheet() {
 
         bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog?.run {
@@ -195,14 +265,15 @@ class ChatFragment :
         reactionsRecyclerView?.run {
             layoutManager = GridLayoutManager(requireContext(), 7)
             adapter = ReactionsAdapter(
-                presenter.getReactions(),
-                presenter as ChooseReactionListener)
+                viewModel.getReactions(),
+                viewModel as ChooseReactionListener
+            )
             setHasFixedSize(true)
         }
         bottomSheetDialog?.show()
     }
 
-    override fun closeReactionsSheet() {
+    private fun closeReactionsSheet() {
         bottomSheetDialog?.dismiss()
     }
 

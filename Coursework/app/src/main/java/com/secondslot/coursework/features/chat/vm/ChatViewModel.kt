@@ -1,7 +1,9 @@
-package com.secondslot.coursework.features.chat.presenter
+package com.secondslot.coursework.features.chat.vm
 
 import android.util.Log
-import com.secondslot.coursework.base.mvp.presenter.RxPresenter
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.secondslot.coursework.core.Event
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.domain.model.Reaction
 import com.secondslot.coursework.domain.usecase.*
@@ -12,33 +14,28 @@ import com.secondslot.coursework.features.chat.model.MessageItem
 import com.secondslot.coursework.features.chat.model.MessageToItemMapper
 import com.secondslot.coursework.features.chat.ui.ChooseReactionListener
 import com.secondslot.coursework.features.chat.ui.MessageInteractionListener
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
-import javax.inject.Inject
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
-class ChatPresenter @Inject constructor(
+class ChatViewModel(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val getOwnProfileUseCase: GetOwnProfileUseCase,
     private val addReactionUseCase: AddReactionUseCase,
     private val removeReactionUseCase: RemoveReactionUseCase,
-    private val getReactionsUseCase: GetReactionsUseCase
-) :
-    RxPresenter<ChatContract.ChatView>(ChatContract.ChatView::class.java),
-    ChatContract.ChatPresenter,
-    MessageInteractionListener,
-    ChooseReactionListener {
+    private val getReactionsUseCase: GetReactionsUseCase,
+    private val getStreamByIdUseCase: GetStreamByIdUseCase
+) : ViewModel(), MessageInteractionListener, ChooseReactionListener {
 
     private var myId: Int = -1
     private var firstMessageId: Int = -1
     private var lastMessageId: Int = -1
     private var messages: List<ChatItem> = arrayListOf()
-    private var chosenMessage: MessageItem? = null
+    var chosenMessage: MessageItem? = null
 
-    private var streamId: Int? = null
-    private var topicName: String? = null
-
+    var streamId: Int? = null
+    var topicName: String? = null
+    private var streamName: String? = null
 
     private var isLoading: Boolean = false
         set(value) {
@@ -46,44 +43,44 @@ class ChatPresenter @Inject constructor(
             Log.d(TAG, "isLoading = $field")
         }
 
-    override fun getTopicName(): String = topicName ?: ""
+    private val _updateMessagesFlow = MutableStateFlow(Event(Pair(listOf<ChatItem>(), false)))
+    val updateMessagesFlow: StateFlow<Event<Pair<List<ChatItem>, Boolean>>> = _updateMessagesFlow
 
-    override fun getChosenMessage(): MessageItem? = chosenMessage
+    private val _showErrorFlow = MutableStateFlow<Event<Throwable?>>(Event(null))
+    val showErrorFlow: StateFlow<Event<Throwable?>> = _showErrorFlow
 
-    override fun attachView(view: ChatContract.ChatView) {
-        super.attachView(view)
-        Log.d(TAG, "attachView()")
+    private val _showSendMessageErrorFlow = MutableStateFlow<Event<Throwable?>>(Event(null))
+    val showSendMessageErrorFlow: StateFlow<Event<Throwable?>> = _showSendMessageErrorFlow
 
-        streamId = view.getStreamId()
-        topicName = view.getTopicName()
+    private val _clearMessageFlow = MutableStateFlow(Event(false))
+    val clearMessageFlow: StateFlow<Event<Boolean>> = _clearMessageFlow
 
+    private val _openReactionsSheet = MutableStateFlow(Event(false))
+    val openReactionsSheet: StateFlow<Event<Boolean>> = _openReactionsSheet
+
+    private val _closeReactionsSheet = MutableStateFlow(Event(false))
+    val closeReactionsSheet: StateFlow<Event<Boolean>> = _closeReactionsSheet
+
+    fun getMyId(): Flow<Int> {
         // Get own profile for using it to view initializing
-//        getOwnProfileUseCase.execute()
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribeBy(
-//                onNext = { user ->
-//                    if (user.isNotEmpty()) {
-//                        myId = user[0].userId
-//                        view.initViews(myId)
-//                    }
-//                },
-//                onError = {
-//                    Log.d(TAG, "getOwnProfileUseCase.execute() error")
-//                    view.showError(it)
-//                }
-//            )
-//            .disposeOnFinish()
+        return if (myId == -1) {
+            getOwnProfileUseCase.execute()
+                .map { users ->
+                    myId = users[0].userId
+                    myId
+                }
+        } else {
+            flowOf(myId)
+        }
     }
 
-    override fun detachView(isFinishing: Boolean) {
-        super.detachView(isFinishing)
-        Log.d(TAG, "detachView()")
+    suspend fun getStreamName(): String {
+        return streamName ?: getStreamByIdUseCase.execute(streamId!!).streamName
     }
 
-    override fun getMessages(
-        anchor: String,
-        isLoadNew: Boolean,
+    fun getMessages(
+        anchor: String = "newest",
+        isLoadNew: Boolean = false,
         isScrollToEnd: Boolean
     ) {
         if (isLoading) return
@@ -100,19 +97,20 @@ class ChatPresenter @Inject constructor(
             numAfter = MESSAGES_IN_OPPOSITE_DIRECTION
         }
 
-        getMessagesUseCase.execute(
-            anchor = anchor,
-            numBefore = numBefore,
-            numAfter = numAfter,
-            narrow = getNarrow()
-        )
-            .subscribeOn(Schedulers.io())
-            .map { MessageToItemMapper.map(it) }
-            .observeOn(AndroidSchedulers.mainThread())
-            .doAfterTerminate { isLoading = false }
-            .subscribeBy(
-                onNext = {
-                    Log.d(TAG, "MessageObservable onNext")
+        viewModelScope.launch {
+
+            getMessagesUseCase.execute(
+                anchor = anchor,
+                numBefore = numBefore,
+                numAfter = numAfter,
+                narrow = getNarrow()
+            )
+                .map { MessageToItemMapper.map(it) }
+                .onCompletion { isLoading = false }
+                .catch { _showErrorFlow.value = Event(it) }
+                .collect {
+
+                    Log.d(TAG, "isLoadNew = $isLoadNew")
                     if (it.isNotEmpty()) {
                         Log.d(TAG, "Received List<MessageItem> size = ${it.size}")
 
@@ -135,14 +133,13 @@ class ChatPresenter @Inject constructor(
                             firstMessageId = (messages[0] as MessageItem).id
                         }
                         lastMessageId = (messages[messages.size - 1] as MessageItem).id
+
                         updateMessages(isScrollToEnd)
                     } else {
-                        Log.d(TAG, "MessageObservable is empty")
+                        Log.d(TAG, "Messages flow is empty")
                     }
-                },
-                onError = { view?.showError(it) },
-            )
-            .disposeOnFinish()
+                }
+        }
     }
 
     private fun getNarrow(): Map<String, Any> = mapOf(
@@ -176,15 +173,16 @@ class ChatPresenter @Inject constructor(
             )
         }
 
-        view?.updateMessages(messages, isScrollToEnd)
+        _updateMessagesFlow.value = Event(Pair(messages, isScrollToEnd))
     }
 
-    override fun onScrollUp(firstVisiblePosition: Int) {
+    fun onScrollUp(firstVisiblePosition: Int) {
         if (isLoading) return
 
         // If item on position to prefetch is visible
         if (firstVisiblePosition == PREFETCH_DISTANCE) {
             Log.d(TAG, "It's time to prefetch")
+            Log.d(TAG, "FirstMessageId = $firstMessageId")
             getMessages(
                 anchor = firstMessageId.toString(),
                 isLoadNew = false,
@@ -193,54 +191,56 @@ class ChatPresenter @Inject constructor(
         }
     }
 
-    override fun onScrollDown(lastVisiblePosition: Int) {
+    fun onScrollDown(lastVisiblePosition: Int) {
         if (isLoading) return
 
         // If last item is visible
         if (lastVisiblePosition == messages.size - 1) {
-            Log.d(TAG, "Load new banch of messages")
-            getMessages(anchor = lastMessageId.toString(), isLoadNew = true, isScrollToEnd = false)
+            Log.d(TAG, "Load new batch of messages")
+            getMessages(
+                anchor = lastMessageId.toString(),
+                isLoadNew = true,
+                isScrollToEnd = false
+            )
         }
     }
 
-    override fun onSendMessageClicked(messageText: String) {
-        val sendMessageResultSingle = sendMessageUseCase.execute(
-            streamId = streamId ?: 0,
-            topicName = topicName ?: "",
-            messageText = messageText
-        )
-        sendMessageResultSingle
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onSuccess = {
-                    if (it.result == SERVER_RESULT_SUCCESS) {
-                        view?.clearMessageEditText()
-                        getMessages(
-                            anchor = lastMessageId.toString(),
-                            isLoadNew = true,
-                            isScrollToEnd = true
-                        )
-                    } else {
-                        view?.showSendMessageError()
-                    }
-                },
-                onError = { view?.showSendMessageError(it) }
-            )
-            .disposeOnFinish()
+    fun onSendMessageClicked(messageText: String) {
+        viewModelScope.launch {
+            try {
+                val sendMessageResult = sendMessageUseCase.execute(
+                    streamId = streamId ?: 0,
+                    topicName = topicName ?: "",
+                    messageText = messageText
+                )
+
+                if (sendMessageResult.result == SERVER_RESULT_SUCCESS) {
+                    _clearMessageFlow.value = Event(true)
+                    getMessages(
+                        anchor = lastMessageId.toString(),
+                        isLoadNew = true,
+                        isScrollToEnd = true
+                    )
+                } else {
+                    _showSendMessageErrorFlow.value = Event(null)
+                }
+            } catch (e: Exception) {
+                _showSendMessageErrorFlow.value = Event(e)
+            }
+        }
     }
 
-    override fun getReactions(): List<ReactionLocal> {
+    fun getReactions(): List<ReactionLocal> {
         return getReactionsUseCase.execute()
     }
 
     override fun openReactionsSheet(message: MessageItem) {
         chosenMessage = message
-        view?.openReactionsSheet()
+        _openReactionsSheet.value = Event(true)
     }
 
     override fun reactionChosen(reaction: ReactionLocal) {
-        view?.closeReactionsSheet()
+        _closeReactionsSheet.value = Event(true)
 
         var existingReaction: Reaction? = null
         chosenMessage?.reactions?.forEach {
@@ -258,63 +258,58 @@ class ChatPresenter @Inject constructor(
     }
 
     override fun addReaction(messageId: Int, emojiName: String) {
+        viewModelScope.launch {
+            try {
+                val sendResult = addReactionUseCase.execute(messageId, emojiName)
 
-        addReactionUseCase.execute(messageId, emojiName)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onSuccess = {
-                    if (it.result == SERVER_RESULT_SUCCESS) {
-                        updateMessage(messageId)
-                    } else {
-                        view?.showError()
-                        Log.e(TAG, "Error adding reaction = ${it.result}")
-                    }
-                },
-                onError = {
-                    view?.showError()
-                    Log.e(TAG, "Error adding reaction = ${it.message}")
+                if (sendResult.result == SERVER_RESULT_SUCCESS) {
+                    Log.d(TAG, "Server result = ${sendResult.result}")
+                    updateMessage(messageId)
+                } else {
+                    _showErrorFlow.value = Event(null)
+                    Log.e(TAG, "Error adding reaction = ${sendResult.result}")
                 }
-            )
-            .disposeOnFinish()
+            } catch (e: Exception) {
+                _showErrorFlow.value = Event(e)
+                Log.e(TAG, "Error adding reaction = ${e.message}")
+            }
+        }
     }
 
     override fun removeReaction(messageId: Int, emojiName: String) {
+        viewModelScope.launch {
+            try {
+                val sendResult = removeReactionUseCase.execute(messageId, emojiName)
 
-        removeReactionUseCase.execute(messageId, emojiName)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onSuccess = {
-                    if (it.result == SERVER_RESULT_SUCCESS) {
-                        updateMessage(messageId)
-                    } else {
-                        view?.showError()
-                        Log.e(TAG, "Error removing reaction = ${it.result}")
-                    }
-                },
-                onError = {
-                    view?.showError()
-                    Log.e(TAG, "Error removing reaction = ${it.message}")
+                if (sendResult.result == SERVER_RESULT_SUCCESS) {
+                    updateMessage(messageId)
+                } else {
+                    _showErrorFlow.value = Event(null)
+                    Log.e(TAG, "Error removing reaction = ${sendResult.result}")
                 }
-            )
-            .disposeOnFinish()
+
+            } catch (e: Exception) {
+                _showErrorFlow.value = Event(e)
+                Log.e(TAG, "Error removing reaction = ${e.message}")
+            }
+        }
     }
 
     private fun updateMessage(messageId: Int) {
         if (isLoading) return
         isLoading = true
 
-        getMessagesUseCase.execute(
-            anchor = messageId.toString(),
-            narrow = getNarrow()
-        )
-            .subscribeOn(Schedulers.io())
-            .map { MessageToItemMapper.map(it) }
-            .observeOn(AndroidSchedulers.mainThread())
-            .doAfterTerminate { isLoading = false }
-            .subscribeBy(
-                onNext = { updatedMessageList ->
+        viewModelScope.launch {
+
+            getMessagesUseCase.execute(
+                anchor = messageId.toString(),
+                narrow = getNarrow()
+            )
+                .map { MessageToItemMapper.map(it) }
+                .onCompletion { isLoading = false }
+                .catch { _showErrorFlow.value = Event(it) }
+                .collect { updatedMessageList ->
+
                     if (updatedMessageList.isNotEmpty()) {
                         val messageToUpdate = messages.find {
                             (it is MessageItem) && it.id == updatedMessageList[0].id
@@ -326,16 +321,14 @@ class ChatPresenter @Inject constructor(
                             updateMessages()
                         }
                     } else {
-                        Log.d(TAG, "MessageObservable is empty")
+                        Log.d(TAG, "Messages flow is empty")
                     }
-                },
-                onError = { view?.showError(it) },
-            )
-            .disposeOnFinish()
+                }
+        }
     }
 
     companion object {
-        private const val TAG = "ChatPresenter"
+        private const val TAG = "ChatViewModel"
 
         private const val PREFETCH_DISTANCE = 4
         private const val MESSAGES_PER_PAGE = "20"

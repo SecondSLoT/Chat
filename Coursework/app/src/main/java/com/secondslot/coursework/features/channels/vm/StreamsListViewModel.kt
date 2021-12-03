@@ -1,13 +1,19 @@
 package com.secondslot.coursework.features.channels.vm
 
 import androidx.lifecycle.ViewModel
+import com.secondslot.coursework.core.Event
 import com.secondslot.coursework.domain.usecase.GetAllStreamsUseCase
 import com.secondslot.coursework.domain.usecase.GetSubscribedStreamsUseCase
 import com.secondslot.coursework.features.channels.core.StreamsListType
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 
 class StreamsListViewModel(
     private val getSubscribedStreamsUseCase: GetSubscribedStreamsUseCase,
@@ -15,6 +21,7 @@ class StreamsListViewModel(
 ) : ViewModel() {
 
     private val _searchQueryStateFlow = MutableStateFlow("")
+    val retryFlow = MutableStateFlow(Event(false))
 
     fun loadStreams(viewType: String): Flow<List<ExpandableStreamModel>> =
         when (viewType) {
@@ -54,8 +61,7 @@ class StreamsListViewModel(
     @ExperimentalCoroutinesApi
     @FlowPreview
     fun onRetryClicked(viewType: String) {
-        loadStreams(viewType)
-        observeSearchChanges(viewType)
+        retryFlow.value = Event(true)
     }
 
     companion object {

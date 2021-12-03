@@ -1,50 +1,43 @@
 package com.secondslot.coursework.features.channels.ui
 
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
-import com.secondslot.coursework.App
 import com.secondslot.coursework.R
-import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentStreamsBinding
 import com.secondslot.coursework.features.channels.adapter.StreamsPagerAdapter
-import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
-import com.secondslot.coursework.features.channels.vm.StreamsContract
-import javax.inject.Inject
+import com.secondslot.coursework.features.channels.vm.StreamsViewModel
+import com.secondslot.coursework.features.settings.SettingsFragment
+import kotlinx.coroutines.flow.collect
 
-class StreamsFragment :
-    MvpFragment<StreamsContract.StreamsView, StreamsContract.StreamsPresenter>(),
-    StreamsContract.StreamsView {
+class StreamsFragment : Fragment() {
+
+    private val viewModel by viewModels<StreamsViewModel>()
 
     private var _binding: FragmentStreamsBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-    @Inject
-    internal lateinit var presenter: StreamsContract.StreamsPresenter
-
-    override fun getPresenter(): StreamsContract.StreamsPresenter = presenter
-
-    override fun getMvpView(): StreamsContract.StreamsView = this
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        val streamsComponent = DaggerStreamsComponent.factory().create(App.appComponent)
-        streamsComponent.injectStreamsFragment(this)
-    }
-
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentStreamsBinding.inflate(inflater, container, false)
         initViews()
         setListeners()
+        setObservers()
         return binding.root
     }
 
     private fun initViews() {
+        binding.includedSearchView.settingsImageView.visibility = View.VISIBLE
         binding.includedSearchView.searchUsersEditText.hint =
             getString(R.string.channels_search_hint)
 
@@ -53,9 +46,9 @@ class StreamsFragment :
             getString(R.string.all_streams)
         )
 
-        val channelsPagerAdapter = StreamsPagerAdapter(childFragmentManager, lifecycle)
-        binding.viewPager.adapter = channelsPagerAdapter
-        channelsPagerAdapter.updateFragments(presenter.getStreamsFragments())
+        val streamsPagerAdapter = StreamsPagerAdapter(childFragmentManager, lifecycle)
+        binding.viewPager.adapter = streamsPagerAdapter
+        streamsPagerAdapter.updateFragments(viewModel.streamsFragmentsList)
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = tabs[position]
@@ -64,26 +57,46 @@ class StreamsFragment :
 
     private fun setListeners() {
 
+        binding.includedSearchView.settingsImageView.setOnClickListener {
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.container, SettingsFragment())
+                .commitAllowingStateLoss()
+        }
+
         binding.includedSearchView.searchUsersEditText.doAfterTextChanged {
             val currentPosition = binding.viewPager.currentItem
-            presenter.searchStreams(currentPosition, it.toString())
+            viewModel.searchStreams(currentPosition, it.toString())
         }
 
         binding.includedSearchView.searchImageView.setOnClickListener {
             val currentPosition = binding.viewPager.currentItem
-            presenter.searchStreams(
+            viewModel.searchStreams(
                 currentPosition,
                 binding.includedSearchView.searchUsersEditText.text.toString()
             )
         }
+
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                viewModel.onPageChanged()
+            }
+        })
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.menu_main, menu)
+    private fun setObservers() {
+
+        lifecycleScope.launchWhenStarted {
+            viewModel.clearSearchFlow
+                .collect { clearSearchViewEvent ->
+                    clearSearchViewEvent.getContentIfNotHandled()?.let {
+                        if (it) clearSearchView()
+                    }
+                }
+        }
     }
 
-    override fun clearSearchView() {
+    private fun clearSearchView() {
         binding.includedSearchView.searchUsersEditText.text.clear()
     }
 

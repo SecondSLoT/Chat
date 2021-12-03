@@ -2,18 +2,15 @@ package com.secondslot.coursework.data.repository
 
 import android.util.Log
 import com.secondslot.coursework.data.api.NetworkManager
-import com.secondslot.coursework.data.api.model.StreamTopicsRemoteToStreamMapper
 import com.secondslot.coursework.data.api.model.toDomainModel
 import com.secondslot.coursework.data.db.AppDatabase
-import com.secondslot.coursework.data.db.model.StreamWithTopicsDbToDomainMapper
 import com.secondslot.coursework.data.db.model.entity.StreamEntity
 import com.secondslot.coursework.data.db.model.entity.TopicEntity
 import com.secondslot.coursework.data.db.model.entity.TopicToTopicEntityMapper
+import com.secondslot.coursework.data.db.model.entity.toDomainModel
 import com.secondslot.coursework.data.db.model.toDomainModel
 import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.repository.StreamsRepository
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -53,7 +50,7 @@ class StreamsRepositoryImpl @Inject constructor(
 
         // Data from DB
         val streamTopicFromDb = database.streamWithTopicsDao
-            .getStreamsTopics(false).map { it.toDomainModel()  }
+            .getStreamsTopics(false).map { it.toDomainModel() }
         Log.d(TAG, "UnsubscribedStreamsTopicsDb.size = ${streamTopicFromDb.size}")
         emit(streamTopicFromDb)
 
@@ -72,6 +69,10 @@ class StreamsRepositoryImpl @Inject constructor(
 
         database.streamWithTopicsDao
             .updateStreamsTopics(streamEntities, topicEntities, false)
+    }
+
+    override suspend fun getStreamById(streamId: Int): Stream {
+        return database.streamDao.getStream(streamId).toDomainModel()
     }
 
     companion object {

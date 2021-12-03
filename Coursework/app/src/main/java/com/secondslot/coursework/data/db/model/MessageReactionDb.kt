@@ -17,28 +17,28 @@ class MessageReactionDb(
     val reactionEntities: List<ReactionEntity>
 )
 
+fun MessageReactionDb.toDomainModel(): Message = Message(
+    id = this.messageEntity.id,
+    senderId = this.messageEntity.senderId,
+    senderFullName = this.messageEntity.senderFullName,
+    avatarUrl = this.messageEntity.avatarUrl,
+    content = this.messageEntity.content,
+    topicName = this.messageEntity.topicName,
+    timestamp = this.messageEntity.timestamp,
+    isMeMessage = this.messageEntity.isMeMessage,
+    reactions = this.reactionEntities.map { reactionEntity ->
+        Reaction(
+            emojiName = reactionEntity.emojiName,
+            emojiCode = reactionEntity.emojiCode,
+            reactionType = reactionEntity.reactionType,
+            userId = reactionEntity.userId
+        )
+    }
+)
+
 object MessageReactionDbToDomainModel : BaseMapper<List<MessageReactionDb>, List<Message>> {
 
     override fun map(type: List<MessageReactionDb>?): List<Message> {
-        return type?.map {
-            Message(
-                id = it.messageEntity.id,
-                senderId = it.messageEntity.senderId,
-                senderFullName = it.messageEntity.senderFullName,
-                avatarUrl = it.messageEntity.avatarUrl,
-                content = it.messageEntity.content,
-                topicName = it.messageEntity.topicName,
-                timestamp = it.messageEntity.timestamp,
-                isMeMessage = it.messageEntity.isMeMessage,
-                reactions = it.reactionEntities.map { reactionEntity ->
-                    Reaction(
-                        emojiName = reactionEntity.emojiName,
-                        emojiCode = reactionEntity.emojiCode,
-                        reactionType = reactionEntity.reactionType,
-                        userId = reactionEntity.userId
-                    )
-                }
-            )
-        } ?: emptyList()
+        return type?.map { it.toDomainModel() } ?: emptyList()
     }
 }

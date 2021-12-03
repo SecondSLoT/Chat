@@ -1,10 +1,18 @@
 package com.secondslot.coursework.data.api
 
 import com.secondslot.coursework.data.api.model.UserRemote
-import com.secondslot.coursework.data.api.model.response.*
-import io.reactivex.Observable
-import io.reactivex.Single
-import retrofit2.http.*
+import com.secondslot.coursework.data.api.model.response.AllStreamsResponse
+import com.secondslot.coursework.data.api.model.response.AllUsersResponse
+import com.secondslot.coursework.data.api.model.response.MessagesResponse
+import com.secondslot.coursework.data.api.model.response.SendResponse
+import com.secondslot.coursework.data.api.model.response.SubscriptionsResponse
+import com.secondslot.coursework.data.api.model.response.TopicsResponse
+import com.secondslot.coursework.data.api.model.response.UserResponse
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ZulipApiService {
 
@@ -27,32 +35,32 @@ interface ZulipApiService {
     suspend fun getOwnUser(): UserRemote
 
     @GET("messages")
-    fun getMessages(
+    suspend fun getMessages(
         @Query("anchor") anchor: String,
         @Query("num_before") numBefore: String,
         @Query("num_after") numAfter: String,
         @Query("narrow") narrow: String
-    ): Observable<MessagesResponse>
+    ): MessagesResponse
 
     @POST("messages")
-    fun sendMessage(
+    suspend fun sendMessage(
         @Query("type") type: String,
         @Query("to") streamId: Int,
         @Query("topic") topicName: String,
         @Query("content") messageText: String
-    ): Single<SendResponse>
+    ): SendResponse
 
     @POST("messages/{message_id}/reactions")
-    fun addReaction(
+    suspend fun addReaction(
         @Path("message_id") messageId: Int,
         @Query("emoji_name") emojiName: String
-    ): Single<SendResponse>
+    ): SendResponse
 
     @DELETE("messages/{message_id}/reactions")
-    fun removeReaction(
+    suspend fun removeReaction(
         @Path("message_id") messageId: Int,
         @Query("emoji_name") emojiName: String
-    ): Single<SendResponse>
+    ): SendResponse
 
     companion object {
         const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com/api/v1/"

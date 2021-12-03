@@ -4,9 +4,15 @@ import androidx.lifecycle.ViewModel
 import com.secondslot.coursework.core.Event
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.usecase.GetAllUsersUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.withContext
 
 class UsersViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase
@@ -15,8 +21,11 @@ class UsersViewModel(
     private val _searchQueryStateFlow = MutableStateFlow("")
 
     val openUserFlow = MutableStateFlow(Event(-1))
+    val retryFlow = MutableStateFlow(Event(false))
 
-    fun loadUsers(): Flow<List<User>> = getAllUsersUseCase.execute()
+    suspend fun loadUsers(): Flow<List<User>> {
+        return getAllUsersUseCase.execute()
+    }
 
     fun searchUsers(searchQuery: String) {
         _searchQueryStateFlow.value = searchQuery
@@ -24,8 +33,8 @@ class UsersViewModel(
 
     @ExperimentalCoroutinesApi
     @FlowPreview
-    fun observeSearchChanges(): Flow<List<User>> {
-        return _searchQueryStateFlow.asStateFlow()
+    suspend fun observeSearchChanges(): Flow<List<User>> = withContext(Dispatchers.IO) {
+        _searchQueryStateFlow.asStateFlow()
             .debounce(500)
             .flatMapLatest { searchQuery -> getAllUsersUseCase.execute(searchQuery) }
     }
@@ -33,8 +42,7 @@ class UsersViewModel(
     @ExperimentalCoroutinesApi
     @FlowPreview
     fun onRetryClicked() {
-        loadUsers()
-        observeSearchChanges()
+        retryFlow.value = Event(true)
     }
 
     fun onUserClicked(userId: Int) {

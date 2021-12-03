@@ -1,8 +1,6 @@
 package com.secondslot.coursework.di
 
 import android.content.Context
-import com.secondslot.coursework.data.api.ZulipApiService
-import com.secondslot.coursework.data.db.AppDatabase
 import com.secondslot.coursework.data.repository.di.RepositoryModule
 import com.secondslot.coursework.domain.repository.MessagesRepository
 import com.secondslot.coursework.domain.repository.ReactionsRepository

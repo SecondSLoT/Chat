@@ -9,8 +9,10 @@ import com.secondslot.coursework.data.db.model.entity.UserToUserEntityMapper
 import com.secondslot.coursework.data.db.model.entity.toDomainModel
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import java.lang.Exception
 import javax.inject.Inject
 
@@ -22,6 +24,8 @@ class UsersRepositoryImpl @Inject constructor(
     private var myId = -1
 
     override fun getUsers(): Flow<List<User>> = flow {
+
+        Log.d(TAG, "getUsers thread = ${Thread.currentThread().name}")
 
         // Data from DB
         val usersFromDb = database.userDao.getAllUsers().map { it.toDomainModel() }
@@ -36,6 +40,7 @@ class UsersRepositoryImpl @Inject constructor(
         database.userDao.deleteAllUsers()
         database.userDao.insertUsers(UserToUserEntityMapper.map(usersFromNetwork))
     }
+        .flowOn(Dispatchers.IO)
 
     override fun getProfileInfo(userId: Int): Flow<List<User>> = flow {
 
@@ -52,6 +57,7 @@ class UsersRepositoryImpl @Inject constructor(
 
         emit(userFromNetwork)
     }
+        .flowOn(Dispatchers.IO)
 
     override fun getOwnProfile(): Flow<List<User>> = flow {
 
@@ -75,6 +81,7 @@ class UsersRepositoryImpl @Inject constructor(
 
         emit(userFromNetwork)
     }
+        .flowOn(Dispatchers.IO)
 
     companion object {
         private const val TAG = "UsersRepoImpl"

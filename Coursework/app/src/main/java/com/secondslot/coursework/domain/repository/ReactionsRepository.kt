@@ -2,13 +2,12 @@ package com.secondslot.coursework.domain.repository
 
 import com.secondslot.coursework.data.api.model.SendResult
 import com.secondslot.coursework.data.local.model.ReactionLocal
-import io.reactivex.Single
 
 interface ReactionsRepository {
 
-    fun addReaction(messageId: Int, emojiName: String): Single<SendResult>
+    suspend fun addReaction(messageId: Int, emojiName: String): SendResult
 
-    fun removeReaction(messageId: Int, emojiName: String): Single<SendResult>
+    suspend fun removeReaction(messageId: Int, emojiName: String): SendResult
 
     fun getReactions(): List<ReactionLocal>
 }

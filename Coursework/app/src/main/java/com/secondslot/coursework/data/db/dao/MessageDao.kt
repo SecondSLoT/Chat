@@ -5,18 +5,13 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.secondslot.coursework.data.db.model.entity.MessageEntity
-import io.reactivex.Completable
-import io.reactivex.Single
 
 @Dao
 interface MessageDao {
 
-//    @Query("SELECT * FROM messages WHERE topic_name == :topicName")
-//    fun getMessages(topicName: String): Single<List<MessageEntity>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertMessages(messages: List<MessageEntity>): Completable
+    suspend fun insertMessages(messages: List<MessageEntity>)
 
     @Query("DELETE FROM messages WHERE topic_name == :topicName")
-    fun deleteMessages(topicName: String): Completable
+    suspend fun deleteMessages(topicName: String)
 }

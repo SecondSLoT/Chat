@@ -26,5 +26,15 @@
         android:layout_gravity="center"
         android:paddingStart="24dp"
         android:padding="12dp"
-        android:src="@drawable/ic_bi_search" />
+        android:src="@drawable/ic_bi_search"
+        android:contentDescription="@string/search_button_content_description" />
+
+    <ImageView
+        android:id="@+id/settings_image_view"
+        android:layout_margin="12dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_baseline_settings_24"
+        android:visibility="gone"/>
 </LinearLayout>

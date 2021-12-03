@@ -2,7 +2,6 @@ package com.secondslot.coursework.data.local
 
 import com.secondslot.coursework.data.local.model.ReactionLocal
 
-
 object ReactionStorage {
 
     val reactions = listOf(
@@ -46,6 +45,7 @@ object ReactionStorage {
         ReactionLocal("exhausted", "1f625"),
         ReactionLocal("frowning", "1f626"),
         ReactionLocal("anguished", "1f627"),
+        ReactionLocal("thinking", "1f914"),
         ReactionLocal("fear", "1f628"),
         ReactionLocal("weary", "1f629"),
         ReactionLocal("sleepy", "1f62a"),
@@ -82,6 +82,6 @@ object ReactionStorage {
         ReactionLocal("tie", "1f454"),
         ReactionLocal("shirt", "1f455"),
         ReactionLocal("jeans", "1f456"),
-        ReactionLocal("dress", "1f457"),
+        ReactionLocal("dress", "1f457")
     )
 }

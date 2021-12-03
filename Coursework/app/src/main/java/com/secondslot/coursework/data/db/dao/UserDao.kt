@@ -5,8 +5,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.secondslot.coursework.data.db.model.entity.UserEntity
-import io.reactivex.Completable
-import io.reactivex.Single
 
 @Dao
 interface UserDao {

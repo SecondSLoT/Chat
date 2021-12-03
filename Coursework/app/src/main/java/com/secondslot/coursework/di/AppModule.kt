@@ -9,7 +9,6 @@ import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
@@ -29,7 +28,6 @@ class AppModule {
     fun provideZulipApiService(authorizationClient: OkHttpClient): ZulipApiService {
         return Retrofit.Builder()
             .baseUrl(ZulipApiService.BASE_URL)
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .addConverterFactory(MoshiConverterFactory.create())
             .client(authorizationClient)
             .build()

@@ -14,4 +14,7 @@ interface StreamDao {
 
     @Query("DELETE FROM streams WHERE is_subscribed == :isSubscribed")
     suspend fun deleteStreams(isSubscribed: Boolean)
+
+    @Query("SELECT * FROM streams WHERE id == :streamId")
+    suspend fun getStream(streamId: Int): StreamEntity
 }

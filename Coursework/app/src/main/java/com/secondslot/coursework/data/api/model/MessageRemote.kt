@@ -25,31 +25,31 @@ class MessageRemote(
     @field:Json(name = "sender_realm_str") val senderRealmStr: String?,
     @field:Json(name = "type") val type: String?,
     @field:Json(name = "stream_id") val streamId: Int?,
-    @field:Json(name = "content_type") val contentType: String?,
+    @field:Json(name = "content_type") val contentType: String?
+)
+
+fun MessageRemote.toDomainModel(): Message = Message(
+    id = this.id,
+    senderId = this.senderId,
+    senderFullName = this.senderFullName,
+    avatarUrl = this.avatarUrl,
+    content = this.content,
+    topicName = this.topic,
+    timestamp = this.timestamp,
+    isMeMessage = this.isMeMessage,
+    reactions = this.reactions.map { reactionRemote ->
+        Reaction(
+            emojiName = reactionRemote.emojiName,
+            emojiCode = reactionRemote.emojiCode.convertEmojiCode(),
+            reactionType = reactionRemote.reactionType,
+            userId = reactionRemote.userId
+        )
+    }
 )
 
 object MessageRemoteToMessageMapper : BaseMapper<List<MessageRemote>, List<Message>> {
 
     override fun map(type: List<MessageRemote>?): List<Message> {
-        return type?.map {
-            Message(
-                id = it.id,
-                senderId = it.senderId,
-                senderFullName = it.senderFullName,
-                avatarUrl = it.avatarUrl,
-                content = it.content,
-                topicName = it.topic,
-                timestamp = it.timestamp,
-                isMeMessage = it.isMeMessage,
-                reactions = it.reactions.map { reactionRemote ->
-                    Reaction(
-                        emojiName = reactionRemote.emojiName,
-                        emojiCode = reactionRemote.emojiCode.convertEmojiCode(),
-                        reactionType = reactionRemote.reactionType,
-                        userId = reactionRemote.userId
-                    )
-                }
-            )
-        } ?: emptyList()
+        return type?.map { it.toDomainModel() } ?: emptyList()
     }
 }

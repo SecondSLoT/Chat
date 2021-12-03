@@ -2,8 +2,7 @@ package com.secondslot.coursework.domain.repository
 
 import com.secondslot.coursework.data.api.model.SendResult
 import com.secondslot.coursework.domain.model.Message
-import io.reactivex.Observable
-import io.reactivex.Single
+import kotlinx.coroutines.flow.Flow
 
 interface MessagesRepository {
 
@@ -12,12 +11,12 @@ interface MessagesRepository {
         numBefore: String,
         numAfter: String,
         narrow: Map<String, Any>
-    ): Observable<List<Message>>
+    ): Flow<List<Message>>
 
-    fun sendMessage(
+    suspend fun sendMessage(
         type: String,
         streamId: Int,
         topicName: String,
         messageText: String
-    ): Single<SendResult>
+    ): SendResult
 }
