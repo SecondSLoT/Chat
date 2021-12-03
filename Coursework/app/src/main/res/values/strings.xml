@@ -16,7 +16,7 @@
     <string name="log_out_button">Log out</string>
     <string name="retry_button">Retry</string>
 
-    <string name="channels">Channels</string>
+    <string name="channels">Streams</string>
     <string name="people">People</string>
     <string name="profile">Profile</string>
     <string name="topic">Topic: #%s</string>

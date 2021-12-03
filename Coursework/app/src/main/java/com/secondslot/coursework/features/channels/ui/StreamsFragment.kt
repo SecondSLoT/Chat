@@ -8,6 +8,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.secondslot.coursework.R
@@ -58,9 +59,7 @@ class StreamsFragment : Fragment() {
     private fun setListeners() {
 
         binding.includedSearchView.settingsImageView.setOnClickListener {
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.container, SettingsFragment())
-                .commitAllowingStateLoss()
+            findNavController().navigate(R.id.settingsFragment)
         }
 
         binding.includedSearchView.searchUsersEditText.doAfterTextChanged {

@@ -122,7 +122,7 @@ class ProfileFragment : Fragment() {
     companion object {
         private const val TAG = "ProfileFragment"
 
-        private const val USER_ID = "user_id"
+        const val USER_ID = "user_id"
 
         /**
          * @param userId: if userId is not defined, it's value will be set to -1.

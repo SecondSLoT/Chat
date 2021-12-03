@@ -7,12 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
@@ -30,7 +30,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onCompletion
 import javax.inject.Inject
 
 class StreamsListFragment :
@@ -124,7 +123,6 @@ class StreamsListFragment :
             launchWhenStarted {
                 viewModel.loadStreams(viewType)
                     .catch { processFragmentState(Error(it)) }
-                    .onCompletion { }
                     .collect {
                         if (it.isNullOrEmpty()) {
                             processFragmentState(Loading)
@@ -223,13 +221,13 @@ class StreamsListFragment :
     }
 
     override fun onTopicClicked(topicName: String, maxMessageId: Int, streamId: Int) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(
-                R.id.container,
-                ChatFragment.newInstance(topicName, maxMessageId, streamId)
-            )
-            .addToBackStack(null)
-            .commitAllowingStateLoss()
+        val extras = bundleOf(
+            ChatFragment.TOPIC_NAME to topicName,
+            ChatFragment.MAX_MESSAGE_ID to maxMessageId,
+            ChatFragment.STREAM_ID to streamId
+        )
+
+        findNavController().navigate(R.id.chatFragment, extras)
     }
 
     companion object {

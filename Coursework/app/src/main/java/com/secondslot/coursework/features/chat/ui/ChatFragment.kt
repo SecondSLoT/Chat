@@ -279,9 +279,9 @@ class ChatFragment : Fragment() {
 
     companion object {
         private const val TAG = "ChatFragment"
-        private const val TOPIC_NAME = "topic_name"
-        private const val MAX_MESSAGE_ID = "max_message_id"
-        private const val STREAM_ID = "stream_id"
+        const val TOPIC_NAME = "topic_name"
+        const val MAX_MESSAGE_ID = "max_message_id"
+        const val STREAM_ID = "stream_id"
 
         fun newInstance(topicName: String, maxMessageId: Int, streamId: Int): ChatFragment {
             return ChatFragment().apply {

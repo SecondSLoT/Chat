@@ -5,11 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
@@ -181,10 +183,8 @@ class UsersFragment : Fragment(), OnUserClickListener {
     }
 
     private fun openUser(userId: Int) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.container, ProfileFragment.newInstance(userId))
-            .addToBackStack(null)
-            .commitAllowingStateLoss()
+        val extras = bundleOf(ProfileFragment.USER_ID to userId)
+        findNavController().navigate(R.id.profileFragment, extras)
     }
 
     companion object {

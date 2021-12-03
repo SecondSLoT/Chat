@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_graph"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.secondslot.coursework.features.main.MainFragment"
+        android:label="MainFragment" />
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.secondslot.coursework.features.settings.SettingsFragment"
+        android:label="SettingsFragment" />
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.secondslot.coursework.features.chat.ui.ChatFragment"
+        android:label="ChatFragment">
+        <argument
+            android:name="topicName"
+            app:argType="string" />
+        <argument
+            android:name="maxMessageId"
+            app:argType="integer" />
+        <argument
+            android:name="streamId"
+            app:argType="integer" />
+    </fragment>
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.secondslot.coursework.features.profile.ui.ProfileFragment"
+        android:label="ProfileFragment" />
+</navigation>

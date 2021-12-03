@@ -33,8 +33,8 @@ class UsersViewModel(
 
     @ExperimentalCoroutinesApi
     @FlowPreview
-    suspend fun observeSearchChanges(): Flow<List<User>> = withContext(Dispatchers.IO) {
-        _searchQueryStateFlow.asStateFlow()
+    fun observeSearchChanges(): Flow<List<User>> {
+        return _searchQueryStateFlow.asStateFlow()
             .debounce(500)
             .flatMapLatest { searchQuery -> getAllUsersUseCase.execute(searchQuery) }
     }
