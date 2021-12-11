@@ -9,7 +9,6 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import javax.inject.Inject
 
-
 class NetworkManager @Inject constructor(
     private val apiService: ZulipApiService
     ) {

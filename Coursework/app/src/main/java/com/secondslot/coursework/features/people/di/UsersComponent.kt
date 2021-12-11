@@ -5,10 +5,7 @@ import com.secondslot.coursework.features.people.ui.UsersFragment
 import dagger.Component
 
 @UsersScope
-@Component(
-    modules = [UsersModule::class],
-    dependencies = [AppComponent::class]
-)
+@Component(dependencies = [AppComponent::class])
 interface UsersComponent {
 
     fun inject(usersFragment: UsersFragment)

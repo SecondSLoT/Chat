@@ -1,29 +1,25 @@
 package com.secondslot.coursework.features.channels.presenter
 
-import androidx.fragment.app.Fragment
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
 import com.secondslot.coursework.features.channels.ui.SearchQueryListener
 import com.secondslot.coursework.features.channels.ui.StreamsListFragment
+import com.secondslot.coursework.features.channels.ui.StreamsListView
+import com.secondslot.coursework.features.channels.ui.StreamsView
 import javax.inject.Inject
 
-class StreamsPresenter @Inject constructor() :
-    RxPresenter<StreamsContract.StreamsView>(StreamsContract.StreamsView::class.java),
-    StreamsContract.StreamsPresenter {
+class StreamsPresenter @Inject constructor() : RxPresenter<StreamsView>() {
 
     private var streamsFragmentsList = listOf(
-        StreamsListFragment.newInstance(StreamsListContract.SUBSCRIBED),
-        StreamsListFragment.newInstance(StreamsListContract.ALL_STREAMS)
+        StreamsListFragment.newInstance(StreamsListView.SUBSCRIBED),
+        StreamsListFragment.newInstance(StreamsListView.ALL_STREAMS)
     )
 
-    override fun getStreamsFragments(): List<Fragment> {
-        return streamsFragmentsList
+    override fun attachView(view: StreamsView) {
+        super.attachView(view)
+        view.initViews(streamsFragmentsList)
     }
 
-    override fun onPageChanged() {
-        view?.clearSearchView()
-    }
-
-    override fun searchStreams(currentPosition: Int, searchQuery: String) {
+    fun searchStreams(currentPosition: Int, searchQuery: String) {
         (streamsFragmentsList[currentPosition] as SearchQueryListener).search(searchQuery)
     }
 

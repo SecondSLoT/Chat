@@ -3,6 +3,7 @@ package com.secondslot.coursework.features.people.presenter
 import android.util.Log
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
 import com.secondslot.coursework.domain.usecase.GetAllUsersUseCase
+import com.secondslot.coursework.features.people.ui.UsersView
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
@@ -12,13 +13,11 @@ import javax.inject.Inject
 
 class UsersPresenter @Inject constructor(
     private val getAllUsersUseCase: GetAllUsersUseCase
-) :
-    RxPresenter<UsersContract.UsersView>(UsersContract.UsersView::class.java),
-    UsersContract.UsersPresenter {
+) : RxPresenter<UsersView>() {
 
     private val searchSubject: PublishSubject<String> = PublishSubject.create()
 
-    override fun attachView(view: UsersContract.UsersView) {
+    override fun attachView(view: UsersView) {
         super.attachView(view)
         Log.d(TAG, "attachView()")
         loadUsers()
@@ -47,7 +46,7 @@ class UsersPresenter @Inject constructor(
             .disposeOnFinish()
     }
 
-    override fun searchUsers(searchQuery: String) {
+    fun searchUsers(searchQuery: String) {
         searchSubject.onNext(searchQuery)
     }
 
@@ -71,12 +70,12 @@ class UsersPresenter @Inject constructor(
             .disposeOnFinish()
     }
 
-    override fun retry() {
+    fun onRetry() {
         loadUsers()
         subscribeOnSearchChanges()
     }
 
-    override fun onUserClicked(userId: Int) {
+    fun onUserClicked(userId: Int) {
         view?.openUser(userId)
     }
 

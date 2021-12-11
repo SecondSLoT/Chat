@@ -13,16 +13,19 @@ import com.secondslot.coursework.databinding.FragmentProfileBinding
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.extentions.loadImage
 import com.secondslot.coursework.features.profile.di.DaggerProfileComponent
-import com.secondslot.coursework.features.profile.presenter.ProfileContract
-import com.secondslot.coursework.features.profile.ui.ProfileState.*
+import com.secondslot.coursework.features.profile.presenter.ProfilePresenter
+import com.secondslot.coursework.features.profile.presenter.ProfileView
+import com.secondslot.coursework.features.profile.ui.ProfileState.Error
+import com.secondslot.coursework.features.profile.ui.ProfileState.Loading
+import com.secondslot.coursework.features.profile.ui.ProfileState.Result
 import javax.inject.Inject
 
 class ProfileFragment :
-    MvpFragment<ProfileContract.ProfileView, ProfileContract.ProfilePresenter>(),
-    ProfileContract.ProfileView {
+    MvpFragment<ProfileView, ProfilePresenter>(),
+    ProfileView {
 
     @Inject
-    internal lateinit var presenter: ProfileContract.ProfilePresenter
+    internal lateinit var presenter: ProfilePresenter
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -30,9 +33,9 @@ class ProfileFragment :
     private var myId = -1
     private val userId: Int by lazy { arguments?.getInt(USER_ID, 0) ?: 0 }
 
-    override fun getPresenter(): ProfileContract.ProfilePresenter = presenter
+    override fun getPresenter(): ProfilePresenter = presenter
 
-    override fun getMvpView(): ProfileContract.ProfileView = this
+    override fun getMvpView(): ProfileView = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,12 +77,10 @@ class ProfileFragment :
 
     override fun setStateResult(user: User) {
         processFragmentState(Result(user))
-
     }
 
     override fun setStateError(error: Throwable) {
         processFragmentState(Error(error))
-
     }
 
     private fun processFragmentState(state: ProfileState) {
@@ -111,6 +112,11 @@ class ProfileFragment :
                 }
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

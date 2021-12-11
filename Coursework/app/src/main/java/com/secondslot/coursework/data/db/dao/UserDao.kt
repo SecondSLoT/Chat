@@ -7,22 +7,28 @@ import androidx.room.Query
 import com.secondslot.coursework.data.db.model.entity.UserEntity
 import io.reactivex.Completable
 import io.reactivex.Single
+import io.reactivex.schedulers.Schedulers
 
 @Dao
-interface UserDao {
+abstract class UserDao {
 
     @Query("SELECT * FROM users ORDER BY full_name")
-    fun getAllUsers(): Single<List<UserEntity>>
+    abstract fun getAllUsers(): Single<List<UserEntity>>
 
     @Query("SELECT * FROM users WHERE user_id = :userId")
-    fun getUser(userId: Int): Single<UserEntity>
+    abstract fun getUser(userId: Int): Single<UserEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertUsers(users: List<UserEntity>): Completable
+    abstract fun insertUsers(users: List<UserEntity>): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertUser(user: UserEntity): Completable
+    abstract fun insertUser(user: UserEntity): Completable
 
     @Query("DELETE FROM users")
-    fun deleteAllUsers(): Completable
+    abstract fun deleteAllUsers(): Completable
+
+    fun updateUsers(users: List<UserEntity>): Completable {
+        return deleteAllUsers().subscribeOn(Schedulers.io())
+            .andThen(insertUsers(users).subscribeOn(Schedulers.io()))
+    }
 }

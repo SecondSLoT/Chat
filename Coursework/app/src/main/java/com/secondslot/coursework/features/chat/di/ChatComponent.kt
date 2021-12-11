@@ -5,10 +5,7 @@ import com.secondslot.coursework.features.chat.ui.ChatFragment
 import dagger.Component
 
 @ChatScope
-@Component(
-    modules = [ChatModule::class],
-    dependencies = [AppComponent::class]
-)
+@Component(dependencies = [AppComponent::class])
 interface ChatComponent {
 
     fun inject(chatFragment: ChatFragment)

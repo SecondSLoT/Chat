@@ -4,7 +4,9 @@ import com.secondslot.coursework.features.chat.model.MessageItem
 
 interface MessageInteractionListener {
 
-    fun openReactionsSheet(message: MessageItem)
+    fun messageOnLongClick(message: MessageItem)
+
+    fun onAddReactionButtonClick(message: MessageItem)
 
     fun addReaction(messageId: Int, emojiName: String)
 

@@ -11,8 +11,7 @@ import com.secondslot.coursework.features.chat.ui.ChooseReactionListener
 class ReactionsAdapter(
     private val reactions: List<ReactionLocal>,
     private val listener: ChooseReactionListener
-) :
-    RecyclerView.Adapter<ReactionsAdapter.ReactionHolder>() {
+) : RecyclerView.Adapter<ReactionsAdapter.ReactionHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReactionHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -21,23 +20,23 @@ class ReactionsAdapter(
     }
 
     override fun onBindViewHolder(holder: ReactionHolder, position: Int) {
-        return holder.bind(reactions)
+        return holder.bind(reactions[position])
     }
 
     override fun getItemCount(): Int = reactions.size
 
-    inner class ReactionHolder(
+    class ReactionHolder(
         private val binding: ItemEmojiBinding,
         private val listener: ChooseReactionListener
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(reactions: List<ReactionLocal>) {
+        fun bind(reaction: ReactionLocal) {
 
             binding.root.setOnClickListener {
-                listener.reactionChosen(reactions[absoluteAdapterPosition])
+                listener.reactionChosen(reaction)
             }
 
-            binding.emoji.text = reactions[absoluteAdapterPosition].emojiCode.convertEmojiCode()
+            binding.emoji.text = reaction.emojiCode.convertEmojiCode()
         }
     }
 }

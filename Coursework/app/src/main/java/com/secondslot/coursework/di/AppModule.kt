@@ -38,8 +38,10 @@ class AppModule {
 
     @Singleton
     @Provides
-    fun provideAuthorizationClient(): OkHttpClient = OkHttpClient
+    fun provideAuthorizationClient(
+        authorizationInterceptor: AuthorizationInterceptor
+    ): OkHttpClient = OkHttpClient
         .Builder()
-        .addInterceptor(AuthorizationInterceptor())
+        .addInterceptor(authorizationInterceptor)
         .build()
 }

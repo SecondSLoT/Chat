@@ -25,7 +25,7 @@ class MessageRemote(
     @field:Json(name = "sender_realm_str") val senderRealmStr: String?,
     @field:Json(name = "type") val type: String?,
     @field:Json(name = "stream_id") val streamId: Int?,
-    @field:Json(name = "content_type") val contentType: String?,
+    @field:Json(name = "content_type") val contentType: String?
 )
 
 object MessageRemoteToMessageMapper : BaseMapper<List<MessageRemote>, List<Message>> {

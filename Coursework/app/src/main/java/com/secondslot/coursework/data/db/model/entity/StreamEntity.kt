@@ -34,5 +34,3 @@ fun StreamEntity.toDomainModel(): Stream = Stream(
     description = this.description,
     topics = emptyList()
 )
-
-

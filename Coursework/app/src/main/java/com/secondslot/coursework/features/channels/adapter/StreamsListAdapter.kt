@@ -63,7 +63,6 @@ class StreamsListAdapter(
                         expandCollapseListener.collapseRow(holder.absoluteAdapterPosition)
                         holder.collapseArrow.visibility = View.GONE
                         holder.expandArrow.visibility = View.VISIBLE
-
                     }
                 }
             }

@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doAfterTextChanged
-import androidx.viewpager2.widget.ViewPager2
+import androidx.fragment.app.Fragment
 import com.google.android.material.tabs.TabLayoutMediator
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
@@ -13,22 +13,22 @@ import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentChannelsBinding
 import com.secondslot.coursework.features.channels.adapter.StreamsPagerAdapter
 import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
-import com.secondslot.coursework.features.channels.presenter.StreamsContract
+import com.secondslot.coursework.features.channels.presenter.StreamsPresenter
 import javax.inject.Inject
 
 class StreamsFragment :
-    MvpFragment<StreamsContract.StreamsView, StreamsContract.StreamsPresenter>(),
-    StreamsContract.StreamsView {
+    MvpFragment<StreamsView, StreamsPresenter>(),
+    StreamsView {
 
     private var _binding: FragmentChannelsBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     @Inject
-    internal lateinit var presenter: StreamsContract.StreamsPresenter
+    internal lateinit var presenter: StreamsPresenter
 
-    override fun getPresenter(): StreamsContract.StreamsPresenter = presenter
+    override fun getPresenter(): StreamsPresenter = presenter
 
-    override fun getMvpView(): StreamsContract.StreamsView = this
+    override fun getMvpView(): StreamsView = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,16 +38,16 @@ class StreamsFragment :
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChannelsBinding.inflate(inflater, container, false)
-        initViews()
         setListeners()
         return binding.root
     }
 
-    private fun initViews() {
+    override fun initViews(streamsFragmentsList: List<Fragment>) {
         binding.includedSearchView.searchUsersEditText.hint =
             getString(R.string.channels_search_hint)
 
@@ -58,7 +58,7 @@ class StreamsFragment :
 
         val channelsPagerAdapter = StreamsPagerAdapter(childFragmentManager, lifecycle)
         binding.viewPager.adapter = channelsPagerAdapter
-        channelsPagerAdapter.updateFragments(presenter.getStreamsFragments())
+        channelsPagerAdapter.updateFragments(streamsFragmentsList)
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = tabs[position]
@@ -83,6 +83,11 @@ class StreamsFragment :
 
     override fun clearSearchView() {
         binding.includedSearchView.searchUsersEditText.text.clear()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

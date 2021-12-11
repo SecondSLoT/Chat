@@ -6,10 +6,7 @@ import com.secondslot.coursework.features.channels.ui.StreamsListFragment
 import dagger.Component
 
 @StreamsScope
-@Component(
-    modules = [StreamsModule::class],
-    dependencies = [AppComponent::class]
-)
+@Component(dependencies = [AppComponent::class])
 interface StreamsComponent {
 
     fun injectStreamsFragment(streamsFragment: StreamsFragment)

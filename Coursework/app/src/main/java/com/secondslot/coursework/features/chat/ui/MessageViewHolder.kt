@@ -3,6 +3,7 @@ package com.secondslot.coursework.features.chat.ui
 import android.os.Build
 import android.text.Html
 import android.text.Html.FROM_HTML_MODE_COMPACT
+import android.widget.ImageButton
 import androidx.core.view.isGone
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.R
@@ -16,7 +17,26 @@ class MessageViewHolder(
     private val listener: MessageInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
 
+    private var item: MessageItem? = null
+
+    init {
+        // Open bottom sheet on long click on message
+        binding.messageViewGroup.setOnLongClickListener {
+            item?.let { listener.messageOnLongClick(it) }
+            true
+        }
+
+        // Set OnClickListener on Add reaction button
+        val addReactionButton =
+            binding.messageViewGroup.findViewById<ImageButton>(R.id.add_reaction_button)
+        addReactionButton.setOnClickListener {
+            item?.let { listener.onAddReactionButtonClick(it) }
+        }
+    }
+
+
     fun bind(message: MessageItem, myId: Int) {
+        item = message
         binding.messageViewGroup.run {
             message.avatarUrl?.let { setUserPhoto(it) }
             message.senderFullName?.let { setUsername(it) }

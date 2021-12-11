@@ -82,6 +82,6 @@ object ReactionStorage {
         ReactionLocal("tie", "1f454"),
         ReactionLocal("shirt", "1f455"),
         ReactionLocal("jeans", "1f456"),
-        ReactionLocal("dress", "1f457"),
+        ReactionLocal("dress", "1f457")
     )
 }

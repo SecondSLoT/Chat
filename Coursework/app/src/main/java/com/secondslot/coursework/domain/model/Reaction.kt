@@ -4,7 +4,7 @@ class Reaction(
     val emojiName: String,
     val emojiCode: String,
     val reactionType: String,
-    val userId: Int,
+    val userId: Int
 ) {
 
     override fun equals(other: Any?): Boolean {

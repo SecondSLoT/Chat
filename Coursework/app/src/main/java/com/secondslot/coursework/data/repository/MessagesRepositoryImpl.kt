@@ -3,17 +3,18 @@ package com.secondslot.coursework.data.repository
 import android.util.Log
 import com.secondslot.coursework.data.api.NetworkManager
 import com.secondslot.coursework.data.api.model.MessageRemoteToMessageMapper
-import com.secondslot.coursework.data.api.model.response.toSendResult
 import com.secondslot.coursework.data.db.AppDatabase
 import com.secondslot.coursework.data.db.model.MessageReactionDbToDomainModel
 import com.secondslot.coursework.data.db.model.entity.MessageEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionToReactionEntityMapper
 import com.secondslot.coursework.data.api.model.SendResult
+import com.secondslot.coursework.data.api.model.response.toSendResult
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.repository.MessagesRepository
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class MessagesRepositoryImpl @Inject constructor(
@@ -50,23 +51,25 @@ class MessagesRepositoryImpl @Inject constructor(
         val messagesReactionsRemoteObservable = networkManager
             .getMessages(anchor, numBefore, numAfter, narrow)
             .map { messageRemoteList ->
-                val messages = MessageRemoteToMessageMapper.map(messageRemoteList)
-
+                MessageRemoteToMessageMapper.map(messageRemoteList)
+            }
+            // Save data from network to DB
+            .flatMap { messages ->
                 messagesCache = mergeData(messagesCache, messages)
-                val messageEntities: ArrayList<MessageEntity> = arrayListOf()
-                val reactionEntities: ArrayList<ReactionEntity> = arrayListOf()
 
-                messagesCache.forEach { message ->
-                    messageEntities.add(MessageEntity.fromMessage(message))
-                    reactionEntities.addAll(
-                        ReactionToReactionEntityMapper.map(message.reactions, message.id)
-                    )
+                val messageEntities = messagesCache.map { message ->
+                    MessageEntity.fromMessage(message)
+                }
+                val reactionEntities = messagesCache.flatMap { message ->
+                    ReactionToReactionEntityMapper.map(message.reactions, message.id)
                 }
 
                 database.messageWithReactionDao
                     .updateMessagesReactions(messageEntities, reactionEntities, topicName)
-
-                messages
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.io())
+                    .doOnComplete { Log.d(TAG, "updateMessagesReactions complete") }
+                    .andThen(Observable.just(messages))
             }
 
         return Observable

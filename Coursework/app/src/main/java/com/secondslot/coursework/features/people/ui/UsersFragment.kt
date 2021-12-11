@@ -16,27 +16,27 @@ import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.features.people.adapter.PeopleListAdapter
 import com.secondslot.coursework.features.people.adapter.UsersItemDecoration
 import com.secondslot.coursework.features.people.di.DaggerUsersComponent
-import com.secondslot.coursework.features.people.presenter.UsersContract
+import com.secondslot.coursework.features.people.presenter.UsersPresenter
 import com.secondslot.coursework.features.people.ui.UserState.*
 import com.secondslot.coursework.features.profile.ui.ProfileFragment
 import javax.inject.Inject
 
 class UsersFragment :
-    MvpFragment<UsersContract.UsersView, UsersContract.UsersPresenter>(),
-    UsersContract.UsersView,
+    MvpFragment<UsersView, UsersPresenter>(),
+    UsersView,
     OnUserClickListener {
 
     @Inject
-    internal lateinit var presenter: UsersContract.UsersPresenter
+    internal lateinit var presenter: UsersPresenter
 
     private var _binding: FragmentUsersBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private val usersAdapter = PeopleListAdapter(this)
 
-    override fun getPresenter(): UsersContract.UsersPresenter = presenter
+    override fun getPresenter(): UsersPresenter = presenter
 
-    override fun getMvpView(): UsersContract.UsersView = this
+    override fun getMvpView(): UsersView = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,7 +71,7 @@ class UsersFragment :
                 searchUsers(it.toString())
             }
 
-            includedRetryButton.retryButton.setOnClickListener { presenter.retry() }
+            includedRetryButton.retryButton.setOnClickListener { presenter.onRetry() }
         }
     }
 
@@ -131,6 +131,11 @@ class UsersFragment :
             .replace(R.id.container, ProfileFragment.newInstance(userId))
             .addToBackStack(null)
             .commitAllowingStateLoss()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

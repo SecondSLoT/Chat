@@ -2,9 +2,7 @@ package com.secondslot.coursework.base.mvp.presenter
 
 import androidx.annotation.CallSuper
 
-abstract class BasePresenter<View> protected constructor(
-    viewClass: Class<View>
-): Presenter<View> {
+abstract class BasePresenter<View> : Presenter<View> {
 
     var view: View? = null
 

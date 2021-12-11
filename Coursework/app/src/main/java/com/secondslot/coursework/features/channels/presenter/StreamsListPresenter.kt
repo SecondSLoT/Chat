@@ -6,25 +6,25 @@ import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.usecase.GetAllStreamsUseCase
 import com.secondslot.coursework.domain.usecase.GetSubscribedStreamsUseCase
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
+import com.secondslot.coursework.features.channels.ui.StreamsListView
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
-class StreamsListPresenter @Inject constructor(
+class StreamsListPresenter @AssistedInject constructor(
     private val getSubscribedStreamsUseCase: GetSubscribedStreamsUseCase,
-    private val getAllStreamsUseCase: GetAllStreamsUseCase
-) :
-    RxPresenter<StreamsListContract.StreamsListView>
-        (StreamsListContract.StreamsListView::class.java),
-    StreamsListContract.StreamsListPresenter {
+    private val getAllStreamsUseCase: GetAllStreamsUseCase,
+    @Assisted private val viewType: String
+) : RxPresenter<StreamsListView>() {
 
     private val searchSubject: PublishSubject<String> = PublishSubject.create()
 
-    override fun attachView(view: StreamsListContract.StreamsListView) {
+    override fun attachView(view: StreamsListView) {
         super.attachView(view)
         Log.d(TAG, "$this AttachView() $view")
         loadStreams()
@@ -38,8 +38,8 @@ class StreamsListPresenter @Inject constructor(
 
     private fun loadStreams() {
         val streamsObservable: Observable<List<Stream>> =
-            when (view?.getViewType()) {
-                StreamsListContract.SUBSCRIBED -> getSubscribedStreamsUseCase.execute()
+            when (viewType) {
+                StreamsListView.SUBSCRIBED -> getSubscribedStreamsUseCase.execute()
                 else -> getAllStreamsUseCase.execute()
             }
 
@@ -70,8 +70,8 @@ class StreamsListPresenter @Inject constructor(
             .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
             .observeOn(Schedulers.io())
             .switchMap { searchQuery ->
-                when (view?.getViewType()) {
-                    StreamsListContract.SUBSCRIBED -> {
+                when (viewType) {
+                    StreamsListView.SUBSCRIBED -> {
                         getSubscribedStreamsUseCase.execute(searchQuery)
                             .map { ExpandableStreamModel.fromStream(it) }
                     }
@@ -89,11 +89,11 @@ class StreamsListPresenter @Inject constructor(
             .disposeOnFinish()
     }
 
-    override fun searchStreams(searchQuery: String) {
+    fun searchStreams(searchQuery: String) {
         searchSubject.onNext(searchQuery)
     }
 
-    override fun retry() {
+    fun retry() {
         loadStreams()
         subscribeOnSearchChanges()
     }

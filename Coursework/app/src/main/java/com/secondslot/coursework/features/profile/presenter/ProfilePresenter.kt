@@ -12,11 +12,9 @@ import javax.inject.Inject
 class ProfilePresenter @Inject constructor(
     private val getProfileUseCase: GetProfileUseCase,
     private val getOwnProfileUseCase: GetOwnProfileUseCase
-) :
-    RxPresenter<ProfileContract.ProfileView>(ProfileContract.ProfileView::class.java),
-    ProfileContract.ProfilePresenter {
+) : RxPresenter<ProfileView>() {
 
-    override fun attachView(view: ProfileContract.ProfileView) {
+    override fun attachView(view: ProfileView) {
         super.attachView(view)
         Log.d(TAG, "attachView()")
     }
@@ -26,7 +24,7 @@ class ProfilePresenter @Inject constructor(
         Log.d(TAG, "detachView()")
     }
 
-    override fun loadProfile(userId: Int) {
+    fun loadProfile(userId: Int) {
         val profileObservable = if (userId != -1) {
             getProfileUseCase.execute(userId)
         } else {

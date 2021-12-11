@@ -247,7 +247,6 @@ class CustomMessageViewGroup @JvmOverloads constructor(
             val personNameMarginBottom =
                 (personNameTextView.layoutParams as MarginLayoutParams).bottomMargin
 
-
             // Place messageTextView
             messageTextView.layout(
                 avatarImageView.right + avatarMarginRight,

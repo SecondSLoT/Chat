@@ -19,7 +19,8 @@ class MainFragment : Fragment() {
     private var lastSelectedItem: Int? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
@@ -73,6 +74,11 @@ class MainFragment : Fragment() {
         childFragmentManager.beginTransaction()
             .replace(R.id.container, fragment)
             .commitAllowingStateLoss()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

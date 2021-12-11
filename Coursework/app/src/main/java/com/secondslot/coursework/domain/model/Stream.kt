@@ -14,4 +14,3 @@ data class Stream(
         val isSubscribed: Boolean
     )
 }
-

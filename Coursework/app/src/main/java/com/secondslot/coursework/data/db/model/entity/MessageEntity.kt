@@ -15,7 +15,7 @@ class MessageEntity(
     @ColumnInfo(name = "content") val content: String,
     @ColumnInfo(name = "topic_name") val topicName: String?, // Foreign key
     @ColumnInfo(name = "timestamp") val timestamp: Int,
-    @ColumnInfo(name = "isMeMessage") val isMeMessage: Boolean,
+    @ColumnInfo(name = "isMeMessage") val isMeMessage: Boolean
 ) {
 
     companion object {

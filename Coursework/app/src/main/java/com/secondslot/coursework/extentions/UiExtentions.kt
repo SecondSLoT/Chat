@@ -4,7 +4,7 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 
 fun ImageView.loadRoundImage(
-    imageUri: String,
+    imageUri: String
 ) {
 
     Glide.with(context)

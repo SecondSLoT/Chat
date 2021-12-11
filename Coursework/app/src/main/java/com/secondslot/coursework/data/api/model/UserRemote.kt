@@ -21,7 +21,7 @@ class UserRemote(
     @field:Json(name = "timezone") val timezone: String?,
     @field:Json(name = "is_active") val isActive: Boolean?,
     @field:Json(name = "date_joined") val dateJoined: String?,
-    @field:Json(name = "max_message_id") val maxMessageId: Int?,
+    @field:Json(name = "max_message_id") val maxMessageId: Int?
 )
 
 fun UserRemote.toDomainModel(): User = User(

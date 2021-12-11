@@ -11,7 +11,6 @@ import com.secondslot.coursework.data.db.model.entity.toDomainModel
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository
 import io.reactivex.Observable
-import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
@@ -32,32 +31,20 @@ class UsersRepositoryImpl @Inject constructor(
             }.toObservable()
 
         // Data from network
-        val usersRemoteObservable = networkManager.getAllUsers().map { usersRemoteList ->
-            UserRemoteToUserMapper.map(usersRemoteList)
-        }
-
-        // Save data from network to DB
-        val disposable = usersRemoteObservable.subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.io())
-            .subscribeBy(
-                onNext = { users ->
-                    val deleteCompletable = database.userDao.deleteAllUsers()
-                    val insertCompletable = database.userDao.insertUsers(
-                        UserToUserEntityMapper.map(users)
-                    )
-
-                    val disposable = deleteCompletable.concatWith(insertCompletable)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(Schedulers.io())
-                        .subscribeBy(
-                            onComplete = {
-                                Log.d(TAG, "updateUsers complete")
-                            },
-                            onError = { Log.d(TAG, "updateUsers error") }
-                        )
-                },
-                onError = { Log.e(TAG, "usersRemoteObservable error") }
-            )
+        val usersRemoteObservable = networkManager.getAllUsers()
+            .map { usersRemoteList ->
+                UserRemoteToUserMapper.map(usersRemoteList)
+            }
+            // Save data from network to DB
+            .flatMap { users ->
+                database.userDao.updateUsers(UserToUserEntityMapper.map(users))
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.io())
+                    .doOnComplete { Log.d(TAG, "updateUsers complete") }
+                    .doOnError { Log.d(TAG, "updateUsers complete") }
+                    .andThen(Observable.just(users))
+            }
+            .doOnError { Log.e(TAG, "usersRemoteObservable error") }
 
         // Return data from DB first, then from network
         return Observable.concat(

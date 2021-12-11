@@ -9,7 +9,6 @@ class GetAllUsersUseCase @Inject constructor(
     private val usersRepository: UsersRepository
 ) {
 
-
     fun execute(searchQuery: String = ""): Observable<List<User>> {
         return if (searchQuery.isEmpty()) {
             usersRepository.getUsers()

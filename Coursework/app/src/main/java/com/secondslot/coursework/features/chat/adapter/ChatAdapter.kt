@@ -16,9 +16,6 @@ import com.secondslot.coursework.features.chat.ui.DateViewHolder
 import com.secondslot.coursework.features.chat.ui.MessageInteractionListener
 import com.secondslot.coursework.features.chat.ui.MessageViewHolder
 
-private const val TYPE_MESSAGE = 0
-private const val TYPE_DATE = 1
-
 class ChatAdapter(
     private val listener: MessageInteractionListener,
     private val myId: Int
@@ -26,82 +23,66 @@ class ChatAdapter(
 
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position)) {
-            is MessageItem -> TYPE_MESSAGE
-            else -> TYPE_DATE
+            is MessageItem -> ItemType.MESSAGE.type
+            else -> ItemType.DATE.type
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        if (viewType == TYPE_MESSAGE) {
+        return if (viewType == ItemType.MESSAGE.type) {
             val layoutInflater = LayoutInflater.from(parent.context)
             val binding =
                 ItemMessageBinding.inflate(layoutInflater, parent, false)
-            val holder = MessageViewHolder(binding, listener)
-
-            binding.run {
-                // Open bottom sheet on long click on message
-                messageViewGroup.setOnLongClickListener {
-                    listener.openReactionsSheet(
-                        getItem(holder.bindingAdapterPosition) as MessageItem
-                    )
-                    true
-                }
-
-                // Set OnClickListener on Add reaction button
-                val addReactionButton =
-                    messageViewGroup.findViewById<ImageButton>(R.id.add_reaction_button)
-                addReactionButton.setOnClickListener {
-                    listener.openReactionsSheet(
-                        getItem(holder.bindingAdapterPosition) as MessageItem
-                    )
-                }
-            }
-
-            return holder
+            MessageViewHolder(binding, listener)
         } else {
             val layoutInflater = LayoutInflater.from(parent.context)
             val binding =
                 ItemDateDividerBinding.inflate(layoutInflater, parent, false)
-            return DateViewHolder(binding)
+            DateViewHolder(binding)
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (holder is MessageViewHolder) {
-            holder.bind(getItem(position) as MessageItem, myId)
-        } else {
-            (holder as DateViewHolder).bind(getItem(position) as DateDivider)
+        when (holder) {
+            is MessageViewHolder -> holder.bind(getItem(position) as MessageItem, myId)
+            is DateViewHolder -> holder.bind(getItem(position) as DateDivider)
         }
     }
+}
+
+private enum class ItemType(val type: Int) {
+    MESSAGE(0),
+    DATE(1)
 }
 
 class MessageComparator : DiffUtil.ItemCallback<ChatItem>() {
 
     override fun areItemsTheSame(oldItem: ChatItem, newItem: ChatItem): Boolean {
-        return oldItem == newItem
+        return when (oldItem) {
+            is MessageItem -> {
+                if (newItem is MessageItem) oldItem.id == newItem.id else false
+            }
+
+            is DateDivider -> {
+                if (newItem is DateDivider) oldItem.date == newItem.date else false
+            }
+
+            else -> false
+        }
     }
 
     override fun areContentsTheSame(oldItem: ChatItem, newItem: ChatItem): Boolean {
         return when (oldItem) {
             is MessageItem -> {
                 if (newItem is MessageItem) {
-                    oldItem.id == newItem.id &&
-                        oldItem.senderId == newItem.senderId &&
-                        oldItem.senderFullName == newItem.senderFullName &&
-                        oldItem.content == newItem.content &&
-                        oldItem.topic == newItem.topic &&
-                        oldItem.reactions == newItem.reactions
+                    oldItem as MessageItem == newItem as MessageItem
                 } else {
                     false
                 }
             }
 
             is DateDivider -> {
-                if (newItem is DateDivider) {
-                    oldItem.date == newItem.date
-                } else {
-                    false
-                }
+                if (newItem is DateDivider) oldItem.date == newItem.date else false
             }
 
             else -> false

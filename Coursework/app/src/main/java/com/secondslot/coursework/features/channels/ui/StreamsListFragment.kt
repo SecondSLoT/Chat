@@ -18,21 +18,24 @@ import com.secondslot.coursework.databinding.FragmentChannelsListBinding
 import com.secondslot.coursework.features.channels.adapter.StreamsItemDecoration
 import com.secondslot.coursework.features.channels.adapter.StreamsListAdapter
 import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
+import com.secondslot.coursework.features.channels.di.StreamsListFactory
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
-import com.secondslot.coursework.features.channels.presenter.StreamsListContract
+import com.secondslot.coursework.features.channels.presenter.StreamsListPresenter
 import com.secondslot.coursework.features.channels.ui.ChannelsState.*
 import com.secondslot.coursework.features.chat.ui.ChatFragment
 import javax.inject.Inject
 
 class StreamsListFragment :
-    MvpFragment<StreamsListContract.StreamsListView, StreamsListContract.StreamsListPresenter>(),
-    StreamsListContract.StreamsListView,
+    MvpFragment<StreamsListView, StreamsListPresenter>(),
+    StreamsListView,
     ExpandCollapseListener,
     SearchQueryListener,
     OnTopicClickListener {
 
     @Inject
-    internal lateinit var presenter: StreamsListContract.StreamsListPresenter
+    internal lateinit var presenterFactory: StreamsListFactory
+
+    internal lateinit var presenter: StreamsListPresenter
 
     private var _binding: FragmentChannelsListBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -41,19 +44,18 @@ class StreamsListFragment :
 
     private var streamModelList = mutableListOf<ExpandableStreamModel>()
 
-    override fun getPresenter(): StreamsListContract.StreamsListPresenter = presenter
+    override fun getPresenter(): StreamsListPresenter = presenter
 
-    override fun getMvpView(): StreamsListContract.StreamsListView = this
-
-    override fun getViewType(): String {
-        return arguments?.getString(CONTENT_KEY, "") ?: ""
-    }
+    override fun getMvpView(): StreamsListView = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val streamsComponent = DaggerStreamsComponent.factory().create(App.appComponent)
         streamsComponent.injectStreamsListFragment(this)
+        presenter = presenterFactory.create(
+            arguments?.getString(CONTENT_KEY, "") ?: ""
+        )
 
         val typedValue = TypedValue()
         requireActivity().run {
@@ -181,6 +183,11 @@ class StreamsListFragment :
             )
             .addToBackStack(null)
             .commitAllowingStateLoss()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

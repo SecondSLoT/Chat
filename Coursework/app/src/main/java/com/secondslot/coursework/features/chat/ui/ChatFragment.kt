@@ -17,20 +17,27 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
+import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.databinding.FragmentChatBinding
 import com.secondslot.coursework.features.chat.adapter.ChatAdapter
 import com.secondslot.coursework.features.chat.adapter.ReactionsAdapter
+import com.secondslot.coursework.features.chat.di.ChatPresenterFactory
 import com.secondslot.coursework.features.chat.di.DaggerChatComponent
 import com.secondslot.coursework.features.chat.model.ChatItem
-import com.secondslot.coursework.features.chat.presenter.ChatContract
+import com.secondslot.coursework.features.chat.model.MessageItem
+import com.secondslot.coursework.features.chat.presenter.ChatPresenter
 import javax.inject.Inject
 
 class ChatFragment :
-    MvpFragment<ChatContract.ChatView, ChatContract.ChatPresenter>(),
-    ChatContract.ChatView {
+    MvpFragment<ChatView, ChatPresenter>(),
+    ChatView,
+    MessageInteractionListener,
+    ChooseReactionListener {
 
     @Inject
-    internal lateinit var presenter: ChatContract.ChatPresenter
+    internal lateinit var presenterFactory: ChatPresenterFactory
+
+    internal lateinit var presenter: ChatPresenter
 
     private var _binding: FragmentChatBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -38,15 +45,11 @@ class ChatFragment :
     private var chatAdapter: ChatAdapter? = null
     private var bottomSheetDialog: BottomSheetDialog? = null
 
-    override fun getPresenter(): ChatContract.ChatPresenter = presenter
+    override fun getPresenter(): ChatPresenter = presenter
 
-    override fun getMvpView(): ChatContract.ChatView = this
+    override fun getMvpView(): ChatView = this
 
-    override fun getStreamId(): Int {
-        return arguments?.getInt(STREAM_ID, 0) ?: 0
-    }
-
-    override fun getTopicName(): String {
+    private fun getTopicName(): String {
         return arguments?.getString(TOPIC_NAME, "") ?: ""
     }
 
@@ -55,6 +58,10 @@ class ChatFragment :
 
         val chatComponent = DaggerChatComponent.factory().create(App.appComponent)
         chatComponent.inject(this)
+        presenter = presenterFactory.create(
+            arguments?.getInt(STREAM_ID, 0) ?: 0,
+            getTopicName()
+        )
 
         requireActivity().window.statusBarColor =
             ContextCompat.getColor(requireContext(), R.color.username)
@@ -66,19 +73,15 @@ class ChatFragment :
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         setListeners()
+        return binding.root
     }
 
     override fun initViews(myId: Int) {
         val linearLayoutManager = LinearLayoutManager(requireContext())
         linearLayoutManager.stackFromEnd = true
 
-        chatAdapter = ChatAdapter(presenter as MessageInteractionListener, myId)
+        chatAdapter = ChatAdapter(this, myId)
 
         binding.recyclerView.run {
             layoutManager = linearLayoutManager
@@ -86,13 +89,18 @@ class ChatFragment :
         }
 
         binding.run {
-            val streamName = "#${presenter.getStreamName()}"
-            toolbar.title = streamName
-            topicTextView.text = getString(R.string.topic, presenter.getTopicName())
+            topicTextView.text = getString(R.string.topic, getTopicName())
             messageEditText.requestFocus()
         }
 
-        presenter.getMessages(isScrollToEnd = true)
+        presenter.loadMessages(
+            anchor = "newest",
+            isLoadNew = false,
+            isScrollToEnd = true)
+    }
+
+    override fun showStreamName(streamName: String) {
+        binding.toolbar.title = "#${streamName}"
     }
 
     private fun setListeners() {
@@ -184,7 +192,6 @@ class ChatFragment :
         ?.takeIf { it > 0 }?.let(binding.recyclerView::scrollToPosition)
 
     override fun openReactionsSheet() {
-
         bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog?.run {
             setContentView(R.layout.dialog_reactions_bottom_sheet)
@@ -198,7 +205,7 @@ class ChatFragment :
             layoutManager = GridLayoutManager(requireContext(), 7)
             adapter = ReactionsAdapter(
                 presenter.getReactions(),
-                presenter as ChooseReactionListener)
+                this@ChatFragment)
             setHasFixedSize(true)
         }
         bottomSheetDialog?.show()
@@ -206,6 +213,31 @@ class ChatFragment :
 
     override fun closeReactionsSheet() {
         bottomSheetDialog?.dismiss()
+    }
+
+    override fun reactionChosen(reaction: ReactionLocal) {
+        presenter.onReactionChosen(reaction)
+    }
+
+    override fun messageOnLongClick(message: MessageItem) {
+        presenter.onMessageLongClick(message)
+    }
+
+    override fun onAddReactionButtonClick(message: MessageItem) {
+        presenter.onAddReactionButtonClicked(message)
+    }
+
+    override fun addReaction(messageId: Int, emojiName: String) {
+        presenter.onAddReaction(messageId, emojiName)
+    }
+
+    override fun removeReaction(messageId: Int, emojiName: String) {
+        presenter.onRemoveReaction(messageId, emojiName)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

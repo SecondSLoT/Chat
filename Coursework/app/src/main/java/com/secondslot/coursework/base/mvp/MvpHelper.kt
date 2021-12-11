@@ -2,7 +2,7 @@ package com.secondslot.coursework.base.mvp
 
 import com.secondslot.coursework.base.mvp.presenter.Presenter
 
-class MvpHelper<View, P: Presenter<View>>(
+class MvpHelper<View, P : Presenter<View>>(
     private val callback: MvpViewCallback<View, P>
 ) {
 

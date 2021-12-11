@@ -10,26 +10,25 @@ import com.secondslot.coursework.features.chat.model.ChatItem
 import com.secondslot.coursework.features.chat.model.DateDivider
 import com.secondslot.coursework.features.chat.model.MessageItem
 import com.secondslot.coursework.features.chat.model.MessageToItemMapper
-import com.secondslot.coursework.features.chat.ui.ChooseReactionListener
-import com.secondslot.coursework.features.chat.ui.MessageInteractionListener
+import com.secondslot.coursework.features.chat.ui.ChatView
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
-import javax.inject.Inject
+import kotlin.collections.ArrayList
 
-class ChatPresenter @Inject constructor(
+class ChatPresenter @AssistedInject constructor(
     private val getStreamByIdUseCase: GetStreamByIdUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val getOwnProfileUseCase: GetOwnProfileUseCase,
     private val addReactionUseCase: AddReactionUseCase,
     private val removeReactionUseCase: RemoveReactionUseCase,
-    private val getReactionsUseCase: GetReactionsUseCase
-) :
-    RxPresenter<ChatContract.ChatView>(ChatContract.ChatView::class.java),
-    ChatContract.ChatPresenter,
-    MessageInteractionListener,
-    ChooseReactionListener {
+    private val getReactionsUseCase: GetReactionsUseCase,
+    @Assisted private val streamId: Int,
+    @Assisted private var topicName: String
+) : RxPresenter<ChatView>() {
 
     private var myId: Int = -1
     private var firstMessageId: Int = -1
@@ -37,40 +36,15 @@ class ChatPresenter @Inject constructor(
     private var messages: List<ChatItem> = arrayListOf()
     private var chosenMessage: MessageItem? = null
 
-    private var streamId: Int? = null
-    private var topicName: String? = null
-    private var streamName: String? = null
-
     private var isLoading: Boolean = false
         set(value) {
             field = value
             Log.d(TAG, "isLoading = $field")
         }
 
-    override fun getTopicName(): String = topicName ?: ""
-
-    override fun getStreamName(): String = streamName ?: ""
-
-    override fun getChosenMessage(): MessageItem? = chosenMessage
-
-    override fun attachView(view: ChatContract.ChatView) {
+    override fun attachView(view: ChatView) {
         super.attachView(view)
         Log.d(TAG, "attachView()")
-
-        streamId = view.getStreamId()
-        topicName = view.getTopicName()
-        streamId?.let {
-            getStreamByIdUseCase.execute(streamId!!)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy(
-                    onNext = { streamName = it.streamName },
-                    onError = {
-                        Log.d(TAG, "getStreamByIdUseCase.execute() error")
-                        view.showError(it)
-                    }
-                )
-        }
 
         // Get own profile for using it to view initializing
         getOwnProfileUseCase.execute()
@@ -89,6 +63,18 @@ class ChatPresenter @Inject constructor(
                 }
             )
             .disposeOnFinish()
+
+        getStreamByIdUseCase.execute(streamId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onNext = { view.showStreamName(it.streamName) },
+                onError = {
+                    Log.d(TAG, "getStreamByIdUseCase.execute() error")
+                    view.showError(it)
+                }
+            )
+            .disposeOnFinish()
     }
 
     override fun detachView(isFinishing: Boolean) {
@@ -96,7 +82,7 @@ class ChatPresenter @Inject constructor(
         Log.d(TAG, "detachView()")
     }
 
-    override fun getMessages(
+    fun loadMessages(
         anchor: String,
         isLoadNew: Boolean,
         isScrollToEnd: Boolean
@@ -155,14 +141,14 @@ class ChatPresenter @Inject constructor(
                         Log.d(TAG, "MessageObservable is empty")
                     }
                 },
-                onError = { view?.showError(it) },
+                onError = { view?.showError(it) }
             )
             .disposeOnFinish()
     }
 
     private fun getNarrow(): Map<String, Any> = mapOf(
-        "stream" to (streamId ?: 0),
-        "topic" to (topicName ?: "")
+        "stream" to streamId,
+        "topic" to topicName
     )
 
     private fun updateMessages(isScrollToEnd: Boolean = false) {
@@ -194,13 +180,13 @@ class ChatPresenter @Inject constructor(
         view?.updateMessages(messages, isScrollToEnd)
     }
 
-    override fun onScrollUp(firstVisiblePosition: Int) {
+    fun onScrollUp(firstVisiblePosition: Int) {
         if (isLoading) return
 
         // If item on position to prefetch is visible
         if (firstVisiblePosition == PREFETCH_DISTANCE) {
             Log.d(TAG, "It's time to prefetch")
-            getMessages(
+            loadMessages(
                 anchor = firstMessageId.toString(),
                 isLoadNew = false,
                 isScrollToEnd = false
@@ -208,17 +194,17 @@ class ChatPresenter @Inject constructor(
         }
     }
 
-    override fun onScrollDown(lastVisiblePosition: Int) {
+    fun onScrollDown(lastVisiblePosition: Int) {
         if (isLoading) return
 
         // If last item is visible
         if (lastVisiblePosition == messages.size - 1) {
             Log.d(TAG, "Load new banch of messages")
-            getMessages(anchor = lastMessageId.toString(), isLoadNew = true, isScrollToEnd = false)
+            loadMessages(anchor = lastMessageId.toString(), isLoadNew = true, isScrollToEnd = false)
         }
     }
 
-    override fun onSendMessageClicked(messageText: String) {
+    fun onSendMessageClicked(messageText: String) {
         val sendMessageResultSingle = sendMessageUseCase.execute(
             streamId = streamId ?: 0,
             topicName = topicName ?: "",
@@ -231,7 +217,7 @@ class ChatPresenter @Inject constructor(
                 onSuccess = {
                     if (it.result == SERVER_RESULT_SUCCESS) {
                         view?.clearMessageEditText()
-                        getMessages(
+                        loadMessages(
                             anchor = lastMessageId.toString(),
                             isLoadNew = true,
                             isScrollToEnd = true
@@ -245,34 +231,41 @@ class ChatPresenter @Inject constructor(
             .disposeOnFinish()
     }
 
-    override fun getReactions(): List<ReactionLocal> {
+    fun getReactions(): List<ReactionLocal> {
         return getReactionsUseCase.execute()
     }
 
-    override fun openReactionsSheet(message: MessageItem) {
+    fun onMessageLongClick(message: MessageItem) {
         chosenMessage = message
         view?.openReactionsSheet()
     }
 
-    override fun reactionChosen(reaction: ReactionLocal) {
+    fun onAddReactionButtonClicked(message: MessageItem) {
+        onMessageLongClick(message)
+    }
+
+    fun onReactionChosen(reaction: ReactionLocal) {
         view?.closeReactionsSheet()
 
         var existingReaction: Reaction? = null
         chosenMessage?.reactions?.forEach {
-            if (it.key.emojiCode == reaction.emojiCode && it.key.userId == myId) {
+            if (myId != -1 &&
+                it.key.emojiCode == reaction.emojiCode &&
+                it.key.userId == myId
+            ) {
                 existingReaction = it.key
                 return
             }
         }
 
         if (existingReaction == null) {
-            chosenMessage?.id?.let { addReaction(it, reaction.emojiName) }
+            chosenMessage?.id?.let { onAddReaction(it, reaction.emojiName) }
         } else {
-            chosenMessage?.id?.let { removeReaction(it, reaction.emojiName) }
+            chosenMessage?.id?.let { onRemoveReaction(it, reaction.emojiName) }
         }
     }
 
-    override fun addReaction(messageId: Int, emojiName: String) {
+    fun onAddReaction(messageId: Int, emojiName: String) {
 
         addReactionUseCase.execute(messageId, emojiName)
             .subscribeOn(Schedulers.io())
@@ -294,7 +287,7 @@ class ChatPresenter @Inject constructor(
             .disposeOnFinish()
     }
 
-    override fun removeReaction(messageId: Int, emojiName: String) {
+    fun onRemoveReaction(messageId: Int, emojiName: String) {
 
         removeReactionUseCase.execute(messageId, emojiName)
             .subscribeOn(Schedulers.io())

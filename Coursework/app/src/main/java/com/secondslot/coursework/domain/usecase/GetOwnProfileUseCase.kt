@@ -9,7 +9,6 @@ class GetOwnProfileUseCase @Inject constructor(
     private val usersRepository: UsersRepository
 ) {
 
-
     fun execute(): Observable<List<User>> {
         return usersRepository.getOwnProfile()
     }

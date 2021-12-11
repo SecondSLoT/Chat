@@ -5,10 +5,7 @@ import com.secondslot.coursework.features.profile.ui.ProfileFragment
 import dagger.Component
 
 @ProfileScope
-@Component(
-    modules = [ProfileModule::class],
-    dependencies = [AppComponent::class]
-)
+@Component(dependencies = [AppComponent::class])
 interface ProfileComponent {
 
     fun inject(profileFragment: ProfileFragment)

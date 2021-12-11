@@ -13,7 +13,7 @@ class UserEntity(
     @ColumnInfo(name = "full_name") val fullName: String,
     @ColumnInfo(name = "avatar_url") val avatarUrl: String?,
     @ColumnInfo(name = "email") val email: String?,
-    @ColumnInfo(name = "date_joined") val dateJoined: String?,
+    @ColumnInfo(name = "date_joined") val dateJoined: String?
 ) {
 
     companion object {

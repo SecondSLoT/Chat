@@ -3,8 +3,8 @@ package com.secondslot.coursework.base.mvp.presenter
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 
-abstract class RxPresenter<V> protected constructor(viewClass: Class<V>) :
-    BasePresenter<V>(viewClass) {
+abstract class RxPresenter<View> : BasePresenter<View>() {
+
     private val compositeDisposable = CompositeDisposable()
 
     override fun detachView(isFinishing: Boolean) {
@@ -33,9 +33,5 @@ abstract class RxPresenter<V> protected constructor(viewClass: Class<V>) :
 
     private operator fun CompositeDisposable.plusAssign(disposable: Disposable) {
         add(disposable)
-    }
-
-    companion object {
-        private const val TAG = "RxPresenter"
     }
 }

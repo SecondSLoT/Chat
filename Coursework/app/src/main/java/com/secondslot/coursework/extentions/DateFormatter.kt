@@ -12,4 +12,3 @@ fun Number.getDateForChat(): String {
     val df: DateFormat = SimpleDateFormat("d MMM", Locale.getDefault())
     return df.format(time).uppercase()
 }
-
