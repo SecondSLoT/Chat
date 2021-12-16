@@ -10,19 +10,20 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.App
-import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
-import com.secondslot.coursework.databinding.FragmentChannelsListBinding
+import com.secondslot.coursework.databinding.FragmentStreamsListBinding
+import com.secondslot.coursework.di.NavigatorFactory
 import com.secondslot.coursework.features.channels.adapter.StreamsItemDecoration
 import com.secondslot.coursework.features.channels.adapter.StreamsListAdapter
 import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
-import com.secondslot.coursework.features.channels.di.StreamsListFactory
+import com.secondslot.coursework.features.channels.di.StreamsListPresenterFactory
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import com.secondslot.coursework.features.channels.presenter.StreamsListPresenter
 import com.secondslot.coursework.features.channels.ui.ChannelsState.*
-import com.secondslot.coursework.features.chat.ui.ChatFragment
+import com.secondslot.coursework.navigation.AppNavigation
 import javax.inject.Inject
 
 class StreamsListFragment :
@@ -33,11 +34,16 @@ class StreamsListFragment :
     OnTopicClickListener {
 
     @Inject
-    internal lateinit var presenterFactory: StreamsListFactory
+    internal lateinit var presenterFactory: StreamsListPresenterFactory
 
     internal lateinit var presenter: StreamsListPresenter
 
-    private var _binding: FragmentChannelsListBinding? = null
+    @Inject
+    internal lateinit var navigationFactory: NavigatorFactory
+
+    private lateinit var navigator: AppNavigation
+
+    private var _binding: FragmentStreamsListBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private val streamsListAdapter = StreamsListAdapter(this, this)
@@ -56,6 +62,7 @@ class StreamsListFragment :
         presenter = presenterFactory.create(
             arguments?.getString(CONTENT_KEY, "") ?: ""
         )
+        navigator = navigationFactory.create(requireActivity())
 
         val typedValue = TypedValue()
         requireActivity().run {
@@ -69,7 +76,7 @@ class StreamsListFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentChannelsListBinding.inflate(inflater, container, false)
+        _binding = FragmentStreamsListBinding.inflate(inflater, container, false)
         initViews()
         setListeners()
         return binding.root
@@ -84,9 +91,14 @@ class StreamsListFragment :
         }
     }
 
-    private fun setListeners() {
-        binding.includedRetryButton.retryButton.setOnClickListener {
-            presenter.retry()
+    private fun setListeners() = binding.run {
+
+        includedRetryButton.retryButton.setOnClickListener {
+            presenter.onRetryClicked()
+        }
+
+        fab.setOnClickListener {
+            presenter.onFabClicked()
         }
     }
 
@@ -176,13 +188,29 @@ class StreamsListFragment :
     }
 
     override fun onTopicClicked(topicName: String, maxMessageId: Int, streamId: Int) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(
-                R.id.container,
-                ChatFragment.newInstance(topicName, maxMessageId, streamId)
-            )
-            .addToBackStack(null)
-            .commitAllowingStateLoss()
+        presenter.onTopicClicked(topicName, maxMessageId, streamId)
+    }
+
+    override fun openChat(topicName: String, maxMessageId: Int, streamId: Int) {
+        navigator.navigateToChatFragment(topicName, maxMessageId, streamId)
+    }
+
+    override fun openCreateStreamDialog() {
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            CREATE_STREAM_REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            Log.d(TAG, "get fragment result")
+            val streamName = bundle.getString(STREAM_NAME_KEY, "")
+            val description = bundle.getString(DESCRIPTION_KEY, "")
+            presenter.onCreateNewStream(streamName, description)
+        }
+
+        navigator.navigateToCreateStreamDialog(
+            requestKey = CREATE_STREAM_REQUEST_KEY,
+            streamNameKey = STREAM_NAME_KEY,
+            descriptionKey = DESCRIPTION_KEY
+        )
     }
 
     override fun onDestroyView() {
@@ -194,6 +222,9 @@ class StreamsListFragment :
 
         private const val TAG = "StreamsListFragment"
         private const val CONTENT_KEY = "list_type"
+        private const val CREATE_STREAM_REQUEST_KEY = "create_stream_result_key"
+        private const val STREAM_NAME_KEY = "stream_name_key"
+        private const val DESCRIPTION_KEY = "description_key"
 
         fun newInstance(contentKey: String): Fragment {
             return StreamsListFragment().apply {

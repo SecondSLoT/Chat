@@ -10,10 +10,12 @@ import com.secondslot.coursework.data.db.model.entity.UserToUserEntityMapper
 import com.secondslot.coursework.data.db.model.entity.toDomainModel
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository
+import dagger.Reusable
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
+@Reusable
 class UsersRepositoryImpl @Inject constructor(
     private val database: AppDatabase,
     private val networkManager: NetworkManager

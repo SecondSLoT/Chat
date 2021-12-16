@@ -1,6 +1,6 @@
-package com.secondslot.coursework.domain.usecase
+package com.secondslot.coursework.domain.usecase.message
 
-import com.secondslot.coursework.data.api.model.SendResult
+import com.secondslot.coursework.data.api.model.ServerResult
 import com.secondslot.coursework.domain.repository.MessagesRepository
 import io.reactivex.Single
 import javax.inject.Inject
@@ -10,11 +10,11 @@ class SendMessageUseCase @Inject constructor(
 ) {
 
     fun execute(
-        type: String = "stream",
+        type: String,
         streamId: Int,
         topicName: String,
         messageText: String
-    ): Single<SendResult> {
+    ): Single<ServerResult> {
         return messagesRepository.sendMessage(type, streamId, topicName, messageText)
     }
 }

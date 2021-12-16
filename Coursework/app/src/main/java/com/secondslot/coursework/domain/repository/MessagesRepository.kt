@@ -1,6 +1,6 @@
 package com.secondslot.coursework.domain.repository
 
-import com.secondslot.coursework.data.api.model.SendResult
+import com.secondslot.coursework.data.api.model.ServerResult
 import com.secondslot.coursework.domain.model.Message
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -19,5 +19,14 @@ interface MessagesRepository {
         streamId: Int,
         topicName: String,
         messageText: String
-    ): Single<SendResult>
+    ): Single<ServerResult>
+
+    fun deleteMessage(
+        messageId: Int
+    ): Single<ServerResult>
+
+    fun editMessage(
+        messageId: Int,
+        newMessageText: String
+    ): Single<ServerResult>
 }

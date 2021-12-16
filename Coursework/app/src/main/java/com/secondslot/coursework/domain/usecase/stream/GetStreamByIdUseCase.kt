@@ -1,4 +1,4 @@
-package com.secondslot.coursework.domain.usecase
+package com.secondslot.coursework.domain.usecase.stream
 
 import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.repository.StreamsRepository

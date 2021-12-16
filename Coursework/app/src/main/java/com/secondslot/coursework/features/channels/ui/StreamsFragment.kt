@@ -10,7 +10,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
-import com.secondslot.coursework.databinding.FragmentChannelsBinding
+import com.secondslot.coursework.databinding.FragmentStreamsBinding
 import com.secondslot.coursework.features.channels.adapter.StreamsPagerAdapter
 import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
 import com.secondslot.coursework.features.channels.presenter.StreamsPresenter
@@ -20,7 +20,7 @@ class StreamsFragment :
     MvpFragment<StreamsView, StreamsPresenter>(),
     StreamsView {
 
-    private var _binding: FragmentChannelsBinding? = null
+    private var _binding: FragmentStreamsBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     @Inject
@@ -42,7 +42,7 @@ class StreamsFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentChannelsBinding.inflate(inflater, container, false)
+        _binding = FragmentStreamsBinding.inflate(inflater, container, false)
         setListeners()
         return binding.root
     }

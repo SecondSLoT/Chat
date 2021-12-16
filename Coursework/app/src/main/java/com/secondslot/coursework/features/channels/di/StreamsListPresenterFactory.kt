@@ -4,6 +4,6 @@ import com.secondslot.coursework.features.channels.presenter.StreamsListPresente
 import dagger.assisted.AssistedFactory
 
 @AssistedFactory
-interface StreamsListFactory {
+interface StreamsListPresenterFactory {
     fun create(viewType: String): StreamsListPresenter
 }

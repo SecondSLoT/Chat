@@ -1,6 +1,7 @@
 package com.secondslot.coursework.features.chat.ui
 
 import com.secondslot.coursework.features.chat.model.ChatItem
+import com.secondslot.coursework.features.chat.model.MessageMenuItem
 
 interface ChatView {
 
@@ -8,7 +9,13 @@ interface ChatView {
 
     fun showStreamName(streamName: String)
 
+    fun openMessageMenu(menuList: List<MessageMenuItem>)
+
+    fun closeMessageMenu()
+
     fun openReactionsSheet()
+
+    fun closeReactionsSheet()
 
     fun updateMessages(messages: List<ChatItem>, isScrollToEnd: Boolean = false)
 
@@ -18,7 +25,9 @@ interface ChatView {
 
     fun clearMessageEditText()
 
-    fun closeReactionsSheet()
+    fun openEditMessageDialog(curMessageText: String)
+
+    fun openDeleteMessageDialog()
 }
 
 

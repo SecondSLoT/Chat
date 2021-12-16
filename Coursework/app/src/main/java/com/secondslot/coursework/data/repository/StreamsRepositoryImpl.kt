@@ -3,6 +3,7 @@ package com.secondslot.coursework.data.repository
 import android.util.Log
 import com.secondslot.coursework.data.api.NetworkManager
 import com.secondslot.coursework.data.api.model.StreamTopicsRemoteToStreamMapper
+import com.secondslot.coursework.data.api.model.response.ServerResponse
 import com.secondslot.coursework.data.db.AppDatabase
 import com.secondslot.coursework.data.db.model.StreamWithTopicsDbToDomainMapper
 import com.secondslot.coursework.data.db.model.entity.StreamEntity
@@ -10,10 +11,13 @@ import com.secondslot.coursework.data.db.model.entity.TopicToTopicEntityMapper
 import com.secondslot.coursework.data.db.model.entity.toDomainModel
 import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.repository.StreamsRepository
+import dagger.Reusable
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
+@Reusable
 class StreamsRepositoryImpl @Inject constructor(
     private val database: AppDatabase,
     private val networkManager: NetworkManager
@@ -102,6 +106,13 @@ class StreamsRepositoryImpl @Inject constructor(
         return database.streamDao.getStream(streamId)
             .map { it.toDomainModel() }
             .toObservable()
+    }
+
+    override fun createOrSubscribeOnStream(
+        subscriptions: Map<String, Any>,
+        announce: Boolean
+    ): Single<ServerResponse> {
+        return networkManager.createOrSubscribeOnStream(subscriptions, announce)
     }
 
     companion object {

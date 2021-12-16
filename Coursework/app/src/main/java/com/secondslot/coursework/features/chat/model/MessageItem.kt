@@ -13,7 +13,7 @@ data class MessageItem(
     val topic: String?,
     val timestamp: Int,
     val isMeMessage: Boolean,
-    var reactions: Map<Reaction, Int>
+    var reactions: Map<String, List<Reaction>>
 ) : ChatItem
 
 object MessageToItemMapper : BaseMapper<List<Message>, List<MessageItem>> {
@@ -29,7 +29,7 @@ object MessageToItemMapper : BaseMapper<List<Message>, List<MessageItem>> {
                 topic = it.topicName,
                 timestamp = it.timestamp,
                 isMeMessage = it.isMeMessage,
-                reactions = it.reactions.groupingBy { reaction -> reaction }.eachCount()
+                reactions = it.reactions.groupBy { reaction -> reaction.emojiCode }
             )
         } ?: emptyList()
     }

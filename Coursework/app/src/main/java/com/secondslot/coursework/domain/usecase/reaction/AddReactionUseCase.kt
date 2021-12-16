@@ -1,18 +1,18 @@
-package com.secondslot.coursework.domain.usecase
+package com.secondslot.coursework.domain.usecase.reaction
 
-import com.secondslot.coursework.data.api.model.SendResult
+import com.secondslot.coursework.data.api.model.ServerResult
 import com.secondslot.coursework.domain.repository.ReactionsRepository
 import io.reactivex.Single
 import javax.inject.Inject
 
-class RemoveReactionUseCase @Inject constructor(
+class AddReactionUseCase @Inject constructor(
     private val reactionsRepository: ReactionsRepository
 ) {
 
     fun execute(
         messageId: Int,
         emojiName: String
-    ): Single<SendResult> {
-        return reactionsRepository.removeReaction(messageId, emojiName)
+    ): Single<ServerResult> {
+        return reactionsRepository.addReaction(messageId, emojiName)
     }
 }

@@ -2,8 +2,8 @@ package com.secondslot.coursework.features.profile.presenter
 
 import android.util.Log
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
-import com.secondslot.coursework.domain.usecase.GetOwnProfileUseCase
-import com.secondslot.coursework.domain.usecase.GetProfileUseCase
+import com.secondslot.coursework.domain.usecase.user.GetOwnProfileUseCase
+import com.secondslot.coursework.domain.usecase.user.GetProfileUseCase
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers

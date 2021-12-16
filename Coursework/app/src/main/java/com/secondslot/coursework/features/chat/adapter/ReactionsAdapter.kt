@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.databinding.ItemEmojiBinding
 import com.secondslot.coursework.extentions.convertEmojiCode
-import com.secondslot.coursework.features.chat.ui.ChooseReactionListener
+import com.secondslot.coursework.features.chat.listener.ChooseReactionListener
 
 class ReactionsAdapter(
     private val reactions: List<ReactionLocal>,

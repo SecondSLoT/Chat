@@ -32,6 +32,7 @@
         android:layout_marginEnd="@dimen/message_margin_end"
         android:layout_marginBottom="6dp"
         android:paddingTop="4dp"
+        android:paddingBottom="6dp"
         android:paddingHorizontal="12dp"
         tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
             tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis

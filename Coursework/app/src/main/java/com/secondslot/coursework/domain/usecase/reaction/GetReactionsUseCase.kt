@@ -1,4 +1,4 @@
-package com.secondslot.coursework.domain.usecase
+package com.secondslot.coursework.domain.usecase.reaction
 
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.domain.repository.ReactionsRepository

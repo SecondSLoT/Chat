@@ -2,7 +2,7 @@ package com.secondslot.coursework.features.people.presenter
 
 import android.util.Log
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
-import com.secondslot.coursework.domain.usecase.GetAllUsersUseCase
+import com.secondslot.coursework.domain.usecase.user.GetAllUsersUseCase
 import com.secondslot.coursework.features.people.ui.UsersView
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy

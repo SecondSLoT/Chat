@@ -1,4 +1,4 @@
-package com.secondslot.coursework.domain.usecase
+package com.secondslot.coursework.domain.usecase.user
 
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.domain.repository.UsersRepository

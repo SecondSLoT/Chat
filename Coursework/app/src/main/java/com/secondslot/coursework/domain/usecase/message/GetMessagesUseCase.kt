@@ -1,4 +1,4 @@
-package com.secondslot.coursework.domain.usecase
+package com.secondslot.coursework.domain.usecase.message
 
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.repository.MessagesRepository
@@ -10,9 +10,9 @@ class GetMessagesUseCase @Inject constructor(
 ) {
 
     fun execute(
-        anchor: String = "newest",
-        numBefore: String = "0",
-        numAfter: String = "0",
+        anchor: String,
+        numBefore: String,
+        numAfter: String,
         narrow: Map<String, Any>
     ): Observable<List<Message>> {
         return messagesRepository.getMessages(anchor, numBefore, numAfter, narrow)

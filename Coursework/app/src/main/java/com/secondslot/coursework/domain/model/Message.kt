@@ -5,7 +5,7 @@ data class Message(
     val senderId: Int,
     val senderFullName: String?,
     val avatarUrl: String?,
-    val content: String,
+    var content: String,
     val topicName: String?,
     val timestamp: Int,
     val isMeMessage: Boolean,

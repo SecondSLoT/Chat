@@ -34,25 +34,42 @@ interface ZulipApiService {
         @Query("narrow") narrow: String
     ): Observable<MessagesResponse>
 
+    @POST("users/me/subscriptions")
+    fun createOrSubscribeOnStream(
+        @Query("subscriptions") subscriptions: String,
+        @Query("announce") announce: Boolean
+    ): Single<ServerResponse>
+
     @POST("messages")
     fun sendMessage(
         @Query("type") type: String,
         @Query("to") streamId: Int,
         @Query("topic") topicName: String,
         @Query("content") messageText: String
-    ): Single<SendResponse>
+    ): Single<ServerResponse>
 
     @POST("messages/{message_id}/reactions")
     fun addReaction(
         @Path("message_id") messageId: Int,
         @Query("emoji_name") emojiName: String
-    ): Single<SendResponse>
+    ): Single<ServerResponse>
 
     @DELETE("messages/{message_id}/reactions")
     fun removeReaction(
         @Path("message_id") messageId: Int,
         @Query("emoji_name") emojiName: String
-    ): Single<SendResponse>
+    ): Single<ServerResponse>
+
+    @DELETE("messages/{message_id}")
+    fun deleteMessage(
+        @Path("message_id") messageId: Int
+    ) : Single<ServerResponse>
+
+    @PATCH("messages/{message_id}")
+    fun editMessage(
+        @Path("message_id") messageId: Int,
+        @Query("content") newMessageText: String
+    ) : Single<ServerResponse>
 
     companion object {
         const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com/api/v1/"

@@ -1,4 +1,4 @@
-package com.secondslot.coursework.features.chat.ui
+package com.secondslot.coursework.features.chat.listener
 
 import com.secondslot.coursework.features.chat.model.MessageItem
 

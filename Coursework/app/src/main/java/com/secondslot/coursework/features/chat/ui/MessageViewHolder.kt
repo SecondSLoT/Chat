@@ -10,6 +10,8 @@ import com.secondslot.coursework.R
 import com.secondslot.coursework.customview.CustomFlexBoxLayout
 import com.secondslot.coursework.customview.CustomReactionView
 import com.secondslot.coursework.databinding.ItemMessageBinding
+import com.secondslot.coursework.extentions.fromHtml
+import com.secondslot.coursework.features.chat.listener.MessageInteractionListener
 import com.secondslot.coursework.features.chat.model.MessageItem
 
 class MessageViewHolder(
@@ -40,11 +42,7 @@ class MessageViewHolder(
         binding.messageViewGroup.run {
             message.avatarUrl?.let { setUserPhoto(it) }
             message.senderFullName?.let { setUsername(it) }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                setMessageText(Html.fromHtml(message.content, FROM_HTML_MODE_COMPACT).toString())
-            } else {
-                setMessageText(Html.fromHtml(message.content).toString())
-            }
+            setMessageText(message.content.fromHtml())
         }
 
         val customFlexBoxLayout =
@@ -59,16 +57,16 @@ class MessageViewHolder(
             for (reaction in message.reactions) {
                 val reactionView = CustomReactionView(itemView.context)
                 reactionView.run {
-                    emoji = reaction.key.emojiCode
-                    counter = reaction.value
-                    isSelected = reaction.key.userId == myId
+                    emoji = reaction.key
+                    counter = reaction.value.size
+                    isSelected = reaction.value.find { it.userId == myId} != null
 
                     setOnClickListener {
                         it as CustomReactionView
                         if (it.isSelected) {
-                            listener.removeReaction(message.id, reaction.key.emojiName)
+                            listener.removeReaction(message.id, reaction.value[0].emojiName)
                         } else {
-                            listener.addReaction(message.id, reaction.key.emojiName)
+                            listener.addReaction(message.id, reaction.value[0].emojiName)
                         }
                     }
                 }

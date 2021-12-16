@@ -12,4 +12,6 @@
 
     <dimen name="placeholder_item_channel_margin_bottom">2dp</dimen>
     <dimen name="placeholder_item_user_margin_bottom">16dp</dimen>
+
+    <dimen name="edge_margin">16dp</dimen>
 </resources>

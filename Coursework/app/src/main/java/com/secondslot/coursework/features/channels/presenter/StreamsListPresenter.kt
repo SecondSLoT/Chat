@@ -3,8 +3,9 @@ package com.secondslot.coursework.features.channels.presenter
 import android.util.Log
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
 import com.secondslot.coursework.domain.model.Stream
-import com.secondslot.coursework.domain.usecase.GetAllStreamsUseCase
-import com.secondslot.coursework.domain.usecase.GetSubscribedStreamsUseCase
+import com.secondslot.coursework.domain.usecase.stream.CreateOrSubscribeOnStreamUseCase
+import com.secondslot.coursework.domain.usecase.stream.GetAllStreamsUseCase
+import com.secondslot.coursework.domain.usecase.stream.GetSubscribedStreamsUseCase
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import com.secondslot.coursework.features.channels.ui.StreamsListView
 import dagger.assisted.Assisted
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit
 class StreamsListPresenter @AssistedInject constructor(
     private val getSubscribedStreamsUseCase: GetSubscribedStreamsUseCase,
     private val getAllStreamsUseCase: GetAllStreamsUseCase,
+    private val createOrSubscribeOnStreamUseCase: CreateOrSubscribeOnStreamUseCase,
     @Assisted private val viewType: String
 ) : RxPresenter<StreamsListView>() {
 
@@ -93,9 +95,36 @@ class StreamsListPresenter @AssistedInject constructor(
         searchSubject.onNext(searchQuery)
     }
 
-    fun retry() {
+    fun onRetryClicked() {
         loadStreams()
         subscribeOnSearchChanges()
+    }
+
+    fun onTopicClicked(topicName: String, maxMessageId: Int, streamId: Int) {
+        view?.openChat(topicName, maxMessageId, streamId)
+    }
+
+    fun onFabClicked() {
+        view?.openCreateStreamDialog()
+    }
+
+    fun onCreateNewStream(streamName: String, description: String) {
+        Log.d(TAG, "Create new stream: $streamName, $description")
+        val subscriptions = mapOf<String, Any>(
+            "name" to streamName,
+            "description" to description
+        )
+        createOrSubscribeOnStreamUseCase.execute(subscriptions)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onSuccess = {
+                    Log.d(TAG, "Create stream: ${it.result}")
+                    searchStreams("")
+                },
+                onError = { Log.d(TAG, "Error: ${it.message}") }
+            )
+            .disposeOnFinish()
     }
 
     companion object {

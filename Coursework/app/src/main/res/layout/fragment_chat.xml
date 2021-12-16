@@ -61,9 +61,9 @@
             android:paddingHorizontal="20dp"
             android:textColor="@color/custom_reaction_text"
             android:textSize="20sp"
-            tools:text="Message text sldfkjdfdoasifasjfdosafijsaf lsakasdlfksajdflaskfj
-asldfkjsafl sadfkjao sadfas sadfef asdfsadf safdoisaf haslfasho;aifh asofi ksjdf ;aoifj
-saf saifjsa;faij laskf sldfkjsof isafsa ofjsa safij salfksaj ;asdfkj" />
+            tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+            nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
 
         <ImageButton
             android:id="@+id/send_button"
@@ -73,6 +73,6 @@ saf saifjsa;faij laskf sldfkjsof isafsa ofjsa safij salfksaj ;asdfkj" />
             android:layout_marginStart="10dp"
             android:layout_marginEnd="@dimen/margin_screen_horizontal"
             android:background="@drawable/bg_button_send"
-            android:src="@drawable/ic_baseline_add_24"/>
+            android:src="@drawable/ic_baseline_attach_file_24"/>
     </LinearLayout>
 </LinearLayout>

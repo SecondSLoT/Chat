@@ -18,6 +18,10 @@ abstract class MessageWithReactionsDao : MessageDao, ReactionDao {
     @Query("SELECT * FROM messages WHERE topic_name = :topicName")
     abstract fun getMessagesReactions(topicName: String): Single<List<MessageReactionDb>>
 
+    @Transaction
+    @Query("SELECT * FROM messages WHERE id = :messageId")
+    abstract fun getMessageReactions(messageId: Int): Single<MessageReactionDb>
+
     private fun insertMessagesReactions(
         messages: List<MessageEntity>, reactions: List<ReactionEntity>
     ): Completable {
@@ -33,6 +37,15 @@ abstract class MessageWithReactionsDao : MessageDao, ReactionDao {
     private fun deleteMessagesReactions(topicName: String): Completable {
         return deleteMessages(topicName)
         // Reactions will be deleted automatically because they have "message_id" as a foreign key
+    }
+
+    fun deleteMessageReactions(messageId: Int): Completable {
+        return deleteMessage(messageId)
+        // Reactions will be deleted automatically because they have "message_id" as a foreign key
+    }
+
+    fun editMessageReactions(messageId: Int, newMessageText: String): Completable {
+        return editMessage(messageId, newMessageText)
     }
 
     fun updateMessagesReactions(

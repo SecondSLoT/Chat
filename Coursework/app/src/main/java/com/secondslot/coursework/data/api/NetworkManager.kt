@@ -4,7 +4,7 @@ import com.secondslot.coursework.data.api.model.MessageRemote
 import com.secondslot.coursework.data.api.model.StreamRemote
 import com.secondslot.coursework.data.api.model.StreamWithTopicsRemote
 import com.secondslot.coursework.data.api.model.UserRemote
-import com.secondslot.coursework.data.api.model.response.SendResponse
+import com.secondslot.coursework.data.api.model.response.ServerResponse
 import io.reactivex.Observable
 import io.reactivex.Single
 import javax.inject.Inject
@@ -86,16 +86,28 @@ class NetworkManager @Inject constructor(
             append("]")
         }
 
-//        val moshi = Moshi.Builder().build()
-//        val type: Type = Types.newParameterizedType(
-//            List::class.java,
-//            NarrowDto::class.java
-//        )
-//
-//        val adapter: JsonAdapter<List<NarrowDto>> = moshi.adapter(type)
-//
-//        val result = adapter.toJson(parameters)
-//        Log.d(TAG, "Narrow = $result")
+        return result.toString()
+    }
+
+    fun createOrSubscribeOnStream(
+        subscriptions: Map<String, Any>,
+        announce: Boolean
+    ): Single<ServerResponse> {
+        val subscriptionsValue = generateSubscriptionsValue(subscriptions)
+        return apiService.createOrSubscribeOnStream(subscriptionsValue, announce)
+    }
+
+    private fun generateSubscriptionsValue(parameters: Map<String, Any>): String {
+        val result = StringBuilder("[{")
+
+        parameters.forEach {
+            result.append("\"${it.key}\": \"${it.value}\", ")
+        }
+
+        result.run {
+            delete(result.length - 2, result.length)
+            append("}]")
+        }
 
         return result.toString()
     }
@@ -105,30 +117,38 @@ class NetworkManager @Inject constructor(
         streamId: Int,
         topicName: String,
         messageText: String
-    ): Single<SendResponse> {
+    ): Single<ServerResponse> {
         return apiService.sendMessage(type, streamId, topicName, messageText)
     }
 
     fun addReaction(
         messageId: Int,
         emojiName: String
-    ): Single<SendResponse> {
+    ): Single<ServerResponse> {
         return apiService.addReaction(messageId, emojiName)
     }
 
     fun removeReaction(
         messageId: Int,
         emojiName: String
-    ): Single<SendResponse> {
+    ): Single<ServerResponse> {
         return apiService.removeReaction(messageId, emojiName)
+    }
+
+    fun deleteMessage(
+        messageId: Int
+    ): Single<ServerResponse> {
+        return apiService.deleteMessage(messageId)
+    }
+
+    fun editMessage(
+        messageId: Int,
+        newMessageText: String
+    ): Single<ServerResponse> {
+        return apiService.editMessage(messageId, newMessageText)
     }
 
     companion object {
         private const val TAG = "NetworkManager"
     }
 }
-
-    class NarrowDto(
-        val operator: String,
-        val operand: String
-    )

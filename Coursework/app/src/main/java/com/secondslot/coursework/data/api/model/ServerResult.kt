@@ -1,5 +1,5 @@
 package com.secondslot.coursework.data.api.model
 
-class SendResult(
+class ServerResult(
     val result: String
 )

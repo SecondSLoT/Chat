@@ -12,13 +12,16 @@ import com.secondslot.coursework.App
 import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentUsersBinding
+import com.secondslot.coursework.di.NavigatorFactory
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.features.people.adapter.PeopleListAdapter
 import com.secondslot.coursework.features.people.adapter.UsersItemDecoration
 import com.secondslot.coursework.features.people.di.DaggerUsersComponent
 import com.secondslot.coursework.features.people.presenter.UsersPresenter
-import com.secondslot.coursework.features.people.ui.UserState.*
-import com.secondslot.coursework.features.profile.ui.ProfileFragment
+import com.secondslot.coursework.features.people.ui.UserState.Error
+import com.secondslot.coursework.features.people.ui.UserState.Loading
+import com.secondslot.coursework.features.people.ui.UserState.Result
+import com.secondslot.coursework.navigation.AppNavigation
 import javax.inject.Inject
 
 class UsersFragment :
@@ -28,6 +31,11 @@ class UsersFragment :
 
     @Inject
     internal lateinit var presenter: UsersPresenter
+
+    @Inject
+    internal lateinit var navigationFactory: NavigatorFactory
+
+    private lateinit var navigator: AppNavigation
 
     private var _binding: FragmentUsersBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -43,6 +51,7 @@ class UsersFragment :
 
         val usersComponent = DaggerUsersComponent.factory().create(App.appComponent)
         usersComponent.inject(this)
+        navigator = navigationFactory.create(requireActivity())
     }
 
     override fun onCreateView(
@@ -127,10 +136,7 @@ class UsersFragment :
     }
 
     override fun openUser(userId: Int) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.container, ProfileFragment.newInstance(userId))
-            .addToBackStack(null)
-            .commitAllowingStateLoss()
+        navigator.navigateToProfileFragment(userId)
     }
 
     override fun onDestroyView() {

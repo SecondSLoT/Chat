@@ -19,19 +19,27 @@ import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.databinding.FragmentChatBinding
+import com.secondslot.coursework.di.NavigatorFactory
 import com.secondslot.coursework.features.chat.adapter.ChatAdapter
+import com.secondslot.coursework.features.chat.adapter.MessageMenuAdapter
 import com.secondslot.coursework.features.chat.adapter.ReactionsAdapter
 import com.secondslot.coursework.features.chat.di.ChatPresenterFactory
 import com.secondslot.coursework.features.chat.di.DaggerChatComponent
+import com.secondslot.coursework.features.chat.listener.ChooseReactionListener
+import com.secondslot.coursework.features.chat.listener.MessageInteractionListener
+import com.secondslot.coursework.features.chat.listener.MessageMenuListener
 import com.secondslot.coursework.features.chat.model.ChatItem
 import com.secondslot.coursework.features.chat.model.MessageItem
+import com.secondslot.coursework.features.chat.model.MessageMenuItem
 import com.secondslot.coursework.features.chat.presenter.ChatPresenter
+import com.secondslot.coursework.navigation.AppNavigation
 import javax.inject.Inject
 
 class ChatFragment :
     MvpFragment<ChatView, ChatPresenter>(),
     ChatView,
     MessageInteractionListener,
+    MessageMenuListener,
     ChooseReactionListener {
 
     @Inject
@@ -39,11 +47,17 @@ class ChatFragment :
 
     internal lateinit var presenter: ChatPresenter
 
+    @Inject
+    internal lateinit var navigationFactory: NavigatorFactory
+
+    private lateinit var navigator: AppNavigation
+
     private var _binding: FragmentChatBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private var chatAdapter: ChatAdapter? = null
     private var bottomSheetDialog: BottomSheetDialog? = null
+    private var bottomSheetMessageMenu: BottomSheetDialog? = null
 
     override fun getPresenter(): ChatPresenter = presenter
 
@@ -62,6 +76,7 @@ class ChatFragment :
             arguments?.getInt(STREAM_ID, 0) ?: 0,
             getTopicName()
         )
+        navigator = navigationFactory.create(requireActivity())
 
         requireActivity().window.statusBarColor =
             ContextCompat.getColor(requireContext(), R.color.username)
@@ -96,7 +111,8 @@ class ChatFragment :
         presenter.loadMessages(
             anchor = "newest",
             isLoadNew = false,
-            isScrollToEnd = true)
+            isScrollToEnd = true
+        )
     }
 
     override fun showStreamName(streamName: String) {
@@ -179,7 +195,10 @@ class ChatFragment :
     private fun setSendButtonAction(isMessageEmpty: Boolean) {
         if (isMessageEmpty) {
             binding.sendButton.setImageDrawable(
-                AppCompatResources.getDrawable(requireContext(), R.drawable.ic_baseline_add_24)
+                AppCompatResources.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_baseline_attach_file_24
+                )
             )
         } else {
             binding.sendButton.setImageDrawable(
@@ -194,18 +213,19 @@ class ChatFragment :
     override fun openReactionsSheet() {
         bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog?.run {
-            setContentView(R.layout.dialog_reactions_bottom_sheet)
+            setContentView(R.layout.dialog_bottom_sheet)
             setCancelable(false)
             setCanceledOnTouchOutside(true)
         }
 
         val reactionsRecyclerView =
-            bottomSheetDialog?.findViewById<RecyclerView>(R.id.reactions_recycler_view)
+            bottomSheetDialog?.findViewById<RecyclerView>(R.id.recycler_view)
         reactionsRecyclerView?.run {
             layoutManager = GridLayoutManager(requireContext(), 7)
             adapter = ReactionsAdapter(
                 presenter.getReactions(),
-                this@ChatFragment)
+                this@ChatFragment
+            )
             setHasFixedSize(true)
         }
         bottomSheetDialog?.show()
@@ -213,6 +233,28 @@ class ChatFragment :
 
     override fun closeReactionsSheet() {
         bottomSheetDialog?.dismiss()
+    }
+
+    override fun openMessageMenu(menuList: List<MessageMenuItem>) {
+        bottomSheetMessageMenu = BottomSheetDialog(requireContext())
+        bottomSheetMessageMenu?.run {
+            setContentView(R.layout.dialog_bottom_sheet)
+            setCancelable(false)
+            setCanceledOnTouchOutside(true)
+        }
+
+        val messageMenuRecyclerView =
+            bottomSheetMessageMenu?.findViewById<RecyclerView>(R.id.recycler_view)
+        messageMenuRecyclerView?.run {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = MessageMenuAdapter(menuList, this@ChatFragment)
+            setHasFixedSize(true)
+        }
+        bottomSheetMessageMenu?.show()
+    }
+
+    override fun closeMessageMenu() {
+        bottomSheetMessageMenu?.dismiss()
     }
 
     override fun reactionChosen(reaction: ReactionLocal) {
@@ -235,6 +277,46 @@ class ChatFragment :
         presenter.onRemoveReaction(messageId, emojiName)
     }
 
+    override fun onMessageMenuItemClick(itemId: Int) {
+        presenter.onMessageMenuItemClick(itemId)
+    }
+
+    override fun openEditMessageDialog(curMessageText: String) {
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            EDIT_MESSAGE_REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val result = bundle.getInt(RESULT_KEY, -1)
+            val newMessageText = bundle.getString(EDITED_MESSAGE_KEY, "")
+            presenter.onEditMessage(result, newMessageText)
+        }
+
+        navigator.navigateToEditMessageDialog(
+            requestKey = EDIT_MESSAGE_REQUEST_KEY,
+            messageKey = EDITED_MESSAGE_KEY,
+            oldMessageText = curMessageText,
+            resultKey = RESULT_KEY
+        )
+    }
+
+    override fun openDeleteMessageDialog() {
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            DELETE_MESSAGE_REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val result = bundle.getInt(RESULT_KEY, -1)
+            presenter.onDeleteMessage(result)
+        }
+
+        navigator.navigateToStandardAlertDialog(
+            requestKey = DELETE_MESSAGE_REQUEST_KEY,
+            title = getString(R.string.delete_message),
+            message = getString(R.string.are_you_sure),
+            positiveButtonText = getString(R.string.delete),
+            resultKey = RESULT_KEY
+        )
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -245,6 +327,11 @@ class ChatFragment :
         private const val TOPIC_NAME = "topic_name"
         private const val MAX_MESSAGE_ID = "max_message_id"
         private const val STREAM_ID = "stream_id"
+
+        private const val EDIT_MESSAGE_REQUEST_KEY = "edit_message_request_key"
+        private const val EDITED_MESSAGE_KEY = "edited_message_text"
+        private const val DELETE_MESSAGE_REQUEST_KEY = "delete_message_request_key"
+        private const val RESULT_KEY = "result_key"
 
         fun newInstance(topicName: String, maxMessageId: Int, streamId: Int): ChatFragment {
             return ChatFragment().apply {

@@ -1,14 +1,22 @@
 package com.secondslot.coursework.features.chat.presenter
 
+import android.app.Activity
 import android.util.Log
+import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
 import com.secondslot.coursework.data.local.model.ReactionLocal
+import com.secondslot.coursework.domain.interactor.MessageInteractor
 import com.secondslot.coursework.domain.model.Reaction
-import com.secondslot.coursework.domain.usecase.*
+import com.secondslot.coursework.domain.usecase.reaction.AddReactionUseCase
+import com.secondslot.coursework.domain.usecase.reaction.GetReactionsUseCase
+import com.secondslot.coursework.domain.usecase.reaction.RemoveReactionUseCase
+import com.secondslot.coursework.domain.usecase.stream.GetStreamByIdUseCase
+import com.secondslot.coursework.domain.usecase.user.GetOwnProfileUseCase
 import com.secondslot.coursework.extentions.getDateForChat
 import com.secondslot.coursework.features.chat.model.ChatItem
 import com.secondslot.coursework.features.chat.model.DateDivider
 import com.secondslot.coursework.features.chat.model.MessageItem
+import com.secondslot.coursework.features.chat.model.MessageMenuItem
 import com.secondslot.coursework.features.chat.model.MessageToItemMapper
 import com.secondslot.coursework.features.chat.ui.ChatView
 import dagger.assisted.Assisted
@@ -16,12 +24,10 @@ import dagger.assisted.AssistedInject
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
-import kotlin.collections.ArrayList
 
 class ChatPresenter @AssistedInject constructor(
+    private val messageInteractor: MessageInteractor,
     private val getStreamByIdUseCase: GetStreamByIdUseCase,
-    private val getMessagesUseCase: GetMessagesUseCase,
-    private val sendMessageUseCase: SendMessageUseCase,
     private val getOwnProfileUseCase: GetOwnProfileUseCase,
     private val addReactionUseCase: AddReactionUseCase,
     private val removeReactionUseCase: RemoveReactionUseCase,
@@ -35,6 +41,34 @@ class ChatPresenter @AssistedInject constructor(
     private var lastMessageId: Int = -1
     private var messages: List<ChatItem> = arrayListOf()
     private var chosenMessage: MessageItem? = null
+
+    private val menuList = listOf(
+        MessageMenuItem(
+            0,
+            R.string.add_reaction,
+            R.drawable.ic_baseline_mood_24
+        ),
+        MessageMenuItem(
+            1,
+            R.string.edit_message,
+            R.drawable.ic_baseline_edit_24
+        ),
+        MessageMenuItem(
+            2,
+            R.string.delete_message,
+            R.drawable.ic_baseline_delete_24
+        ),
+        MessageMenuItem(
+            3,
+            R.string.move_to_topic,
+            R.drawable.ic_baseline_multiple_stop_24
+        ),
+        MessageMenuItem(
+            4,
+            R.string.copy_to_clipboard,
+            R.drawable.ic_baseline_content_copy_24
+        )
+    )
 
     private var isLoading: Boolean = false
         set(value) {
@@ -101,7 +135,7 @@ class ChatPresenter @AssistedInject constructor(
             numAfter = MESSAGES_IN_OPPOSITE_DIRECTION
         }
 
-        getMessagesUseCase.execute(
+        messageInteractor.getMessages(
             anchor = anchor,
             numBefore = numBefore,
             numAfter = numAfter,
@@ -152,6 +186,8 @@ class ChatPresenter @AssistedInject constructor(
     )
 
     private fun updateMessages(isScrollToEnd: Boolean = false) {
+        if (messages.last() is DateDivider) (messages as ArrayList).remove(messages.last())
+
         for (i in messages.size - 1 downTo 1) {
             if (messages[i - 1] is MessageItem && messages[i] is MessageItem) {
                 if ((messages[i - 1] as MessageItem).timestamp.getDateForChat() !=
@@ -205,9 +241,9 @@ class ChatPresenter @AssistedInject constructor(
     }
 
     fun onSendMessageClicked(messageText: String) {
-        val sendMessageResultSingle = sendMessageUseCase.execute(
-            streamId = streamId ?: 0,
-            topicName = topicName ?: "",
+        val sendMessageResultSingle = messageInteractor.sendMessage(
+            streamId = streamId,
+            topicName = topicName,
             messageText = messageText
         )
         sendMessageResultSingle
@@ -237,23 +273,25 @@ class ChatPresenter @AssistedInject constructor(
 
     fun onMessageLongClick(message: MessageItem) {
         chosenMessage = message
-        view?.openReactionsSheet()
+        view?.openMessageMenu(menuList)
     }
 
     fun onAddReactionButtonClicked(message: MessageItem) {
-        onMessageLongClick(message)
+        chosenMessage = message
+        view?.openReactionsSheet()
     }
 
     fun onReactionChosen(reaction: ReactionLocal) {
+        view?.closeMessageMenu()
         view?.closeReactionsSheet()
 
         var existingReaction: Reaction? = null
-        chosenMessage?.reactions?.forEach {
+        chosenMessage?.reactions?.forEach { reactionMapEntry ->
             if (myId != -1 &&
-                it.key.emojiCode == reaction.emojiCode &&
-                it.key.userId == myId
+                reactionMapEntry.key == reaction.emojiCode &&
+                reactionMapEntry.value.find { it.userId == myId} != null
             ) {
-                existingReaction = it.key
+                existingReaction = reactionMapEntry.value[0]
                 return
             }
         }
@@ -313,7 +351,7 @@ class ChatPresenter @AssistedInject constructor(
         if (isLoading) return
         isLoading = true
 
-        getMessagesUseCase.execute(
+        messageInteractor.getMessages(
             anchor = messageId.toString(),
             narrow = getNarrow()
         )
@@ -334,12 +372,60 @@ class ChatPresenter @AssistedInject constructor(
                             updateMessages()
                         }
                     } else {
+
                         Log.d(TAG, "MessageObservable is empty")
                     }
                 },
                 onError = { view?.showError(it) },
             )
             .disposeOnFinish()
+    }
+
+    fun onMessageMenuItemClick(itemId: Int) {
+        when (itemId) {
+            0 -> view?.openReactionsSheet()
+            1 -> view?.openEditMessageDialog(chosenMessage?.content ?: "")
+            2 -> view?.openDeleteMessageDialog()
+        }
+    }
+
+    fun onEditMessage(result: Int, newMessageText: String) {
+        view?.closeMessageMenu()
+
+        if (result == Activity.RESULT_OK) {
+            chosenMessage?.id?.let { messageId ->
+                messageInteractor.editMessage(messageId, newMessageText)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeBy(
+                        onSuccess = {
+                            Log.d(TAG, "Edit message: ${it.result}")
+                            updateMessage(messageId)
+                        },
+                        onError = { Log.d(TAG, "Error edit message: ${it.message}") }
+                    )
+            }
+        }
+    }
+
+    fun onDeleteMessage(result: Int) {
+        view?.closeMessageMenu()
+
+        if (result == Activity.RESULT_OK) {
+            chosenMessage?.id?.let { messageId ->
+                messageInteractor.deleteMessage(messageId)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeBy(
+                        onSuccess = {
+                            Log.d(TAG, "Delete message: ${it.result}")
+                            (messages as ArrayList).remove(chosenMessage as ChatItem)
+                            updateMessages()
+                        },
+                        onError = { Log.d(TAG, "Error: ${it.message}") }
+                    )
+            }
+        }
     }
 
     companion object {

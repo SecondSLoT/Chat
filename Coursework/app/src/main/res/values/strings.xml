@@ -7,10 +7,13 @@
     <string name="collapse_group_content_description">Collapse group</string>
     <string name="profile_back_button_description">Back to People screen</string>
     <string name="user_status_content_description">User status</string>
+    <string name="fab_content_description">Create new stream</string>
 
     <string name="type_message_hint">Type a message…</string>
     <string name="channels_search_hint">Search…</string>
     <string name="users_search_hint">Users…</string>
+    <string name="stream_name">Stream name</string>
+    <string name="description">Description</string>
 
     <string name="log_out_button">Log out</string>
     <string name="retry_button">Retry</string>
@@ -25,6 +28,15 @@
 
     <string name="status_online">online</string>
     <string name="status_offline">offline</string>
+
+    <string name="add_reaction">Add reaction</string>
+    <string name="delete_message">Delete message</string>
+    <string name="edit_message">Edit message</string>
+    <string name="message_text">Message text</string>
+    <string name="move_to_topic">Move to topic</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="delete">Delete</string>
 
     <string name="custom_message_view_group_child_count_error">
         ChildCount expected %d, but found %d</string>

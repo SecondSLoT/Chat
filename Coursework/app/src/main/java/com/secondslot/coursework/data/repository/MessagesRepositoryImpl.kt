@@ -3,20 +3,21 @@ package com.secondslot.coursework.data.repository
 import android.util.Log
 import com.secondslot.coursework.data.api.NetworkManager
 import com.secondslot.coursework.data.api.model.MessageRemoteToMessageMapper
+import com.secondslot.coursework.data.api.model.ServerResult
+import com.secondslot.coursework.data.api.model.response.toServerResult
 import com.secondslot.coursework.data.db.AppDatabase
 import com.secondslot.coursework.data.db.model.MessageReactionDbToDomainModel
 import com.secondslot.coursework.data.db.model.entity.MessageEntity
-import com.secondslot.coursework.data.db.model.entity.ReactionEntity
 import com.secondslot.coursework.data.db.model.entity.ReactionToReactionEntityMapper
-import com.secondslot.coursework.data.api.model.SendResult
-import com.secondslot.coursework.data.api.model.response.toSendResult
 import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.repository.MessagesRepository
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class MessagesRepositoryImpl @Inject constructor(
     private val database: AppDatabase,
     private val networkManager: NetworkManager
@@ -103,9 +104,45 @@ class MessagesRepositoryImpl @Inject constructor(
         streamId: Int,
         topicName: String,
         messageText: String
-    ): Single<SendResult> {
+    ): Single<ServerResult> {
         return networkManager.sendMessage(type, streamId, topicName, messageText)
-            .map { it.toSendResult() }
+            .map { it.toServerResult() }
+    }
+
+    override fun deleteMessage(messageId: Int): Single<ServerResult> {
+        return networkManager.deleteMessage(messageId)
+            .map { it.toServerResult() }
+            .flatMap { result ->
+                database.messageWithReactionDao.deleteMessageReactions(messageId)
+                    .subscribeOn(Schedulers.io())
+                    .doOnComplete {
+                        Log.d(TAG, "Delete message from DB complete")
+                        val messageToDeleteFromCache = messagesCache.find { it.id == messageId }
+                        messageToDeleteFromCache?.let {
+                            (messagesCache as ArrayList).remove(messageToDeleteFromCache)
+                        }
+                    }
+                    .doOnError { Log.d(TAG, "Delete message from DB error") }
+                    .onErrorComplete()
+                    .andThen(Single.just(result))
+            }
+    }
+
+    override fun editMessage(messageId: Int, newMessageText: String): Single<ServerResult> {
+        return networkManager.editMessage(messageId, newMessageText)
+            .map { it.toServerResult() }
+            .flatMap { result ->
+                database.messageWithReactionDao.editMessageReactions(messageId, newMessageText)
+                    .subscribeOn(Schedulers.io())
+                    .doOnComplete {
+                        Log.d(TAG, "Edit message in DB complete")
+                        val messageToReplaceInCache = messagesCache.find { it.id == messageId }
+                        messageToReplaceInCache?.content = newMessageText
+                    }
+                    .doOnError { Log.d(TAG, "Delete message from DB error") }
+                    .onErrorComplete()
+                    .andThen(Single.just(result))
+            }
     }
 
     companion object {
