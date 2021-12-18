@@ -12,6 +12,7 @@
     <string name="type_message_hint">Type a message…</string>
     <string name="channels_search_hint">Search…</string>
     <string name="users_search_hint">Users…</string>
+    <string name="topic_hint">Topic</string>
     <string name="stream_name">Stream name</string>
     <string name="description">Description</string>
 
@@ -37,6 +38,9 @@
     <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="are_you_sure">Are you sure?</string>
     <string name="delete">Delete</string>
+
+    <string name="notify_message_moved">Message moved to %s</string>
+    <string name="notify_same_topic">Message not moved. You chose this topic</string>
 
     <string name="custom_message_view_group_child_count_error">
         ChildCount expected %d, but found %d</string>

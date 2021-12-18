@@ -7,6 +7,7 @@ import com.secondslot.coursework.R
 import com.secondslot.coursework.features.channels.ui.CreateStreamDialog
 import com.secondslot.coursework.features.chat.ui.ChatFragment
 import com.secondslot.coursework.features.chat.ui.EditMessageDialog
+import com.secondslot.coursework.features.chat.ui.MoveMessageDialog
 import com.secondslot.coursework.features.dialog.StandardAlertDialog
 import com.secondslot.coursework.features.profile.ui.ProfileFragment
 import dagger.assisted.Assisted
@@ -67,6 +68,21 @@ class Navigator @AssistedInject constructor(
             requestKey = requestKey,
             messageKey = messageKey,
             oldMessageText = oldMessageText,
+            resultKey = resultKey
+        )
+        startDialog(dialog)
+    }
+
+    override fun navigateToMoveMessageDialog(
+        requestKey: String,
+        topics: List<String>,
+        newTopicKey: String,
+        resultKey: String
+    ) {
+        val dialog = MoveMessageDialog.newInstance(
+            requestKey = requestKey,
+            topics = topics,
+            newTopicKey = newTopicKey,
             resultKey = resultKey
         )
         startDialog(dialog)

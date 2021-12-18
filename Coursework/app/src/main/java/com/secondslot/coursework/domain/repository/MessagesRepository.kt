@@ -29,4 +29,9 @@ interface MessagesRepository {
         messageId: Int,
         newMessageText: String
     ): Single<ServerResult>
+
+    fun moveMessage(
+        messageId: Int,
+        newTopic: String
+    ): Single<ServerResult>
 }

@@ -33,7 +33,6 @@ class StandardAlertDialog : DialogFragment() {
     }
 
     companion object {
-        private const val TAG = "CreateStreamDialog"
         private const val API_REQUEST_KEY = "api_request_key"
         private const val TITLE = "title"
         private const val MESSAGE = "message"

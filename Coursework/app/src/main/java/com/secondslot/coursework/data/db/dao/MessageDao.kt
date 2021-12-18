@@ -25,4 +25,7 @@ interface MessageDao {
 
     @Query("UPDATE messages SET content = :newMessageText WHERE id == :messageId")
     fun editMessage(messageId: Int, newMessageText: String): Completable
+
+    @Query("UPDATE messages SET topic_name = :newTopic WHERE id == :messageId")
+    fun moveMessage(messageId: Int, newTopic: String): Completable
 }

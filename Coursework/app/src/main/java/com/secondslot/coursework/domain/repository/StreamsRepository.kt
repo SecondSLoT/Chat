@@ -17,4 +17,6 @@ interface StreamsRepository {
         subscriptions: Map<String, Any>,
         announce: Boolean
     ): Single<ServerResponse>
+
+    fun getTopics(streamId: Int): Observable<List<Stream.Topic>>
 }

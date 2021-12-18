@@ -23,11 +23,17 @@ interface ChatView {
 
     fun showError(error: Throwable? = null)
 
+    fun notifyMessageMoved(topicName: String)
+
+    fun notifySameTopic()
+
     fun clearMessageEditText()
 
     fun openEditMessageDialog(curMessageText: String)
 
     fun openDeleteMessageDialog()
+
+    fun openMoveMessageDialog(topics: List<String>)
 }
 
 

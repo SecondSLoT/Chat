@@ -148,6 +148,13 @@ class NetworkManager @Inject constructor(
         return apiService.editMessage(messageId, newMessageText)
     }
 
+    fun moveMessage(
+        messageId: Int,
+        newTopic: String
+    ): Single<ServerResponse> {
+        return apiService.moveMessage(messageId, newTopic)
+    }
+
     companion object {
         private const val TAG = "NetworkManager"
     }

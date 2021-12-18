@@ -26,4 +26,11 @@ interface AppNavigation {
         oldMessageText: String,
         resultKey: String
     )
+
+    fun navigateToMoveMessageDialog(
+        requestKey: String,
+        topics: List<String>,
+        newTopicKey: String,
+        resultKey: String
+    )
 }

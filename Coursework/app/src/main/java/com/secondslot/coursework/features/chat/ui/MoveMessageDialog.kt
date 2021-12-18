@@ -3,35 +3,52 @@ package com.secondslot.coursework.features.chat.ui
 import android.app.Activity
 import android.app.Dialog
 import android.os.Bundle
-import android.widget.EditText
+import android.util.Log
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.secondslot.coursework.R
-import com.secondslot.coursework.extentions.fromHtml
 
-class EditMessageDialog : DialogFragment() {
+class MoveMessageDialog : DialogFragment() {
 
     private val requestKey by lazy { requireArguments().getString(API_REQUEST_KEY, "") }
-    private val messageKey by lazy { requireArguments().getString(MESSAGE_KEY, "") }
+    private val newTopicKey by lazy { requireArguments().getString(NEW_TOPIC_KEY, "") }
     private val resultKey by lazy { requireArguments().getString(RESULT_KEY, "") }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = layoutInflater.inflate(R.layout.dialog_one_edit_text, null)
-        val messageEditText = view.findViewById<EditText>(R.id.first_edit_text)
-        messageEditText.setText(
-            requireArguments().getString(OLD_MESSAGE_TEXT, "").fromHtml()
+        val topicEditText = view.findViewById<AutoCompleteTextView>(R.id.first_edit_text)
+        val topicsList = requireArguments().getStringArrayList(TOPICS) ?: emptyList()
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            topicsList
         )
 
+        Log.d(TAG, "topicsList = ${topicsList.joinToString()}")
+
+        topicEditText.run {
+            hint = getString(R.string.topic_hint)
+            threshold = 1
+            setAdapter(adapter)
+
+            onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+                this.setText(parent.getItemAtPosition(position).toString())
+            }
+        }
+
         return MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.edit_message))
+            .setTitle(getString(R.string.move_to_topic))
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val newMessageText = messageEditText.text.toString()
+                val newTopic = topicEditText.text.toString()
                 val resultBundle = bundleOf(
                     resultKey to Activity.RESULT_OK,
-                    messageKey to newMessageText
+                    newTopicKey to newTopic
                 )
                 setFragmentResult(requestKey, resultBundle)
             }
@@ -44,22 +61,23 @@ class EditMessageDialog : DialogFragment() {
     }
 
     companion object {
+        private const val TAG = "MoveMessageDialog"
         private const val API_REQUEST_KEY = "api_request_key"
-        private const val MESSAGE_KEY = "message_key"
-        private const val OLD_MESSAGE_TEXT = "old_message_text"
+        private const val TOPICS = "topics_key"
+        private const val NEW_TOPIC_KEY = "new_topic_key"
         private const val RESULT_KEY = "result_key"
 
         fun newInstance(
             requestKey: String,
-            messageKey: String,
-            oldMessageText: String,
+            topics: List<String>,
+            newTopicKey: String,
             resultKey: String
         ): DialogFragment {
-            return EditMessageDialog().apply {
+            return MoveMessageDialog().apply {
                 arguments = bundleOf(
                     API_REQUEST_KEY to requestKey,
-                    MESSAGE_KEY to messageKey,
-                    OLD_MESSAGE_TEXT to oldMessageText,
+                    TOPICS to topics,
+                    NEW_TOPIC_KEY to newTopicKey,
                     RESULT_KEY to resultKey
                 )
             }

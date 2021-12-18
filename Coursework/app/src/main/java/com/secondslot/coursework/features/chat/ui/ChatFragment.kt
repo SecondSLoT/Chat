@@ -63,6 +63,10 @@ class ChatFragment :
 
     override fun getMvpView(): ChatView = this
 
+    private fun getStreamId(): Int {
+        return arguments?.getInt(STREAM_ID, 0) ?: 0
+    }
+
     private fun getTopicName(): String {
         return arguments?.getString(TOPIC_NAME, "") ?: ""
     }
@@ -72,10 +76,7 @@ class ChatFragment :
 
         val chatComponent = DaggerChatComponent.factory().create(App.appComponent)
         chatComponent.inject(this)
-        presenter = presenterFactory.create(
-            arguments?.getInt(STREAM_ID, 0) ?: 0,
-            getTopicName()
-        )
+        presenter = presenterFactory.create(getStreamId(), getTopicName())
         navigator = navigationFactory.create(requireActivity())
 
         requireActivity().window.statusBarColor =
@@ -281,6 +282,15 @@ class ChatFragment :
         presenter.onMessageMenuItemClick(itemId)
     }
 
+    override fun notifyMessageMoved(topicName: String) {
+        val text = getString(R.string.notify_message_moved, topicName)
+        Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun notifySameTopic() {
+        Toast.makeText(requireContext(), R.string.notify_same_topic, Toast.LENGTH_SHORT).show()
+    }
+
     override fun openEditMessageDialog(curMessageText: String) {
         requireActivity().supportFragmentManager.setFragmentResultListener(
             EDIT_MESSAGE_REQUEST_KEY,
@@ -317,6 +327,24 @@ class ChatFragment :
         )
     }
 
+    override fun openMoveMessageDialog(topics: List<String>) {
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            MOVE_MESSAGE_REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val result = bundle.getInt(RESULT_KEY, -1)
+            val newTopic = bundle.getString(NEW_TOPIC_KEY, "")
+            presenter.onMoveMessage(result, newTopic)
+        }
+
+        navigator.navigateToMoveMessageDialog(
+            requestKey = MOVE_MESSAGE_REQUEST_KEY,
+            topics = topics,
+            newTopicKey = NEW_TOPIC_KEY,
+            resultKey = RESULT_KEY
+        )
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -331,6 +359,8 @@ class ChatFragment :
         private const val EDIT_MESSAGE_REQUEST_KEY = "edit_message_request_key"
         private const val EDITED_MESSAGE_KEY = "edited_message_text"
         private const val DELETE_MESSAGE_REQUEST_KEY = "delete_message_request_key"
+        private const val MOVE_MESSAGE_REQUEST_KEY = "move_message_request_key"
+        private const val NEW_TOPIC_KEY = "new_topic_key"
         private const val RESULT_KEY = "result_key"
 
         fun newInstance(topicName: String, maxMessageId: Int, streamId: Int): ChatFragment {

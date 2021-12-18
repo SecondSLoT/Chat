@@ -26,10 +26,22 @@ class TopicEntity(
 )
 
 object TopicToTopicEntityMapper : BaseMapper<List<Stream.Topic>, List<TopicEntity>> {
-
     override fun map(type: List<Stream.Topic>?): List<TopicEntity> {
         return type?.map {
             TopicEntity(
+                topicName = it.topicName,
+                maxMessageId = it.maxMessageId,
+                streamId = it.streamId,
+                isSubscribed = it.isSubscribed
+            )
+        } ?: emptyList()
+    }
+}
+
+object TopicEntityToTopicMapper : BaseMapper<List<TopicEntity>, List<Stream.Topic>> {
+    override fun map(type: List<TopicEntity>?): List<Stream.Topic> {
+        return type?.map {
+            Stream.Topic(
                 topicName = it.topicName,
                 maxMessageId = it.maxMessageId,
                 streamId = it.streamId,

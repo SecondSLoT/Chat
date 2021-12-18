@@ -6,7 +6,10 @@ import com.secondslot.coursework.R
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.domain.interactor.MessageInteractor
+import com.secondslot.coursework.domain.interactor.ReactionInteractor
+import com.secondslot.coursework.domain.interactor.StreamInteractor
 import com.secondslot.coursework.domain.model.Reaction
+import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.domain.usecase.reaction.AddReactionUseCase
 import com.secondslot.coursework.domain.usecase.reaction.GetReactionsUseCase
 import com.secondslot.coursework.domain.usecase.reaction.RemoveReactionUseCase
@@ -27,11 +30,9 @@ import io.reactivex.schedulers.Schedulers
 
 class ChatPresenter @AssistedInject constructor(
     private val messageInteractor: MessageInteractor,
-    private val getStreamByIdUseCase: GetStreamByIdUseCase,
+    private val streamInteractor: StreamInteractor,
     private val getOwnProfileUseCase: GetOwnProfileUseCase,
-    private val addReactionUseCase: AddReactionUseCase,
-    private val removeReactionUseCase: RemoveReactionUseCase,
-    private val getReactionsUseCase: GetReactionsUseCase,
+    private val reactionInteractor: ReactionInteractor,
     @Assisted private val streamId: Int,
     @Assisted private var topicName: String
 ) : RxPresenter<ChatView>() {
@@ -98,7 +99,7 @@ class ChatPresenter @AssistedInject constructor(
             )
             .disposeOnFinish()
 
-        getStreamByIdUseCase.execute(streamId)
+        streamInteractor.getStreamById(streamId)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
@@ -268,7 +269,7 @@ class ChatPresenter @AssistedInject constructor(
     }
 
     fun getReactions(): List<ReactionLocal> {
-        return getReactionsUseCase.execute()
+        return reactionInteractor.getReactions()
     }
 
     fun onMessageLongClick(message: MessageItem) {
@@ -289,7 +290,7 @@ class ChatPresenter @AssistedInject constructor(
         chosenMessage?.reactions?.forEach { reactionMapEntry ->
             if (myId != -1 &&
                 reactionMapEntry.key == reaction.emojiCode &&
-                reactionMapEntry.value.find { it.userId == myId} != null
+                reactionMapEntry.value.find { it.userId == myId } != null
             ) {
                 existingReaction = reactionMapEntry.value[0]
                 return
@@ -305,7 +306,7 @@ class ChatPresenter @AssistedInject constructor(
 
     fun onAddReaction(messageId: Int, emojiName: String) {
 
-        addReactionUseCase.execute(messageId, emojiName)
+        reactionInteractor.addReaction(messageId, emojiName)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
@@ -327,7 +328,7 @@ class ChatPresenter @AssistedInject constructor(
 
     fun onRemoveReaction(messageId: Int, emojiName: String) {
 
-        removeReactionUseCase.execute(messageId, emojiName)
+        reactionInteractor.removeReaction(messageId, emojiName)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
@@ -386,6 +387,18 @@ class ChatPresenter @AssistedInject constructor(
             0 -> view?.openReactionsSheet()
             1 -> view?.openEditMessageDialog(chosenMessage?.content ?: "")
             2 -> view?.openDeleteMessageDialog()
+            3 -> {
+                streamInteractor.getTopics(streamId)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeBy(
+                        onNext = { topics ->
+                            view?.openMoveMessageDialog(topics.map { it.topicName })
+                        },
+                        onError = { view?.showError() }
+                    )
+                    .disposeOnFinish()
+            }
         }
     }
 
@@ -424,6 +437,31 @@ class ChatPresenter @AssistedInject constructor(
                         },
                         onError = { Log.d(TAG, "Error: ${it.message}") }
                     )
+            }
+        }
+    }
+
+    fun onMoveMessage(result: Int, newTopic: String) {
+        view?.closeMessageMenu()
+
+        if (result == Activity.RESULT_OK) {
+            if (topicName != newTopic) {
+                chosenMessage?.id?.let { messageId ->
+                    messageInteractor.moveMessage(messageId, newTopic)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeBy(
+                            onSuccess = {
+                                Log.d(TAG, "Move message: ${it.result}")
+                                (messages as ArrayList).remove(chosenMessage as ChatItem)
+                                updateMessages()
+                                view?.notifyMessageMoved(newTopic)
+                            },
+                            onError = { Log.d(TAG, "Error: ${it.message}") }
+                        )
+                }
+            } else {
+                view?.notifySameTopic()
             }
         }
     }

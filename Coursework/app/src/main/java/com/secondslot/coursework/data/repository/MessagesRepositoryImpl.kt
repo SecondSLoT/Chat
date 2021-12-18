@@ -139,7 +139,29 @@ class MessagesRepositoryImpl @Inject constructor(
                         val messageToReplaceInCache = messagesCache.find { it.id == messageId }
                         messageToReplaceInCache?.content = newMessageText
                     }
-                    .doOnError { Log.d(TAG, "Delete message from DB error") }
+                    .doOnError { Log.d(TAG, "Edit message in DB error") }
+                    .onErrorComplete()
+                    .andThen(Single.just(result))
+            }
+    }
+
+
+    override fun moveMessage(messageId: Int, newTopic: String): Single<ServerResult> {
+        return networkManager.moveMessage(messageId, newTopic)
+            .map { it.toServerResult() }
+            .flatMap { result ->
+                database.messageWithReactionDao.moveMessageReactions(messageId, newTopic)
+                    .subscribeOn(Schedulers.io())
+                    .doOnComplete {
+                        Log.d(TAG, "Move message in DB complete")
+                        if (messagesCache[0].topicName != newTopic) {
+                            val messageToDeleteFromCache = messagesCache.find { it.id == messageId }
+                            messageToDeleteFromCache?.let {
+                                (messagesCache as ArrayList).remove(messageToDeleteFromCache)
+                            }
+                        }
+                    }
+                    .doOnError { Log.d(TAG, "Move message in DB error") }
                     .onErrorComplete()
                     .andThen(Single.just(result))
             }

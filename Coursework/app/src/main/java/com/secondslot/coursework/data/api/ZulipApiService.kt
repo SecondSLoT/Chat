@@ -71,6 +71,13 @@ interface ZulipApiService {
         @Query("content") newMessageText: String
     ) : Single<ServerResponse>
 
+
+    @PATCH("messages/{message_id}")
+    fun moveMessage(
+        @Path("message_id") messageId: Int,
+        @Query("topic") newTopic: String
+    ) : Single<ServerResponse>
+
     companion object {
         const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com/api/v1/"
     }

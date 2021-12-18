@@ -7,6 +7,7 @@ import com.secondslot.coursework.data.api.model.response.ServerResponse
 import com.secondslot.coursework.data.db.AppDatabase
 import com.secondslot.coursework.data.db.model.StreamWithTopicsDbToDomainMapper
 import com.secondslot.coursework.data.db.model.entity.StreamEntity
+import com.secondslot.coursework.data.db.model.entity.TopicEntityToTopicMapper
 import com.secondslot.coursework.data.db.model.entity.TopicToTopicEntityMapper
 import com.secondslot.coursework.data.db.model.entity.toDomainModel
 import com.secondslot.coursework.domain.model.Stream
@@ -113,6 +114,11 @@ class StreamsRepositoryImpl @Inject constructor(
         announce: Boolean
     ): Single<ServerResponse> {
         return networkManager.createOrSubscribeOnStream(subscriptions, announce)
+    }
+
+    override fun getTopics(streamId: Int): Observable<List<Stream.Topic>> {
+        return database.topicDao.getTopics(streamId)
+            .map { TopicEntityToTopicMapper.map(it) }
     }
 
     companion object {

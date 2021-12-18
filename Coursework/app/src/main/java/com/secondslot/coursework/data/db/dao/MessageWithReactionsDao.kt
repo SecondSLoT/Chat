@@ -48,6 +48,10 @@ abstract class MessageWithReactionsDao : MessageDao, ReactionDao {
         return editMessage(messageId, newMessageText)
     }
 
+    fun moveMessageReactions(messageId: Int, newTopic: String): Completable {
+        return moveMessage(messageId, newTopic)
+    }
+
     fun updateMessagesReactions(
         messages: List<MessageEntity>,
         reactions: List<ReactionEntity>,

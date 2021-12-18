@@ -5,6 +5,7 @@ import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.usecase.message.DeleteMessageUseCase
 import com.secondslot.coursework.domain.usecase.message.EditMessageUseCase
 import com.secondslot.coursework.domain.usecase.message.GetMessagesUseCase
+import com.secondslot.coursework.domain.usecase.message.MoveMessageUseCase
 import com.secondslot.coursework.domain.usecase.message.SendMessageUseCase
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -14,7 +15,8 @@ class MessageInteractor @Inject constructor(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val editMessageUseCase: EditMessageUseCase,
-    private val deleteMessageUseCase: DeleteMessageUseCase
+    private val deleteMessageUseCase: DeleteMessageUseCase,
+    private val moveMessageUseCase: MoveMessageUseCase
 ) {
 
     fun getMessages(
@@ -46,5 +48,12 @@ class MessageInteractor @Inject constructor(
         newMessageText: String
     ): Single<ServerResult> {
         return editMessageUseCase.execute(messageId, newMessageText)
+    }
+
+    fun moveMessage(
+        messageId: Int,
+        newTopic: String
+    ): Single<ServerResult> {
+        return moveMessageUseCase.execute(messageId, newTopic)
     }
 }
