@@ -13,8 +13,6 @@ class MessageMenuAdapter(
     private val listener: MessageMenuListener
 ) : RecyclerView.Adapter<MessageMenuAdapter.MessageMenuHolder>() {
 
-
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageMenuHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding = ItemMessageMenuBinding.inflate(layoutInflater, parent, false)

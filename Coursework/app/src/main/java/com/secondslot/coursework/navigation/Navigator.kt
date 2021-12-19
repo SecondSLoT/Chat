@@ -15,7 +15,7 @@ import dagger.assisted.AssistedInject
 
 class Navigator @AssistedInject constructor(
     @Assisted private val activity: FragmentActivity
-    ) : AppNavigation {
+) : AppNavigation {
 
     override fun navigateToProfileFragment(userId: Int) {
         startFragment(ProfileFragment.newInstance(userId))

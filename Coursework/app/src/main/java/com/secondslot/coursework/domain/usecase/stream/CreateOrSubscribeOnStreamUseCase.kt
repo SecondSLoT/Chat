@@ -15,6 +15,6 @@ class CreateOrSubscribeOnStreamUseCase @Inject constructor(
         announce: Boolean = false
     ): Single<ServerResult> {
         return streamsRepository.createOrSubscribeOnStream(subscriptions, announce)
-            .map { it.toServerResult()}
+            .map { it.toServerResult() }
     }
 }

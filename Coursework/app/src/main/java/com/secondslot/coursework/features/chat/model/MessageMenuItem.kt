@@ -6,5 +6,6 @@ import androidx.annotation.StringRes
 class MessageMenuItem(
     val id: Int,
     @StringRes val name: Int,
-    @DrawableRes val icon: Int
+    @DrawableRes val icon: Int,
+    val onlyForMessageAuthor: Boolean
 )

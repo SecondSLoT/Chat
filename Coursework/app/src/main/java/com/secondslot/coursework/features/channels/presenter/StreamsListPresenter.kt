@@ -2,10 +2,8 @@ package com.secondslot.coursework.features.channels.presenter
 
 import android.util.Log
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
+import com.secondslot.coursework.domain.interactor.StreamInteractor
 import com.secondslot.coursework.domain.model.Stream
-import com.secondslot.coursework.domain.usecase.stream.CreateOrSubscribeOnStreamUseCase
-import com.secondslot.coursework.domain.usecase.stream.GetAllStreamsUseCase
-import com.secondslot.coursework.domain.usecase.stream.GetSubscribedStreamsUseCase
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import com.secondslot.coursework.features.channels.ui.StreamsListView
 import dagger.assisted.Assisted
@@ -18,12 +16,11 @@ import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 
 class StreamsListPresenter @AssistedInject constructor(
-    private val getSubscribedStreamsUseCase: GetSubscribedStreamsUseCase,
-    private val getAllStreamsUseCase: GetAllStreamsUseCase,
-    private val createOrSubscribeOnStreamUseCase: CreateOrSubscribeOnStreamUseCase,
+    private val streamInteractor: StreamInteractor,
     @Assisted private val viewType: String
 ) : RxPresenter<StreamsListView>() {
 
+    private var streamsCache = mutableListOf<ExpandableStreamModel>()
     private val searchSubject: PublishSubject<String> = PublishSubject.create()
 
     override fun attachView(view: StreamsListView) {
@@ -41,8 +38,8 @@ class StreamsListPresenter @AssistedInject constructor(
     private fun loadStreams() {
         val streamsObservable: Observable<List<Stream>> =
             when (viewType) {
-                StreamsListView.SUBSCRIBED -> getSubscribedStreamsUseCase.execute()
-                else -> getAllStreamsUseCase.execute()
+                StreamsListView.SUBSCRIBED -> streamInteractor.getSubscribedStreams()
+                else -> streamInteractor.getAllStreams()
             }
 
         streamsObservable
@@ -50,17 +47,46 @@ class StreamsListPresenter @AssistedInject constructor(
             .map { ExpandableStreamModel.fromStream(it) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onNext = {
+                onNext = { newStreams ->
                     Log.d(TAG, "streamsObservable onNext")
-                    if (it.isNullOrEmpty()) {
+                    if (newStreams.isNullOrEmpty()) {
                         view?.setStateLoading()
                     } else {
-                        view?.setStateResult(it)
+                        val resultList = mergeStreams(streamsCache, newStreams)
+                        view?.setStateResult(resultList)
+                        streamsCache = resultList.toMutableList()
                     }
                 },
                 onError = { view?.setStateError(it) }
             )
             .disposeOnFinish()
+    }
+
+    private fun mergeStreams(
+        oldList: List<ExpandableStreamModel>,
+        newList: List<ExpandableStreamModel>
+    ): List<ExpandableStreamModel> {
+
+        (newList as ArrayList).map { newStream ->
+            val oldStream = oldList.find { it.stream.id == newStream.stream.id }
+            if (oldStream != null) newStream.isExpanded = oldStream.isExpanded
+                newStream
+        }
+            .forEach { expandableStreamModel ->
+                if (expandableStreamModel.isExpanded &&
+                    expandableStreamModel.type == ExpandableStreamModel.PARENT
+                ) {
+                    var nextPosition = newList.indexOf(expandableStreamModel)
+                    for (child in expandableStreamModel.stream.topics) {
+                        newList.add(
+                            ++nextPosition,
+                            ExpandableStreamModel(ExpandableStreamModel.CHILD, child)
+                        )
+                    }
+                }
+            }
+
+        return newList
     }
 
     private fun subscribeOnSearchChanges() {
@@ -74,18 +100,21 @@ class StreamsListPresenter @AssistedInject constructor(
             .switchMap { searchQuery ->
                 when (viewType) {
                     StreamsListView.SUBSCRIBED -> {
-                        getSubscribedStreamsUseCase.execute(searchQuery)
-                            .map { ExpandableStreamModel.fromStream(it) }
+                        streamInteractor.getSubscribedStreams(searchQuery)
                     }
                     else -> {
-                        getAllStreamsUseCase.execute(searchQuery)
-                            .map { ExpandableStreamModel.fromStream(it) }
+                        streamInteractor.getAllStreams(searchQuery)
                     }
                 }
             }
+            .map { ExpandableStreamModel.fromStream(it) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onNext = { view?.setStateResult(it) },
+                onNext = { newStreams ->
+                    val resultList = mergeStreams(streamsCache, newStreams)
+                    view?.setStateResult(resultList)
+                    streamsCache = resultList.toMutableList()
+                },
                 onError = { view?.setStateError(it) }
             )
             .disposeOnFinish()
@@ -93,6 +122,43 @@ class StreamsListPresenter @AssistedInject constructor(
 
     fun searchStreams(searchQuery: String) {
         searchSubject.onNext(searchQuery)
+    }
+
+    fun onExpandRow(position: Int) {
+        streamsCache[position].isExpanded = true
+        val row = streamsCache[position]
+        var nextPosition = position
+
+        if (row.type == ExpandableStreamModel.PARENT) {
+            for (child in row.stream.topics) {
+                streamsCache.add(
+                    ++nextPosition,
+                    ExpandableStreamModel(ExpandableStreamModel.CHILD, child)
+                )
+            }
+        }
+
+        view?.submitStreamsList(streamsCache.toList())
+    }
+
+    fun onCollapseRow(position: Int) {
+        streamsCache[position].isExpanded = false
+        val row = streamsCache[position]
+        val nextPosition = position + 1
+
+        if (row.type == ExpandableStreamModel.PARENT) {
+            outerloop@ while (true) {
+                if (nextPosition == streamsCache.size ||
+                    streamsCache[nextPosition].type == ExpandableStreamModel.PARENT
+                ) {
+                    break@outerloop
+                }
+
+                streamsCache.removeAt(nextPosition)
+            }
+
+            view?.submitStreamsList(streamsCache.toList())
+        }
     }
 
     fun onRetryClicked() {
@@ -114,7 +180,7 @@ class StreamsListPresenter @AssistedInject constructor(
             "name" to streamName,
             "description" to description
         )
-        createOrSubscribeOnStreamUseCase.execute(subscriptions)
+        streamInteractor.createOrSubscribeOnStream(subscriptions)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(

@@ -9,9 +9,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import javax.inject.Inject
 
-class NetworkManager @Inject constructor(
-    private val apiService: ZulipApiService
-    ) {
+class NetworkManager @Inject constructor(private val apiService: ZulipApiService) {
 
     fun getSubscribedStreams(): Observable<List<StreamWithTopicsRemote>> {
         return mapStreams(apiService.getSubscribedStreams()

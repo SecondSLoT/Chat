@@ -7,11 +7,11 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.databinding.ItemDateDividerBinding
 import com.secondslot.coursework.databinding.ItemMessageBinding
+import com.secondslot.coursework.features.chat.listener.MessageInteractionListener
 import com.secondslot.coursework.features.chat.model.ChatItem
 import com.secondslot.coursework.features.chat.model.DateDivider
 import com.secondslot.coursework.features.chat.model.MessageItem
 import com.secondslot.coursework.features.chat.ui.DateViewHolder
-import com.secondslot.coursework.features.chat.listener.MessageInteractionListener
 import com.secondslot.coursework.features.chat.ui.MessageViewHolder
 
 class ChatAdapter(

@@ -4,6 +4,7 @@ import android.util.Log
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
 import com.secondslot.coursework.domain.usecase.user.GetOwnProfileUseCase
 import com.secondslot.coursework.domain.usecase.user.GetProfileUseCase
+import com.secondslot.coursework.features.profile.ui.ProfileView
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers

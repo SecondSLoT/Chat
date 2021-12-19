@@ -14,6 +14,8 @@ interface StreamsListView {
 
     fun openCreateStreamDialog()
 
+    fun submitStreamsList(expandableStreamModel: List<ExpandableStreamModel>)
+
     companion object {
         const val SUBSCRIBED = "subscribed"
         const val ALL_STREAMS = "all_streams"

@@ -4,34 +4,30 @@ import com.secondslot.coursework.domain.model.Stream
 
 class ExpandableStreamModel {
 
-    lateinit var stream: Stream
+    var stream: Stream
     var type: Int
     lateinit var topic: Stream.Topic
     var isExpanded: Boolean
-    private var isCloseShown: Boolean
 
     constructor(
         type: Int,
-        channelGroup: Stream,
-        isExpanded: Boolean = false,
-        isCloseShown: Boolean = false
+        stream: Stream,
+        isExpanded: Boolean = false
     ) {
         this.type = type
-        this.stream = channelGroup
+        this.stream = stream
         this.isExpanded = isExpanded
-        this.isCloseShown = isCloseShown
     }
 
     constructor(
         type: Int,
-        stream: Stream.Topic,
-        isExpanded: Boolean = false,
-        isCloseShown: Boolean = false
+        topic: Stream.Topic,
+        isExpanded: Boolean = false
     ) {
+        this.stream = Stream(-1, "stub", "stub", emptyList())
         this.type = type
-        this.topic = stream
+        this.topic = topic
         this.isExpanded = isExpanded
-        this.isCloseShown = isCloseShown
     }
 
     companion object {
@@ -42,7 +38,7 @@ class ExpandableStreamModel {
             streams.map {
                 ExpandableStreamModel(
                     type = PARENT,
-                    channelGroup = it
+                    stream = it
                 )
             }
     }

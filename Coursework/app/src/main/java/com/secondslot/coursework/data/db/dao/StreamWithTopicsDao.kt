@@ -19,13 +19,14 @@ abstract class StreamWithTopicsDao : StreamDao, TopicDao {
     abstract fun getStreamsTopics(isSubscribed: Boolean): Single<List<StreamWithTopicsDb>>
 
     private fun insertStreamsTopics(
-        streams: List<StreamEntity>, topics: List<TopicEntity>
+        streams: List<StreamEntity>,
+        topics: List<TopicEntity>
     ): Completable {
 
         return insertStreams(streams).subscribeOn(Schedulers.io())
-                .doOnError { Log.d(TAG, "insertStreams error") }
-                .doOnComplete { Log.d(TAG, "insertStreams complete") }
-                .andThen(insertTopics(topics).subscribeOn(Schedulers.io()))
+            .doOnError { Log.d(TAG, "insertStreams error") }
+            .doOnComplete { Log.d(TAG, "insertStreams complete") }
+            .andThen(insertTopics(topics).subscribeOn(Schedulers.io()))
     }
 
     private fun deleteStreamsTopics(isSubscribed: Boolean): Completable {

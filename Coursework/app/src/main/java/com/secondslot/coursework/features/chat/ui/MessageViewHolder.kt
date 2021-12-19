@@ -1,8 +1,5 @@
 package com.secondslot.coursework.features.chat.ui
 
-import android.os.Build
-import android.text.Html
-import android.text.Html.FROM_HTML_MODE_COMPACT
 import android.widget.ImageButton
 import androidx.core.view.isGone
 import androidx.recyclerview.widget.RecyclerView
@@ -36,7 +33,6 @@ class MessageViewHolder(
         }
     }
 
-
     fun bind(message: MessageItem, myId: Int) {
         item = message
         binding.messageViewGroup.run {
@@ -59,7 +55,7 @@ class MessageViewHolder(
                 reactionView.run {
                     emoji = reaction.key
                     counter = reaction.value.size
-                    isSelected = reaction.value.find { it.userId == myId} != null
+                    isSelected = reaction.value.find { it.userId == myId } != null
 
                     setOnClickListener {
                         it as CustomReactionView

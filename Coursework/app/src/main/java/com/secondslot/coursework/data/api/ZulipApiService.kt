@@ -1,10 +1,21 @@
 package com.secondslot.coursework.data.api
 
 import com.secondslot.coursework.data.api.model.UserRemote
-import com.secondslot.coursework.data.api.model.response.*
+import com.secondslot.coursework.data.api.model.response.AllStreamsResponse
+import com.secondslot.coursework.data.api.model.response.AllUsersResponse
+import com.secondslot.coursework.data.api.model.response.MessagesResponse
+import com.secondslot.coursework.data.api.model.response.ServerResponse
+import com.secondslot.coursework.data.api.model.response.SubscriptionsResponse
+import com.secondslot.coursework.data.api.model.response.TopicsResponse
+import com.secondslot.coursework.data.api.model.response.UserResponse
 import io.reactivex.Observable
 import io.reactivex.Single
-import retrofit2.http.*
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.PATCH
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ZulipApiService {
 
@@ -63,20 +74,19 @@ interface ZulipApiService {
     @DELETE("messages/{message_id}")
     fun deleteMessage(
         @Path("message_id") messageId: Int
-    ) : Single<ServerResponse>
+    ): Single<ServerResponse>
 
     @PATCH("messages/{message_id}")
     fun editMessage(
         @Path("message_id") messageId: Int,
         @Query("content") newMessageText: String
-    ) : Single<ServerResponse>
-
+    ): Single<ServerResponse>
 
     @PATCH("messages/{message_id}")
     fun moveMessage(
         @Path("message_id") messageId: Int,
         @Query("topic") newTopic: String
-    ) : Single<ServerResponse>
+    ): Single<ServerResponse>
 
     companion object {
         const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com/api/v1/"

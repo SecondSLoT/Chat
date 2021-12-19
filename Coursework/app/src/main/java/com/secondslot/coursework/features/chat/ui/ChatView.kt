@@ -27,6 +27,8 @@ interface ChatView {
 
     fun notifySameTopic()
 
+    fun notifyCopiedToClipboard()
+
     fun clearMessageEditText()
 
     fun openEditMessageDialog(curMessageText: String)
@@ -35,5 +37,3 @@ interface ChatView {
 
     fun openMoveMessageDialog(topics: List<String>)
 }
-
-

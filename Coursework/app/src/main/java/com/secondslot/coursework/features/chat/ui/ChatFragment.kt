@@ -117,7 +117,7 @@ class ChatFragment :
     }
 
     override fun showStreamName(streamName: String) {
-        binding.toolbar.title = "#${streamName}"
+        binding.toolbar.title = "#$streamName"
     }
 
     private fun setListeners() {
@@ -289,6 +289,11 @@ class ChatFragment :
 
     override fun notifySameTopic() {
         Toast.makeText(requireContext(), R.string.notify_same_topic, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun notifyCopiedToClipboard() {
+        Toast.makeText(requireContext(), R.string.notify_copied_to_clipboard, Toast.LENGTH_SHORT)
+            .show()
     }
 
     override fun openEditMessageDialog(curMessageText: String) {

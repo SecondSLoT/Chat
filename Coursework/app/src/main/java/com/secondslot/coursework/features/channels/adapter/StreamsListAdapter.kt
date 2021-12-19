@@ -46,9 +46,16 @@ class StreamsListAdapter(
                 val groupTitle = "#${row.stream.streamName}"
                 (holder as StreamViewHolder).groupTitle.text = groupTitle
 
-                // Set initial holder state to get rid of dirty holders because of reusing
-                holder.collapseArrow.visibility = View.GONE
-                holder.expandArrow.visibility = View.VISIBLE
+                when (row.isExpanded) {
+                    true -> {
+                        holder.expandArrow.visibility = View.GONE
+                        holder.collapseArrow.visibility = View.VISIBLE
+                    }
+                    false -> {
+                        holder.expandArrow.visibility = View.VISIBLE
+                        holder.collapseArrow.visibility = View.GONE
+                    }
+                }
 
                 holder.expandArrow.setOnClickListener {
                     row.isExpanded = true
@@ -84,10 +91,8 @@ class StreamsListAdapter(
 
     override fun getItemViewType(position: Int): Int = getItem(position).type
 
-
     class StreamViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
-
         internal var groupTitle: TextView = itemView.findViewById(R.id.title_text_view)
         internal var expandArrow: ImageView = itemView.findViewById(R.id.expand_arrow)
         internal var collapseArrow: ImageView = itemView.findViewById(R.id.collapse_arrow)

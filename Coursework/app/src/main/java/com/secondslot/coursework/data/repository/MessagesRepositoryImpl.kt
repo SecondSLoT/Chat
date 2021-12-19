@@ -145,7 +145,6 @@ class MessagesRepositoryImpl @Inject constructor(
             }
     }
 
-
     override fun moveMessage(messageId: Int, newTopic: String): Single<ServerResult> {
         return networkManager.moveMessage(messageId, newTopic)
             .map { it.toServerResult() }

@@ -14,7 +14,7 @@ fun ImageView.loadRoundImage(
 }
 
 fun ImageView.loadImage(
-    imageUri: String,
+    imageUri: String
 ) {
 
     Glide.with(context)

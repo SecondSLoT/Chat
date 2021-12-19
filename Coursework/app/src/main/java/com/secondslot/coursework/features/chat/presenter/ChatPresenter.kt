@@ -9,12 +9,8 @@ import com.secondslot.coursework.domain.interactor.MessageInteractor
 import com.secondslot.coursework.domain.interactor.ReactionInteractor
 import com.secondslot.coursework.domain.interactor.StreamInteractor
 import com.secondslot.coursework.domain.model.Reaction
-import com.secondslot.coursework.domain.model.Stream
-import com.secondslot.coursework.domain.usecase.reaction.AddReactionUseCase
-import com.secondslot.coursework.domain.usecase.reaction.GetReactionsUseCase
-import com.secondslot.coursework.domain.usecase.reaction.RemoveReactionUseCase
-import com.secondslot.coursework.domain.usecase.stream.GetStreamByIdUseCase
 import com.secondslot.coursework.domain.usecase.user.GetOwnProfileUseCase
+import com.secondslot.coursework.extentions.fromHtml
 import com.secondslot.coursework.extentions.getDateForChat
 import com.secondslot.coursework.features.chat.model.ChatItem
 import com.secondslot.coursework.features.chat.model.DateDivider
@@ -22,6 +18,7 @@ import com.secondslot.coursework.features.chat.model.MessageItem
 import com.secondslot.coursework.features.chat.model.MessageMenuItem
 import com.secondslot.coursework.features.chat.model.MessageToItemMapper
 import com.secondslot.coursework.features.chat.ui.ChatView
+import com.secondslot.coursework.other.MyClipboardManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -33,6 +30,7 @@ class ChatPresenter @AssistedInject constructor(
     private val streamInteractor: StreamInteractor,
     private val getOwnProfileUseCase: GetOwnProfileUseCase,
     private val reactionInteractor: ReactionInteractor,
+    private val myClipboardManager: MyClipboardManager,
     @Assisted private val streamId: Int,
     @Assisted private var topicName: String
 ) : RxPresenter<ChatView>() {
@@ -47,27 +45,32 @@ class ChatPresenter @AssistedInject constructor(
         MessageMenuItem(
             0,
             R.string.add_reaction,
-            R.drawable.ic_baseline_mood_24
+            R.drawable.ic_baseline_mood_24,
+            false
         ),
         MessageMenuItem(
             1,
             R.string.edit_message,
-            R.drawable.ic_baseline_edit_24
+            R.drawable.ic_baseline_edit_24,
+            true
         ),
         MessageMenuItem(
             2,
             R.string.delete_message,
-            R.drawable.ic_baseline_delete_24
+            R.drawable.ic_baseline_delete_24,
+            true
         ),
         MessageMenuItem(
             3,
             R.string.move_to_topic,
-            R.drawable.ic_baseline_multiple_stop_24
+            R.drawable.ic_baseline_multiple_stop_24,
+            false
         ),
         MessageMenuItem(
             4,
             R.string.copy_to_clipboard,
-            R.drawable.ic_baseline_content_copy_24
+            R.drawable.ic_baseline_content_copy_24,
+            false
         )
     )
 
@@ -274,7 +277,11 @@ class ChatPresenter @AssistedInject constructor(
 
     fun onMessageLongClick(message: MessageItem) {
         chosenMessage = message
-        view?.openMessageMenu(menuList)
+        if (message.senderId == myId) {
+            view?.openMessageMenu(menuList)
+        } else {
+            view?.openMessageMenu(menuList.filter { !it.onlyForMessageAuthor })
+        }
     }
 
     fun onAddReactionButtonClicked(message: MessageItem) {
@@ -377,7 +384,7 @@ class ChatPresenter @AssistedInject constructor(
                         Log.d(TAG, "MessageObservable is empty")
                     }
                 },
-                onError = { view?.showError(it) },
+                onError = { view?.showError(it) }
             )
             .disposeOnFinish()
     }
@@ -398,6 +405,13 @@ class ChatPresenter @AssistedInject constructor(
                         onError = { view?.showError() }
                     )
                     .disposeOnFinish()
+            }
+            4 -> {
+                myClipboardManager.copyToClipboard(chosenMessage?.content?.fromHtml() ?: "")
+                view?.run {
+                    closeMessageMenu()
+                    notifyCopiedToClipboard()
+                }
             }
         }
     }

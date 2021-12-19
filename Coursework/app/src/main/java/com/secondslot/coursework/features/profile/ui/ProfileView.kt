@@ -1,4 +1,4 @@
-package com.secondslot.coursework.features.profile.presenter
+package com.secondslot.coursework.features.profile.ui
 
 import com.secondslot.coursework.domain.model.User
 

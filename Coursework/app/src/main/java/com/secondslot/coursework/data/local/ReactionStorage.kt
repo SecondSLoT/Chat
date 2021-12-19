@@ -2,7 +2,6 @@ package com.secondslot.coursework.data.local
 
 import com.secondslot.coursework.data.local.model.ReactionLocal
 
-
 object ReactionStorage {
 
     val reactions = listOf(

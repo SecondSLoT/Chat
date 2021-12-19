@@ -1,8 +1,8 @@
 package com.secondslot.coursework.data.repository
 
 import com.secondslot.coursework.data.api.NetworkManager
-import com.secondslot.coursework.data.api.model.response.toServerResult
 import com.secondslot.coursework.data.api.model.ServerResult
+import com.secondslot.coursework.data.api.model.response.toServerResult
 import com.secondslot.coursework.data.local.ReactionStorage
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.domain.repository.ReactionsRepository

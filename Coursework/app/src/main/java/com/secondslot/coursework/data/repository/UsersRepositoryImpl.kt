@@ -77,6 +77,9 @@ class UsersRepositoryImpl @Inject constructor(
         // Data from DB
         val userDbObservable = if (myId != -1) {
             database.userDao.getUser(myId)
+                .doOnError {
+                    Log.e(TAG, it.message ?: "Retrieving own profile from DB error")
+                }
                 .map { listOf(it.toDomainModel()) }
                 .toObservable()
         } else {
@@ -95,7 +98,7 @@ class UsersRepositoryImpl @Inject constructor(
 
         return Observable
             .concat(
-                userDbObservable,
+                userDbObservable.onErrorReturn { emptyList() },
                 userRemoteObservable
             )
             .filter { it.isNotEmpty() }

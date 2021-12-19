@@ -1,13 +1,7 @@
 package com.secondslot.coursework.domain.interactor
 
 import com.secondslot.coursework.data.api.model.ServerResult
-import com.secondslot.coursework.domain.model.Message
 import com.secondslot.coursework.domain.model.Stream
-import com.secondslot.coursework.domain.usecase.message.DeleteMessageUseCase
-import com.secondslot.coursework.domain.usecase.message.EditMessageUseCase
-import com.secondslot.coursework.domain.usecase.message.GetMessagesUseCase
-import com.secondslot.coursework.domain.usecase.message.MoveMessageUseCase
-import com.secondslot.coursework.domain.usecase.message.SendMessageUseCase
 import com.secondslot.coursework.domain.usecase.stream.CreateOrSubscribeOnStreamUseCase
 import com.secondslot.coursework.domain.usecase.stream.GetAllStreamsUseCase
 import com.secondslot.coursework.domain.usecase.stream.GetStreamByIdUseCase

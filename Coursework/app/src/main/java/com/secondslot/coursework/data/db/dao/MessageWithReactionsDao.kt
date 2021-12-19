@@ -23,7 +23,8 @@ abstract class MessageWithReactionsDao : MessageDao, ReactionDao {
     abstract fun getMessageReactions(messageId: Int): Single<MessageReactionDb>
 
     private fun insertMessagesReactions(
-        messages: List<MessageEntity>, reactions: List<ReactionEntity>
+        messages: List<MessageEntity>,
+        reactions: List<ReactionEntity>
     ): Completable {
 
         return Completable.concatArray(

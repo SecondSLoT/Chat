@@ -6,6 +6,7 @@ import com.secondslot.coursework.domain.repository.MessagesRepository
 import com.secondslot.coursework.domain.repository.ReactionsRepository
 import com.secondslot.coursework.domain.repository.StreamsRepository
 import com.secondslot.coursework.domain.repository.UsersRepository
+import com.secondslot.coursework.other.MyClipboardManager
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
@@ -21,6 +22,8 @@ interface AppComponent {
     fun provideStreamsRepository(): StreamsRepository
 
     fun provideUsersRepository(): UsersRepository
+
+    fun provideMyClipboardManager(): MyClipboardManager
 
     @Component.Factory
     interface Factory {

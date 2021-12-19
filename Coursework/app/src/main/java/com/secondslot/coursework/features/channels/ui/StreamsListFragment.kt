@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.setFragmentResultListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.App
 import com.secondslot.coursework.base.mvp.MvpFragment
@@ -22,7 +21,9 @@ import com.secondslot.coursework.features.channels.di.DaggerStreamsComponent
 import com.secondslot.coursework.features.channels.di.StreamsListPresenterFactory
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
 import com.secondslot.coursework.features.channels.presenter.StreamsListPresenter
-import com.secondslot.coursework.features.channels.ui.ChannelsState.*
+import com.secondslot.coursework.features.channels.ui.ChannelsState.Error
+import com.secondslot.coursework.features.channels.ui.ChannelsState.Loading
+import com.secondslot.coursework.features.channels.ui.ChannelsState.Result
 import com.secondslot.coursework.navigation.AppNavigation
 import javax.inject.Inject
 
@@ -48,7 +49,7 @@ class StreamsListFragment :
 
     private val streamsListAdapter = StreamsListAdapter(this, this)
 
-    private var streamModelList = mutableListOf<ExpandableStreamModel>()
+//    private var streamModelList = mutableListOf<ExpandableStreamModel>()
 
     override fun getPresenter(): StreamsListPresenter = presenter
 
@@ -117,9 +118,10 @@ class StreamsListFragment :
     private fun processFragmentState(state: ChannelsState) {
         when (state) {
             is Result -> {
-                streamModelList = state.items.toMutableList()
-
-                streamsListAdapter.submitList(streamModelList)
+//                streamModelList = state.items.toMutableList()
+//
+//                streamsListAdapter.submitList(streamModelList)
+                submitStreamsList(state.items)
                 binding.run {
                     shimmer.isVisible = false
                     includedRetryButton.retryButton.isVisible = false
@@ -149,38 +151,44 @@ class StreamsListFragment :
     }
 
     override fun expandRow(position: Int) {
-        val row = streamModelList[position]
-        var nextPosition = position
-
-        if (row.type == ExpandableStreamModel.PARENT) {
-            for (child in row.stream.topics) {
-                streamModelList.add(
-                    ++nextPosition,
-                    ExpandableStreamModel(ExpandableStreamModel.CHILD, child)
-                )
-            }
-        }
-
-        streamsListAdapter.submitList(streamModelList.toList())
+//        val row = streamModelList[position]
+//        var nextPosition = position
+//
+//        if (row.type == ExpandableStreamModel.PARENT) {
+//            for (child in row.stream.topics) {
+//                streamModelList.add(
+//                    ++nextPosition,
+//                    ExpandableStreamModel(ExpandableStreamModel.CHILD, child)
+//                )
+//            }
+//        }
+//
+//        streamsListAdapter.submitList(streamModelList.toList())
+        presenter.onExpandRow(position)
     }
 
     override fun collapseRow(position: Int) {
-        val row = streamModelList[position]
-        val nextPosition = position + 1
+//        val row = streamModelList[position]
+//        val nextPosition = position + 1
+//
+//        if (row.type == ExpandableStreamModel.PARENT) {
+//            outerloop@ while (true) {
+//                if (nextPosition == streamModelList.size ||
+//                    streamModelList[nextPosition].type == ExpandableStreamModel.PARENT
+//                ) {
+//                    break@outerloop
+//                }
+//
+//                streamModelList.removeAt(nextPosition)
+//            }
+//
+//            streamsListAdapter.submitList(streamModelList.toList())
+//        }
+        presenter.onCollapseRow(position)
+    }
 
-        if (row.type == ExpandableStreamModel.PARENT) {
-            outerloop@ while (true) {
-                if (nextPosition == streamModelList.size ||
-                    streamModelList[nextPosition].type == ExpandableStreamModel.PARENT
-                ) {
-                    break@outerloop
-                }
-
-                streamModelList.removeAt(nextPosition)
-            }
-
-            streamsListAdapter.submitList(streamModelList.toList())
-        }
+    override fun submitStreamsList(expandableStreamModel: List<ExpandableStreamModel>) {
+        streamsListAdapter.submitList(expandableStreamModel)
     }
 
     override fun search(searchQuery: String) {

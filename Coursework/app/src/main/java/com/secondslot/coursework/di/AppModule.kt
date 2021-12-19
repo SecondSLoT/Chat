@@ -1,10 +1,12 @@
 package com.secondslot.coursework.di
 
+import android.content.ClipboardManager
 import android.content.Context
 import androidx.room.Room
 import com.secondslot.coursework.data.api.AuthorizationInterceptor
 import com.secondslot.coursework.data.api.ZulipApiService
 import com.secondslot.coursework.data.db.AppDatabase
+import com.secondslot.coursework.other.MyClipboardManager
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -44,4 +46,12 @@ class AppModule {
         .Builder()
         .addInterceptor(authorizationInterceptor)
         .build()
+
+    @Provides
+    fun provideClipboardManager(context: Context): ClipboardManager =
+        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+    @Provides
+    fun provideMyClipboardManager(clipboard: ClipboardManager): MyClipboardManager =
+        MyClipboardManager(clipboard)
 }

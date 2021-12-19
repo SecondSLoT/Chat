@@ -14,7 +14,6 @@ import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.extentions.loadImage
 import com.secondslot.coursework.features.profile.di.DaggerProfileComponent
 import com.secondslot.coursework.features.profile.presenter.ProfilePresenter
-import com.secondslot.coursework.features.profile.presenter.ProfileView
 import com.secondslot.coursework.features.profile.ui.ProfileState.Error
 import com.secondslot.coursework.features.profile.ui.ProfileState.Loading
 import com.secondslot.coursework.features.profile.ui.ProfileState.Result
@@ -45,7 +44,8 @@ class ProfileFragment :
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
