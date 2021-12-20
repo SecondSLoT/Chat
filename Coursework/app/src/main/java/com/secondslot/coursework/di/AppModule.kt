@@ -6,6 +6,7 @@ import androidx.room.Room
 import com.secondslot.coursework.data.api.AuthorizationInterceptor
 import com.secondslot.coursework.data.api.ZulipApiService
 import com.secondslot.coursework.data.db.AppDatabase
+import com.secondslot.coursework.features.profile.presenter.ProfilePresenter
 import com.secondslot.coursework.other.MyClipboardManager
 import dagger.Module
 import dagger.Provides
@@ -13,6 +14,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Module

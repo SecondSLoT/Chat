@@ -11,7 +11,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
-import androidx.core.view.marginEnd
+import androidx.core.view.marginBottom
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.CustomMessageViewGroupBinding
 import com.secondslot.coursework.domain.model.Reaction
@@ -169,14 +169,14 @@ class CustomMessageViewGroup @JvmOverloads constructor(
             measureChildWithMargins(
                 messageTextView,
                 widthMeasureSpec,
-                messageTextView.marginEnd,
+                0,
                 heightMeasureSpec,
                 0
             )
 
-            val messageMarginLeft = (messageTextView.layoutParams as MarginLayoutParams).rightMargin
+            val messageMarginLeft = (messageTextView.layoutParams as MarginLayoutParams).leftMargin
             val messageMarginRight =
-                (messageTextView.layoutParams as MarginLayoutParams).leftMargin
+                (messageTextView.layoutParams as MarginLayoutParams).rightMargin
             val messageMarginTop = (messageTextView.layoutParams as MarginLayoutParams).topMargin
             val messageMarginBottom =
                 (messageTextView.layoutParams as MarginLayoutParams).bottomMargin
@@ -189,7 +189,7 @@ class CustomMessageViewGroup @JvmOverloads constructor(
                 measureChildWithMargins(
                     reactionsLayout,
                     widthMeasureSpec,
-                    messageTextView.marginEnd,
+                    0,
                     heightMeasureSpec,
                     totalHeight
                 )
@@ -279,10 +279,10 @@ class CustomMessageViewGroup @JvmOverloads constructor(
         } else {
             // Place messageTextView
             messageTextView.layout(
-                r - paddingRight - messageTextView.measuredWidth,
-                t + paddingTop,
-                r - paddingRight,
-                t + paddingTop + messageTextView.measuredHeight
+                paddingLeft,
+                paddingTop,
+                paddingLeft + messageTextView.measuredWidth,
+                paddingTop + messageTextView.measuredHeight
             )
 
             val messageMarginBottom =
@@ -291,16 +291,17 @@ class CustomMessageViewGroup @JvmOverloads constructor(
             if (!reactionsLayout.isGone) {
                 // Place reactionsLayout
                 reactionsLayout.layout(
-                    r - paddingRight - messageTextView.width,
+                    paddingLeft,
                     messageTextView.bottom + messageMarginBottom,
-                    r - paddingRight,
-                    messageTextView.bottom + messageMarginBottom + reactionsLayout.measuredHeight
+                    paddingLeft + reactionsLayout.measuredWidth,
+                    messageTextView.bottom + messageMarginBottom +
+                        reactionsLayout.measuredHeight + reactionsLayout.marginBottom
                 )
             }
 
-            messageBackgroundBounds.left = (r - paddingRight - messageTextView.width).toFloat()
+            messageBackgroundBounds.left = (paddingLeft).toFloat()
             messageBackgroundBounds.top = (t + paddingTop).toFloat()
-            messageBackgroundBounds.right = (r - paddingRight).toFloat()
+            messageBackgroundBounds.right = (messageTextView.right).toFloat()
             messageBackgroundBounds.bottom =
                 (t + paddingTop + messageTextView.measuredHeight).toFloat()
         }

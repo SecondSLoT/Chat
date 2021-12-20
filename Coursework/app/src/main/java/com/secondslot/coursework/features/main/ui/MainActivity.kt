@@ -1,10 +1,11 @@
-package com.secondslot.coursework.features.main
+package com.secondslot.coursework.features.main.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.secondslot.coursework.R
+import moxy.MvpAppCompatActivity
 
-class MainActivity : AppCompatActivity(R.layout.activity_main) {
+class MainActivity : MvpAppCompatActivity(R.layout.activity_main) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

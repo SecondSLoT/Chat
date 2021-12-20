@@ -23,6 +23,8 @@ interface ChatView {
 
     fun showError(error: Throwable? = null)
 
+    fun hideRetryButton()
+
     fun notifyMessageMoved(topicName: String)
 
     fun notifySameTopic()

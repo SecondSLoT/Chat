@@ -6,6 +6,8 @@ import com.secondslot.coursework.domain.repository.MessagesRepository
 import com.secondslot.coursework.domain.repository.ReactionsRepository
 import com.secondslot.coursework.domain.repository.StreamsRepository
 import com.secondslot.coursework.domain.repository.UsersRepository
+import com.secondslot.coursework.features.main.ui.MainActivity
+import com.secondslot.coursework.features.main.ui.MainFragment
 import com.secondslot.coursework.other.MyClipboardManager
 import dagger.BindsInstance
 import dagger.Component
@@ -24,6 +26,10 @@ interface AppComponent {
     fun provideUsersRepository(): UsersRepository
 
     fun provideMyClipboardManager(): MyClipboardManager
+
+    fun injectMainActivity(mainActivity: MainActivity)
+
+    fun injectMainFragment(mainFragment: MainFragment)
 
     @Component.Factory
     interface Factory {

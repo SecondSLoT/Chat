@@ -46,6 +46,10 @@ class MessagesRepositoryImpl @Inject constructor(
                     messagesCache
                 }
                 .toObservable()
+//                .doOnNext { messages ->
+//                    val ids = messages.map { it.id }
+//                    Log.d(TAG, "From DB: ${ids.joinToString()}")
+//                }
         }
 
         // Data from network
@@ -54,6 +58,10 @@ class MessagesRepositoryImpl @Inject constructor(
             .map { messageRemoteList ->
                 MessageRemoteToMessageMapper.map(messageRemoteList)
             }
+//            .doOnNext { messages ->
+//                val ids = messages.map { it.id }
+//                Log.d(TAG, "From Network: ${ids.joinToString()}")
+//            }
             // Save data from network to DB
             .flatMap { messages ->
                 messagesCache = mergeData(messagesCache, messages)
@@ -91,7 +99,7 @@ class MessagesRepositoryImpl @Inject constructor(
         val result = oldData.filterNot { it.id in newDataIds }
         // Add newData
         (result as ArrayList).addAll(newData)
-        // Sort by id (or by timestamp?)
+        // Sort by id (or better by timestamp?)
         result.sortBy { it.id }
         // Delete old items if size is greater than MAX_ITEMS_IN_DB
         if (result.size > MAX_ITEMS_IN_DB)

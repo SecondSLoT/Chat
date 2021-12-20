@@ -1,6 +1,7 @@
 package com.secondslot.coursework.features.channels.presenter
 
 import android.util.Log
+import com.secondslot.coursework.base.mvp.presenter.MoxyRxPresenter
 import com.secondslot.coursework.base.mvp.presenter.RxPresenter
 import com.secondslot.coursework.domain.interactor.StreamInteractor
 import com.secondslot.coursework.domain.model.Stream
@@ -13,26 +14,28 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
+import moxy.InjectViewState
 import java.util.concurrent.TimeUnit
 
+@InjectViewState
 class StreamsListPresenter @AssistedInject constructor(
     private val streamInteractor: StreamInteractor,
     @Assisted private val viewType: String
-) : RxPresenter<StreamsListView>() {
+) : MoxyRxPresenter<StreamsListView>() {
 
     private var streamsCache = mutableListOf<ExpandableStreamModel>()
     private val searchSubject: PublishSubject<String> = PublishSubject.create()
 
-    override fun attachView(view: StreamsListView) {
-        super.attachView(view)
-        Log.d(TAG, "$this AttachView() $view")
+    override fun onFirstViewAttach() {
+        super.onFirstViewAttach()
+        Log.d(TAG, "$this AttachView()")
         loadStreams()
         subscribeOnSearchChanges()
     }
 
-    override fun detachView(isFinishing: Boolean) {
+    override fun detachView(view: StreamsListView) {
+        super.detachView(view)
         Log.d(TAG, "DetachView()  $view")
-        super.detachView(isFinishing)
     }
 
     private fun loadStreams() {
@@ -50,14 +53,14 @@ class StreamsListPresenter @AssistedInject constructor(
                 onNext = { newStreams ->
                     Log.d(TAG, "streamsObservable onNext")
                     if (newStreams.isNullOrEmpty()) {
-                        view?.setStateLoading()
+                        viewState.setStateLoading()
                     } else {
                         val resultList = mergeStreams(streamsCache, newStreams)
-                        view?.setStateResult(resultList)
+                        viewState.setStateResult(resultList)
                         streamsCache = resultList.toMutableList()
                     }
                 },
-                onError = { view?.setStateError(it) }
+                onError = { viewState.setStateError(it) }
             )
             .disposeOnFinish()
     }
@@ -94,7 +97,7 @@ class StreamsListPresenter @AssistedInject constructor(
             .subscribeOn(Schedulers.io())
             .distinctUntilChanged()
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { view?.setStateLoading() }
+            .doOnNext { viewState.setStateLoading() }
             .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
             .observeOn(Schedulers.io())
             .switchMap { searchQuery ->
@@ -112,10 +115,10 @@ class StreamsListPresenter @AssistedInject constructor(
             .subscribeBy(
                 onNext = { newStreams ->
                     val resultList = mergeStreams(streamsCache, newStreams)
-                    view?.setStateResult(resultList)
+                    viewState.setStateResult(resultList)
                     streamsCache = resultList.toMutableList()
                 },
-                onError = { view?.setStateError(it) }
+                onError = { viewState.setStateError(it) }
             )
             .disposeOnFinish()
     }
@@ -138,7 +141,7 @@ class StreamsListPresenter @AssistedInject constructor(
             }
         }
 
-        view?.submitStreamsList(streamsCache.toList())
+        viewState.submitStreamsList(streamsCache.toList())
     }
 
     fun onCollapseRow(position: Int) {
@@ -157,7 +160,7 @@ class StreamsListPresenter @AssistedInject constructor(
                 streamsCache.removeAt(nextPosition)
             }
 
-            view?.submitStreamsList(streamsCache.toList())
+            viewState.submitStreamsList(streamsCache.toList())
         }
     }
 
@@ -167,11 +170,21 @@ class StreamsListPresenter @AssistedInject constructor(
     }
 
     fun onTopicClicked(topicName: String, maxMessageId: Int, streamId: Int) {
-        view?.openChat(topicName, maxMessageId, streamId)
+        viewState.openChat(topicName, maxMessageId, streamId)
     }
 
     fun onFabClicked() {
-        view?.openCreateStreamDialog()
+        viewState.openCreateStreamDialog()
+    }
+
+    fun onScrollUp() {
+        viewState.showFab(true)
+    }
+
+    fun onScrollDown(lastVisiblePosition: Int) {
+        if (lastVisiblePosition == streamsCache.size - 1) {
+            viewState.showFab(false)
+        }
     }
 
     fun onCreateNewStream(streamName: String, description: String) {

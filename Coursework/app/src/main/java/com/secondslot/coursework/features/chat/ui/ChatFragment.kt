@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -72,8 +74,6 @@ class ChatFragment :
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
         val chatComponent = DaggerChatComponent.factory().create(App.appComponent)
         chatComponent.inject(this)
         presenter = presenterFactory.create(getStreamId(), getTopicName())
@@ -81,6 +81,8 @@ class ChatFragment :
 
         requireActivity().window.statusBarColor =
             ContextCompat.getColor(requireContext(), R.color.username)
+
+        super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(
@@ -94,6 +96,7 @@ class ChatFragment :
     }
 
     override fun initViews(myId: Int) {
+        Log.d(TAG, "initViews() called")
         val linearLayoutManager = LinearLayoutManager(requireContext())
         linearLayoutManager.stackFromEnd = true
 
@@ -135,7 +138,9 @@ class ChatFragment :
                         (binding.recyclerView.layoutManager as LinearLayoutManager)
                             .findFirstCompletelyVisibleItemPosition()
                     )
-                } else {
+                }
+
+                if (dy > 0) {
                     presenter.onScrollDown(
                         (binding.recyclerView.layoutManager as LinearLayoutManager)
                             .findLastCompletelyVisibleItemPosition()
@@ -150,6 +155,10 @@ class ChatFragment :
             } else {
                 Log.d(TAG, "Add attachment clicked")
             }
+        }
+
+        binding.includedRetryButton.retryButton.setOnClickListener {
+            presenter.onRetryClicked()
         }
 
         binding.toolbar.setNavigationOnClickListener {
@@ -187,6 +196,8 @@ class ChatFragment :
         } else {
             Log.e(TAG, "${getString(R.string.error_message)} $error")
         }
+
+        binding.includedRetryButton.retryButton.isVisible = true
     }
 
     override fun clearMessageEditText() {
@@ -280,6 +291,10 @@ class ChatFragment :
 
     override fun onMessageMenuItemClick(itemId: Int) {
         presenter.onMessageMenuItemClick(itemId)
+    }
+
+    override fun hideRetryButton() {
+        binding.includedRetryButton.retryButton.isGone = true
     }
 
     override fun notifyMessageMoved(topicName: String) {

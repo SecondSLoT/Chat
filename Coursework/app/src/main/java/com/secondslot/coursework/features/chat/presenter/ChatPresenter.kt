@@ -125,6 +125,7 @@ class ChatPresenter @AssistedInject constructor(
         isLoadNew: Boolean,
         isScrollToEnd: Boolean
     ) {
+        Log.d(TAG, "loadMessages() called")
         if (isLoading) return
         isLoading = true
 
@@ -387,6 +388,15 @@ class ChatPresenter @AssistedInject constructor(
                 onError = { view?.showError(it) }
             )
             .disposeOnFinish()
+    }
+
+    fun onRetryClicked() {
+        view?.hideRetryButton()
+        loadMessages(
+            anchor = "newest",
+            isLoadNew = false,
+            isScrollToEnd = true
+        )
     }
 
     fun onMessageMenuItemClick(itemId: Int) {

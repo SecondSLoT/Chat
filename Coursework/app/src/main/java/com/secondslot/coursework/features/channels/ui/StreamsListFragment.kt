@@ -11,8 +11,8 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.secondslot.coursework.App
-import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentStreamsListBinding
 import com.secondslot.coursework.di.NavigatorFactory
 import com.secondslot.coursework.features.channels.adapter.StreamsItemDecoration
@@ -25,10 +25,12 @@ import com.secondslot.coursework.features.channels.ui.ChannelsState.Error
 import com.secondslot.coursework.features.channels.ui.ChannelsState.Loading
 import com.secondslot.coursework.features.channels.ui.ChannelsState.Result
 import com.secondslot.coursework.navigation.AppNavigation
+import moxy.MvpAppCompatFragment
+import moxy.ktx.moxyPresenter
 import javax.inject.Inject
 
 class StreamsListFragment :
-    MvpFragment<StreamsListView, StreamsListPresenter>(),
+    MvpAppCompatFragment(),
     StreamsListView,
     ExpandCollapseListener,
     SearchQueryListener,
@@ -37,7 +39,9 @@ class StreamsListFragment :
     @Inject
     internal lateinit var presenterFactory: StreamsListPresenterFactory
 
-    internal lateinit var presenter: StreamsListPresenter
+    private val presenter: StreamsListPresenter by moxyPresenter {
+        presenterFactory.create(arguments?.getString(CONTENT_KEY, "") ?: "")
+    }
 
     @Inject
     internal lateinit var navigationFactory: NavigatorFactory
@@ -49,20 +53,12 @@ class StreamsListFragment :
 
     private val streamsListAdapter = StreamsListAdapter(this, this)
 
-//    private var streamModelList = mutableListOf<ExpandableStreamModel>()
-
-    override fun getPresenter(): StreamsListPresenter = presenter
-
-    override fun getMvpView(): StreamsListView = this
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
         val streamsComponent = DaggerStreamsComponent.factory().create(App.appComponent)
         streamsComponent.injectStreamsListFragment(this)
-        presenter = presenterFactory.create(
-            arguments?.getString(CONTENT_KEY, "") ?: ""
-        )
+//        presenter = presenterFactory.create(
+//            arguments?.getString(CONTENT_KEY, "") ?: ""
+//        )
         navigator = navigationFactory.create(requireActivity())
 
         val typedValue = TypedValue()
@@ -70,6 +66,8 @@ class StreamsListFragment :
             theme.resolveAttribute(android.R.attr.statusBarColor, typedValue, true)
             window.statusBarColor = typedValue.data
         }
+
+        super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(
@@ -101,6 +99,22 @@ class StreamsListFragment :
         fab.setOnClickListener {
             presenter.onFabClicked()
         }
+
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy < 0) {
+                    presenter.onScrollUp()
+                }
+
+                if (dy > 0) {
+                    presenter.onScrollDown(
+                        (binding.recyclerView.layoutManager as LinearLayoutManager)
+                            .findLastCompletelyVisibleItemPosition()
+                    )
+                }
+            }
+        })
     }
 
     override fun setStateLoading() {
@@ -118,9 +132,6 @@ class StreamsListFragment :
     private fun processFragmentState(state: ChannelsState) {
         when (state) {
             is Result -> {
-//                streamModelList = state.items.toMutableList()
-//
-//                streamsListAdapter.submitList(streamModelList)
                 submitStreamsList(state.items)
                 binding.run {
                     shimmer.isVisible = false
@@ -151,39 +162,10 @@ class StreamsListFragment :
     }
 
     override fun expandRow(position: Int) {
-//        val row = streamModelList[position]
-//        var nextPosition = position
-//
-//        if (row.type == ExpandableStreamModel.PARENT) {
-//            for (child in row.stream.topics) {
-//                streamModelList.add(
-//                    ++nextPosition,
-//                    ExpandableStreamModel(ExpandableStreamModel.CHILD, child)
-//                )
-//            }
-//        }
-//
-//        streamsListAdapter.submitList(streamModelList.toList())
         presenter.onExpandRow(position)
     }
 
     override fun collapseRow(position: Int) {
-//        val row = streamModelList[position]
-//        val nextPosition = position + 1
-//
-//        if (row.type == ExpandableStreamModel.PARENT) {
-//            outerloop@ while (true) {
-//                if (nextPosition == streamModelList.size ||
-//                    streamModelList[nextPosition].type == ExpandableStreamModel.PARENT
-//                ) {
-//                    break@outerloop
-//                }
-//
-//                streamModelList.removeAt(nextPosition)
-//            }
-//
-//            streamsListAdapter.submitList(streamModelList.toList())
-//        }
         presenter.onCollapseRow(position)
     }
 
@@ -201,6 +183,10 @@ class StreamsListFragment :
 
     override fun openChat(topicName: String, maxMessageId: Int, streamId: Int) {
         navigator.navigateToChatFragment(topicName, maxMessageId, streamId)
+    }
+
+    override fun showFab(isShown: Boolean) {
+        if (isShown) binding.fab.show() else binding.fab.hide()
     }
 
     override fun openCreateStreamDialog() {
