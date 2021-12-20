@@ -1,7 +1,7 @@
 package com.secondslot.coursework.features.people.presenter
 
 import android.util.Log
-import com.secondslot.coursework.base.mvp.presenter.RxPresenter
+import com.secondslot.coursework.base.mvp.MoxyRxPresenter
 import com.secondslot.coursework.domain.usecase.user.GetAllUsersUseCase
 import com.secondslot.coursework.features.people.ui.UsersView
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -13,19 +13,24 @@ import javax.inject.Inject
 
 class UsersPresenter @Inject constructor(
     private val getAllUsersUseCase: GetAllUsersUseCase
-) : RxPresenter<UsersView>() {
+) : MoxyRxPresenter<UsersView>() {
 
     private val searchSubject: PublishSubject<String> = PublishSubject.create()
 
-    override fun attachView(view: UsersView) {
-        super.attachView(view)
-        Log.d(TAG, "attachView()")
+    override fun onFirstViewAttach() {
+        super.onFirstViewAttach()
+        Log.d(TAG, "onFirstViewAttach()")
         loadUsers()
         subscribeOnSearchChanges()
     }
 
-    override fun detachView(isFinishing: Boolean) {
-        super.detachView(isFinishing)
+    override fun attachView(view: UsersView) {
+        super.attachView(view)
+        Log.d(TAG, "attachView()")
+    }
+
+    override fun detachView(view: UsersView) {
+        super.detachView(view)
         Log.d(TAG, "detachView()")
     }
 
@@ -36,12 +41,12 @@ class UsersPresenter @Inject constructor(
             .subscribeBy(
                 onNext = {
                     if (it.isNullOrEmpty()) {
-                        view?.setStateLoading()
+                        viewState.setStateLoading()
                     } else {
-                        view?.setStateResult(it)
+                        viewState.setStateResult(it)
                     }
                 },
-                onError = { view?.setStateError(it) }
+                onError = { viewState.setStateError(it) }
             )
             .disposeOnFinish()
     }
@@ -55,16 +60,16 @@ class UsersPresenter @Inject constructor(
             .subscribeOn(Schedulers.io())
             .distinctUntilChanged()
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { view?.setStateLoading() }
+            .doOnNext { viewState.setStateLoading() }
             .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
             .observeOn(Schedulers.io())
             .switchMap { searchQuery -> getAllUsersUseCase.execute(searchQuery) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onNext = { view?.setStateResult(it) },
+                onNext = { viewState.setStateResult(it) },
                 onError = {
                     Log.d(TAG, "searchSubject error")
-                    view?.setStateError(it)
+                    viewState.setStateError(it)
                 }
             )
             .disposeOnFinish()
@@ -76,7 +81,7 @@ class UsersPresenter @Inject constructor(
     }
 
     fun onUserClicked(userId: Int) {
-        view?.openUser(userId)
+        viewState.openUser(userId)
     }
 
     companion object {

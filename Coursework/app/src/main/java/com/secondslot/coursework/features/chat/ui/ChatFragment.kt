@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
-import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.databinding.FragmentChatBinding
 import com.secondslot.coursework.di.NavigatorFactory
@@ -35,10 +34,12 @@ import com.secondslot.coursework.features.chat.model.MessageItem
 import com.secondslot.coursework.features.chat.model.MessageMenuItem
 import com.secondslot.coursework.features.chat.presenter.ChatPresenter
 import com.secondslot.coursework.navigation.AppNavigation
+import moxy.MvpAppCompatFragment
+import moxy.ktx.moxyPresenter
 import javax.inject.Inject
 
 class ChatFragment :
-    MvpFragment<ChatView, ChatPresenter>(),
+    MvpAppCompatFragment(),
     ChatView,
     MessageInteractionListener,
     MessageMenuListener,
@@ -46,8 +47,9 @@ class ChatFragment :
 
     @Inject
     internal lateinit var presenterFactory: ChatPresenterFactory
-
-    internal lateinit var presenter: ChatPresenter
+    private val presenter: ChatPresenter by moxyPresenter {
+        presenterFactory.create(getStreamId(), getTopicName())
+    }
 
     @Inject
     internal lateinit var navigationFactory: NavigatorFactory
@@ -58,12 +60,8 @@ class ChatFragment :
     private val binding get() = requireNotNull(_binding)
 
     private var chatAdapter: ChatAdapter? = null
-    private var bottomSheetDialog: BottomSheetDialog? = null
+    private var bottomSheetReactions: BottomSheetDialog? = null
     private var bottomSheetMessageMenu: BottomSheetDialog? = null
-
-    override fun getPresenter(): ChatPresenter = presenter
-
-    override fun getMvpView(): ChatView = this
 
     private fun getStreamId(): Int {
         return arguments?.getInt(STREAM_ID, 0) ?: 0
@@ -76,7 +74,6 @@ class ChatFragment :
     override fun onCreate(savedInstanceState: Bundle?) {
         val chatComponent = DaggerChatComponent.factory().create(App.appComponent)
         chatComponent.inject(this)
-        presenter = presenterFactory.create(getStreamId(), getTopicName())
         navigator = navigationFactory.create(requireActivity())
 
         requireActivity().window.statusBarColor =
@@ -112,11 +109,8 @@ class ChatFragment :
             messageEditText.requestFocus()
         }
 
-        presenter.loadMessages(
-            anchor = "newest",
-            isLoadNew = false,
-            isScrollToEnd = true
-        )
+        val isInRestoreState = presenter.isInRestoreState(this)
+        presenter.onViewsInitialized(isInRestoreState)
     }
 
     override fun showStreamName(streamName: String) {
@@ -186,18 +180,13 @@ class ChatFragment :
     }
 
     override fun showError(error: Throwable?) {
+        val errorMessage = error?.message ?: getString(R.string.error_message)
         Toast.makeText(
             requireContext(),
-            R.string.error_message,
+            errorMessage,
             Toast.LENGTH_SHORT
         ).show()
-        if (error == null) {
-            Log.e(TAG, getString(R.string.error_message))
-        } else {
-            Log.e(TAG, "${getString(R.string.error_message)} $error")
-        }
-
-        binding.includedRetryButton.retryButton.isVisible = true
+        Log.e(TAG, errorMessage)
     }
 
     override fun clearMessageEditText() {
@@ -222,51 +211,60 @@ class ChatFragment :
     private fun scrollToEnd() = binding.recyclerView.adapter?.itemCount?.minus(1)
         ?.takeIf { it > 0 }?.let(binding.recyclerView::scrollToPosition)
 
-    override fun openReactionsSheet() {
-        bottomSheetDialog = BottomSheetDialog(requireContext())
-        bottomSheetDialog?.run {
-            setContentView(R.layout.dialog_bottom_sheet)
-            setCancelable(false)
-            setCanceledOnTouchOutside(true)
-        }
+    override fun switchReactionsSheet(show: Boolean) {
+        if (show) {
+            bottomSheetReactions = BottomSheetDialog(requireContext())
+            bottomSheetReactions?.run {
+                setContentView(R.layout.dialog_bottom_sheet)
+                setCancelable(false)
+                setCanceledOnTouchOutside(true)
+            }
 
-        val reactionsRecyclerView =
-            bottomSheetDialog?.findViewById<RecyclerView>(R.id.recycler_view)
-        reactionsRecyclerView?.run {
-            layoutManager = GridLayoutManager(requireContext(), 7)
-            adapter = ReactionsAdapter(
-                presenter.getReactions(),
-                this@ChatFragment
-            )
-            setHasFixedSize(true)
+            val reactionsRecyclerView =
+                bottomSheetReactions?.findViewById<RecyclerView>(R.id.recycler_view)
+            reactionsRecyclerView?.run {
+                layoutManager = GridLayoutManager(requireContext(), 7)
+                adapter = ReactionsAdapter(
+                    presenter.getReactions(),
+                    this@ChatFragment
+                )
+                setHasFixedSize(true)
+            }
+
+            bottomSheetReactions?.setOnDismissListener {
+                presenter.onDismissBottomSheetReactions()
+            }
+            bottomSheetReactions?.show()
+        } else {
+            bottomSheetReactions?.dismiss()
         }
-        bottomSheetDialog?.show()
     }
 
-    override fun closeReactionsSheet() {
-        bottomSheetDialog?.dismiss()
-    }
+    override fun switchMessageMenu(show: Boolean, menuList: List<MessageMenuItem>) {
+        if (show) {
+            bottomSheetMessageMenu = BottomSheetDialog(requireContext())
+            bottomSheetMessageMenu?.run {
+                setContentView(R.layout.dialog_bottom_sheet)
+                setCancelable(false)
+                setCanceledOnTouchOutside(true)
+            }
 
-    override fun openMessageMenu(menuList: List<MessageMenuItem>) {
-        bottomSheetMessageMenu = BottomSheetDialog(requireContext())
-        bottomSheetMessageMenu?.run {
-            setContentView(R.layout.dialog_bottom_sheet)
-            setCancelable(false)
-            setCanceledOnTouchOutside(true)
+            val messageMenuRecyclerView =
+                bottomSheetMessageMenu?.findViewById<RecyclerView>(R.id.recycler_view)
+            messageMenuRecyclerView?.run {
+                layoutManager = LinearLayoutManager(requireContext())
+                adapter = MessageMenuAdapter(menuList, this@ChatFragment)
+                setHasFixedSize(true)
+            }
+
+            bottomSheetMessageMenu?.setOnDismissListener {
+                presenter.onDismissBottomSheetMessageMenu()
+            }
+
+            bottomSheetMessageMenu?.show()
+        } else {
+            bottomSheetMessageMenu?.dismiss()
         }
-
-        val messageMenuRecyclerView =
-            bottomSheetMessageMenu?.findViewById<RecyclerView>(R.id.recycler_view)
-        messageMenuRecyclerView?.run {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = MessageMenuAdapter(menuList, this@ChatFragment)
-            setHasFixedSize(true)
-        }
-        bottomSheetMessageMenu?.show()
-    }
-
-    override fun closeMessageMenu() {
-        bottomSheetMessageMenu?.dismiss()
     }
 
     override fun reactionChosen(reaction: ReactionLocal) {
@@ -293,8 +291,12 @@ class ChatFragment :
         presenter.onMessageMenuItemClick(itemId)
     }
 
-    override fun hideRetryButton() {
-        binding.includedRetryButton.retryButton.isGone = true
+    override fun switchRetryButton(show: Boolean) {
+        if (show) {
+            binding.includedRetryButton.retryButton.isVisible = true
+        } else {
+            binding.includedRetryButton.retryButton.isGone = true
+        }
     }
 
     override fun notifyMessageMoved(topicName: String) {
@@ -311,7 +313,7 @@ class ChatFragment :
             .show()
     }
 
-    override fun openEditMessageDialog(curMessageText: String) {
+    override fun openEditMessageDialog(show: Boolean, curMessageText: String) {
         requireActivity().supportFragmentManager.setFragmentResultListener(
             EDIT_MESSAGE_REQUEST_KEY,
             viewLifecycleOwner
@@ -368,6 +370,10 @@ class ChatFragment :
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        bottomSheetMessageMenu?.setOnDismissListener(null)
+        switchMessageMenu(false)
+        bottomSheetReactions?.setOnDismissListener(null)
+        switchReactionsSheet(false)
     }
 
     companion object {

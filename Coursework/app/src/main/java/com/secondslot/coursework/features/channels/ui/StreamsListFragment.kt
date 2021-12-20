@@ -56,9 +56,6 @@ class StreamsListFragment :
     override fun onCreate(savedInstanceState: Bundle?) {
         val streamsComponent = DaggerStreamsComponent.factory().create(App.appComponent)
         streamsComponent.injectStreamsListFragment(this)
-//        presenter = presenterFactory.create(
-//            arguments?.getString(CONTENT_KEY, "") ?: ""
-//        )
         navigator = navigationFactory.create(requireActivity())
 
         val typedValue = TypedValue()

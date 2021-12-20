@@ -20,12 +20,12 @@ import javax.inject.Provider
 
 class StreamsFragment : MvpAppCompatFragment(), StreamsView {
 
-    private var _binding: FragmentStreamsBinding? = null
-    private val binding get() = requireNotNull(_binding)
-
     @Inject
     internal lateinit var presenterProvider: Provider<StreamsPresenter>
     private val presenter: StreamsPresenter by moxyPresenter { presenterProvider.get() }
+
+    private var _binding: FragmentStreamsBinding? = null
+    private val binding get() = requireNotNull(_binding)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val streamsComponent = DaggerStreamsComponent.factory().create(App.appComponent)

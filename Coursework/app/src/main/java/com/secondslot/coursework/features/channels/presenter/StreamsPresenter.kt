@@ -1,6 +1,6 @@
 package com.secondslot.coursework.features.channels.presenter
 
-import com.secondslot.coursework.base.mvp.presenter.MoxyRxPresenter
+import com.secondslot.coursework.base.mvp.MoxyRxPresenter
 import com.secondslot.coursework.features.channels.ui.SearchQueryListener
 import com.secondslot.coursework.features.channels.ui.StreamsListFragment
 import com.secondslot.coursework.features.channels.ui.StreamsListView

@@ -10,7 +10,6 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
-import com.secondslot.coursework.base.mvp.MvpFragment
 import com.secondslot.coursework.databinding.FragmentUsersBinding
 import com.secondslot.coursework.di.NavigatorFactory
 import com.secondslot.coursework.domain.model.User
@@ -22,15 +21,19 @@ import com.secondslot.coursework.features.people.ui.UserState.Error
 import com.secondslot.coursework.features.people.ui.UserState.Loading
 import com.secondslot.coursework.features.people.ui.UserState.Result
 import com.secondslot.coursework.navigation.AppNavigation
+import moxy.MvpAppCompatFragment
+import moxy.ktx.moxyPresenter
 import javax.inject.Inject
+import javax.inject.Provider
 
 class UsersFragment :
-    MvpFragment<UsersView, UsersPresenter>(),
+    MvpAppCompatFragment(),
     UsersView,
     OnUserClickListener {
 
     @Inject
-    internal lateinit var presenter: UsersPresenter
+    internal lateinit var presenterProvider: Provider<UsersPresenter>
+    private val presenter: UsersPresenter by moxyPresenter { presenterProvider.get() }
 
     @Inject
     internal lateinit var navigationFactory: NavigatorFactory
@@ -42,16 +45,12 @@ class UsersFragment :
 
     private val usersAdapter = PeopleListAdapter(this)
 
-    override fun getPresenter(): UsersPresenter = presenter
-
-    override fun getMvpView(): UsersView = this
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
         val usersComponent = DaggerUsersComponent.factory().create(App.appComponent)
         usersComponent.inject(this)
         navigator = navigationFactory.create(requireActivity())
+
+        super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(

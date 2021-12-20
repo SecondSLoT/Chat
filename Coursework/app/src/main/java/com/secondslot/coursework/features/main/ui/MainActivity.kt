@@ -1,7 +1,6 @@
 package com.secondslot.coursework.features.main.ui
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import com.secondslot.coursework.R
 import moxy.MvpAppCompatActivity
 

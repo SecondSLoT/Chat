@@ -3,7 +3,7 @@ package com.secondslot.coursework.features.chat.presenter
 import android.app.Activity
 import android.util.Log
 import com.secondslot.coursework.R
-import com.secondslot.coursework.base.mvp.presenter.RxPresenter
+import com.secondslot.coursework.base.mvp.MoxyRxPresenter
 import com.secondslot.coursework.data.local.model.ReactionLocal
 import com.secondslot.coursework.domain.interactor.MessageInteractor
 import com.secondslot.coursework.domain.interactor.ReactionInteractor
@@ -24,7 +24,9 @@ import dagger.assisted.AssistedInject
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
+import moxy.InjectViewState
 
+@InjectViewState
 class ChatPresenter @AssistedInject constructor(
     private val messageInteractor: MessageInteractor,
     private val streamInteractor: StreamInteractor,
@@ -33,7 +35,7 @@ class ChatPresenter @AssistedInject constructor(
     private val myClipboardManager: MyClipboardManager,
     @Assisted private val streamId: Int,
     @Assisted private var topicName: String
-) : RxPresenter<ChatView>() {
+) : MoxyRxPresenter<ChatView>() {
 
     private var myId: Int = -1
     private var firstMessageId: Int = -1
@@ -80,44 +82,65 @@ class ChatPresenter @AssistedInject constructor(
             Log.d(TAG, "isLoading = $field")
         }
 
-    override fun attachView(view: ChatView) {
-        super.attachView(view)
+    override fun onFirstViewAttach() {
+        super.onFirstViewAttach()
         Log.d(TAG, "attachView()")
-
         // Get own profile for using it to view initializing
+        getOwnProfile()
+        getStreamById()
+    }
+
+    private fun getOwnProfile() {
         getOwnProfileUseCase.execute()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onNext = { user ->
-                    if (user.isNotEmpty()) {
+                    if (user.isNotEmpty() && myId == -1) {
                         myId = user[0].userId
-                        view.initViews(myId)
+                        viewState.initViews(myId)
                     }
                 },
                 onError = {
                     Log.d(TAG, "getOwnProfileUseCase.execute() error")
-                    view.showError(it)
-                }
-            )
-            .disposeOnFinish()
-
-        streamInteractor.getStreamById(streamId)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = { view.showStreamName(it.streamName) },
-                onError = {
-                    Log.d(TAG, "getStreamByIdUseCase.execute() error")
-                    view.showError(it)
+                    viewState.showError(it)
+                    viewState.switchRetryButton(true)
                 }
             )
             .disposeOnFinish()
     }
 
-    override fun detachView(isFinishing: Boolean) {
-        super.detachView(isFinishing)
+    private fun getStreamById() {
+        streamInteractor.getStreamById(streamId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onNext = { viewState.showStreamName(it.streamName) },
+                onError = {
+                    Log.d(TAG, "getStreamByIdUseCase.execute() error")
+                    viewState.showError(it)
+                    viewState.switchRetryButton(true)
+                }
+            )
+            .disposeOnFinish()
+    }
+
+    override fun detachView(view: ChatView?) {
+        super.detachView(view)
         Log.d(TAG, "detachView()")
+    }
+
+    fun onViewsInitialized(isInRestoreState: Boolean) {
+        Log.d(TAG, "isInRestoreState = $isInRestoreState")
+        if (isInRestoreState) {
+            viewState.updateMessages(messages)
+        } else {
+            loadMessages(
+                anchor = "newest",
+                isLoadNew = false,
+                isScrollToEnd = true
+            )
+        }
     }
 
     fun loadMessages(
@@ -180,7 +203,10 @@ class ChatPresenter @AssistedInject constructor(
                         Log.d(TAG, "MessageObservable is empty")
                     }
                 },
-                onError = { view?.showError(it) }
+                onError = {
+                    viewState.showError(it)
+                    viewState.switchRetryButton(true)
+                }
             )
             .disposeOnFinish()
     }
@@ -218,7 +244,8 @@ class ChatPresenter @AssistedInject constructor(
             )
         }
 
-        view?.updateMessages(messages, isScrollToEnd)
+        Log.d(TAG, "messages.size = ${messages.size}")
+        viewState.updateMessages(messages, isScrollToEnd)
     }
 
     fun onScrollUp(firstVisiblePosition: Int) {
@@ -257,17 +284,17 @@ class ChatPresenter @AssistedInject constructor(
             .subscribeBy(
                 onSuccess = {
                     if (it.result == SERVER_RESULT_SUCCESS) {
-                        view?.clearMessageEditText()
+                        viewState.clearMessageEditText()
                         loadMessages(
                             anchor = lastMessageId.toString(),
                             isLoadNew = true,
                             isScrollToEnd = true
                         )
                     } else {
-                        view?.showSendMessageError()
+                        viewState.showSendMessageError()
                     }
                 },
-                onError = { view?.showSendMessageError(it) }
+                onError = { viewState.showSendMessageError(it) }
             )
             .disposeOnFinish()
     }
@@ -279,20 +306,20 @@ class ChatPresenter @AssistedInject constructor(
     fun onMessageLongClick(message: MessageItem) {
         chosenMessage = message
         if (message.senderId == myId) {
-            view?.openMessageMenu(menuList)
+            viewState.switchMessageMenu(true, menuList)
         } else {
-            view?.openMessageMenu(menuList.filter { !it.onlyForMessageAuthor })
+            viewState.switchMessageMenu(true, menuList.filter { !it.onlyForMessageAuthor })
         }
     }
 
     fun onAddReactionButtonClicked(message: MessageItem) {
         chosenMessage = message
-        view?.openReactionsSheet()
+        viewState.switchReactionsSheet(true)
     }
 
     fun onReactionChosen(reaction: ReactionLocal) {
-        view?.closeMessageMenu()
-        view?.closeReactionsSheet()
+        viewState.switchMessageMenu(false)
+        viewState.switchReactionsSheet(false)
 
         var existingReaction: Reaction? = null
         chosenMessage?.reactions?.forEach { reactionMapEntry ->
@@ -322,12 +349,12 @@ class ChatPresenter @AssistedInject constructor(
                     if (it.result == SERVER_RESULT_SUCCESS) {
                         updateMessage(messageId)
                     } else {
-                        view?.showError()
+                        viewState.showError()
                         Log.e(TAG, "Error adding reaction = ${it.result}")
                     }
                 },
                 onError = {
-                    view?.showError()
+                    viewState.showError()
                     Log.e(TAG, "Error adding reaction = ${it.message}")
                 }
             )
@@ -344,12 +371,12 @@ class ChatPresenter @AssistedInject constructor(
                     if (it.result == SERVER_RESULT_SUCCESS) {
                         updateMessage(messageId)
                     } else {
-                        view?.showError()
+                        viewState.showError()
                         Log.e(TAG, "Error removing reaction = ${it.result}")
                     }
                 },
                 onError = {
-                    view?.showError()
+                    viewState.showError()
                     Log.e(TAG, "Error removing reaction = ${it.message}")
                 }
             )
@@ -381,17 +408,19 @@ class ChatPresenter @AssistedInject constructor(
                             updateMessages()
                         }
                     } else {
-
                         Log.d(TAG, "MessageObservable is empty")
                     }
                 },
-                onError = { view?.showError(it) }
+                onError = {
+                    viewState.showError(it)
+                    viewState.switchRetryButton(true)
+                }
             )
             .disposeOnFinish()
     }
 
     fun onRetryClicked() {
-        view?.hideRetryButton()
+        viewState.switchRetryButton(false)
         loadMessages(
             anchor = "newest",
             isLoadNew = false,
@@ -401,25 +430,30 @@ class ChatPresenter @AssistedInject constructor(
 
     fun onMessageMenuItemClick(itemId: Int) {
         when (itemId) {
-            0 -> view?.openReactionsSheet()
-            1 -> view?.openEditMessageDialog(chosenMessage?.content ?: "")
-            2 -> view?.openDeleteMessageDialog()
+            0 -> viewState.switchReactionsSheet(true)
+            1 -> {
+                viewState.openEditMessageDialog(
+                    true,
+                    chosenMessage?.content ?: ""
+                )
+            }
+            2 -> viewState.openDeleteMessageDialog()
             3 -> {
                 streamInteractor.getTopics(streamId)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribeBy(
                         onNext = { topics ->
-                            view?.openMoveMessageDialog(topics.map { it.topicName })
+                            viewState.openMoveMessageDialog(topics.map { it.topicName })
                         },
-                        onError = { view?.showError() }
+                        onError = { viewState.showError(it) }
                     )
                     .disposeOnFinish()
             }
             4 -> {
                 myClipboardManager.copyToClipboard(chosenMessage?.content?.fromHtml() ?: "")
-                view?.run {
-                    closeMessageMenu()
+                viewState.run {
+                    switchMessageMenu(false)
                     notifyCopiedToClipboard()
                 }
             }
@@ -427,7 +461,7 @@ class ChatPresenter @AssistedInject constructor(
     }
 
     fun onEditMessage(result: Int, newMessageText: String) {
-        view?.closeMessageMenu()
+        viewState.switchMessageMenu(false)
 
         if (result == Activity.RESULT_OK) {
             chosenMessage?.id?.let { messageId ->
@@ -446,7 +480,7 @@ class ChatPresenter @AssistedInject constructor(
     }
 
     fun onDeleteMessage(result: Int) {
-        view?.closeMessageMenu()
+        viewState.switchMessageMenu(false)
 
         if (result == Activity.RESULT_OK) {
             chosenMessage?.id?.let { messageId ->
@@ -466,7 +500,7 @@ class ChatPresenter @AssistedInject constructor(
     }
 
     fun onMoveMessage(result: Int, newTopic: String) {
-        view?.closeMessageMenu()
+        viewState.switchMessageMenu(false)
 
         if (result == Activity.RESULT_OK) {
             if (topicName != newTopic) {
@@ -479,15 +513,23 @@ class ChatPresenter @AssistedInject constructor(
                                 Log.d(TAG, "Move message: ${it.result}")
                                 (messages as ArrayList).remove(chosenMessage as ChatItem)
                                 updateMessages()
-                                view?.notifyMessageMoved(newTopic)
+                                viewState.notifyMessageMoved(newTopic)
                             },
                             onError = { Log.d(TAG, "Error: ${it.message}") }
                         )
                 }
             } else {
-                view?.notifySameTopic()
+                viewState.notifySameTopic()
             }
         }
+    }
+
+    fun onDismissBottomSheetMessageMenu() {
+        viewState.switchMessageMenu(false)
+    }
+
+    fun onDismissBottomSheetReactions() {
+        viewState.switchReactionsSheet(false)
     }
 
     companion object {

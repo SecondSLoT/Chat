@@ -1,4 +1,4 @@
-package com.secondslot.coursework.base.mvp.presenter
+package com.secondslot.coursework.base.mvp
 
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
@@ -9,9 +9,9 @@ abstract class MoxyRxPresenter<T : MvpView> : MvpPresenter<T>() {
 
     private val compositeDisposable = CompositeDisposable()
 
-    override fun detachView(view: T) {
+    override fun onDestroy() {
         compositeDisposable.dispose()
-        super.detachView(view)
+        super.onDestroy()
     }
 
     protected fun removeDisposable(disposable: Disposable?) {

@@ -1,8 +1,7 @@
 package com.secondslot.coursework.features.channels.presenter
 
 import android.util.Log
-import com.secondslot.coursework.base.mvp.presenter.MoxyRxPresenter
-import com.secondslot.coursework.base.mvp.presenter.RxPresenter
+import com.secondslot.coursework.base.mvp.MoxyRxPresenter
 import com.secondslot.coursework.domain.interactor.StreamInteractor
 import com.secondslot.coursework.domain.model.Stream
 import com.secondslot.coursework.features.channels.model.ExpandableStreamModel
@@ -28,7 +27,7 @@ class StreamsListPresenter @AssistedInject constructor(
 
     override fun onFirstViewAttach() {
         super.onFirstViewAttach()
-        Log.d(TAG, "$this AttachView()")
+        Log.d(TAG, "AttachView() $this")
         loadStreams()
         subscribeOnSearchChanges()
     }
@@ -39,6 +38,7 @@ class StreamsListPresenter @AssistedInject constructor(
     }
 
     private fun loadStreams() {
+        Log.d(TAG, "loadStreams()")
         val streamsObservable: Observable<List<Stream>> =
             when (viewType) {
                 StreamsListView.SUBSCRIBED -> streamInteractor.getSubscribedStreams()

@@ -43,6 +43,11 @@ class EditMessageDialog : DialogFragment() {
             .create()
     }
 
+        override fun onDestroy() {
+        super.onDestroy()
+        dismissAllowingStateLoss()
+    }
+
     companion object {
         private const val API_REQUEST_KEY = "api_request_key"
         private const val MESSAGE_KEY = "message_key"

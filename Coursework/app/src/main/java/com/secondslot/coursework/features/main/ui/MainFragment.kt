@@ -35,11 +35,11 @@ class MainFragment : MvpAppCompatFragment(), MainFragmentView {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
-        initViews()
+        setListeners()
         return binding.root
     }
 
-    private fun initViews() {
+    private fun setListeners() {
         binding.bottomNavigationView.setOnItemSelectedListener { menuItem ->
             presenter.changePage(menuItem.itemId)
             true

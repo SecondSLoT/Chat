@@ -1,6 +1,7 @@
 package com.secondslot.coursework.features.profile.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +13,7 @@ import com.secondslot.coursework.databinding.FragmentProfileBinding
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.extentions.loadImage
 import com.secondslot.coursework.features.profile.di.DaggerProfileComponent
+import com.secondslot.coursework.features.profile.di.ProfilePresenterFactory
 import com.secondslot.coursework.features.profile.presenter.ProfilePresenter
 import com.secondslot.coursework.features.profile.ui.ProfileState.Error
 import com.secondslot.coursework.features.profile.ui.ProfileState.Loading
@@ -19,13 +21,14 @@ import com.secondslot.coursework.features.profile.ui.ProfileState.Result
 import moxy.MvpAppCompatFragment
 import moxy.ktx.moxyPresenter
 import javax.inject.Inject
-import javax.inject.Provider
 
 class ProfileFragment : MvpAppCompatFragment(), ProfileView {
 
     @Inject
-    internal lateinit var presenterProvider: Provider<ProfilePresenter>
-    private val presenter: ProfilePresenter by moxyPresenter { presenterProvider.get() }
+    internal lateinit var presenterFactory: ProfilePresenterFactory
+    private val presenter: ProfilePresenter by moxyPresenter {
+        presenterFactory.create(userId)
+    }
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -36,7 +39,6 @@ class ProfileFragment : MvpAppCompatFragment(), ProfileView {
     override fun onCreate(savedInstanceState: Bundle?) {
         val profileComponent = DaggerProfileComponent.factory().create(App.appComponent)
         profileComponent.inject(this)
-
         super.onCreate(savedInstanceState)
     }
 
@@ -51,9 +53,9 @@ class ProfileFragment : MvpAppCompatFragment(), ProfileView {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        presenter.loadProfile(userId)
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, this.toString())
     }
 
     private fun initViews(userId: Int) {
@@ -118,8 +120,9 @@ class ProfileFragment : MvpAppCompatFragment(), ProfileView {
 
     companion object {
         private const val TAG = "ProfileFragment"
-
         private const val USER_ID = "user_id"
+
+        private val instance: ProfileFragment? = null
 
         /**
          * @param userId: if userId is not defined, it's value will be set to -1.

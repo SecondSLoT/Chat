@@ -46,10 +46,6 @@ class MessagesRepositoryImpl @Inject constructor(
                     messagesCache
                 }
                 .toObservable()
-//                .doOnNext { messages ->
-//                    val ids = messages.map { it.id }
-//                    Log.d(TAG, "From DB: ${ids.joinToString()}")
-//                }
         }
 
         // Data from network
@@ -58,10 +54,6 @@ class MessagesRepositoryImpl @Inject constructor(
             .map { messageRemoteList ->
                 MessageRemoteToMessageMapper.map(messageRemoteList)
             }
-//            .doOnNext { messages ->
-//                val ids = messages.map { it.id }
-//                Log.d(TAG, "From Network: ${ids.joinToString()}")
-//            }
             // Save data from network to DB
             .flatMap { messages ->
                 messagesCache = mergeData(messagesCache, messages)

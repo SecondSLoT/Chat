@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:fitsSystemWindows="true"
+            app:titleCentered="true"
+            app:navigationContentDescription="@string/profile_back_button_description"
+            app:navigationIcon="@drawable/ic_baseline_arrow_back_24"
+            app:title="@string/profile" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        app:constraint_referenced_ids="cardView, username_text_view, status_text_view" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
+        android:layout_width="185dp"
+        android:layout_height="185dp"
+        android:layout_marginStart="100dp"
+        app:cardCornerRadius="15dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/user_photo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/user_photo_content_description"
+            tools:src="@drawable/test_image" />
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/username_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        tools:text="Darrell Steward"
+        android:textAppearance="?attr/textAppearanceHeadline4"
+        android:textColor="@color/email_text"
+        app:layout_constraintStart_toEndOf="@+id/cardView"
+        app:layout_constraintTop_toTopOf="@+id/cardView" />
+
+    <TextView
+        android:id="@+id/status_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        tools:text="online"
+        android:textColor="@color/status_online"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@+id/username_text_view"
+        app:layout_constraintEnd_toEndOf="@+id/username_text_view"
+        app:layout_constraintStart_toStartOf="@+id/username_text_view" />
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="invisible">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/placeholder_card_view"
+                android:layout_width="185dp"
+                android:layout_height="185dp"
+                android:layout_marginStart="100dp"
+                app:cardCornerRadius="15dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <View
+                    android:id="@+id/placeholder_user_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/bg_custom_reaction_selected"/>
+
+            </androidx.cardview.widget.CardView>
+
+            <View
+                android:id="@+id/placeholder_username"
+                android:layout_width="300dp"
+                android:layout_height="32sp"
+                android:layout_marginStart="20dp"
+                android:background="@color/bg_custom_reaction_selected"
+                app:layout_constraintStart_toEndOf="@+id/placeholder_card_view"
+                app:layout_constraintTop_toTopOf="@+id/placeholder_card_view" />
+
+            <View
+                android:id="@+id/placeholder_about"
+                android:layout_width="150dp"
+                android:layout_height="20sp"
+                android:layout_marginTop="14dp"
+                android:background="@color/bg_custom_reaction_selected"
+                app:layout_constraintTop_toBottomOf="@+id/placeholder_username"
+                app:layout_constraintEnd_toEndOf="@+id/placeholder_username"
+                app:layout_constraintStart_toStartOf="@+id/placeholder_username" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
