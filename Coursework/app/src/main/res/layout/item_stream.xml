@@ -26,7 +26,7 @@
         android:paddingEnd="30dp"
         android:contentDescription="@string/expand_group_content_description"
         android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
-        app:tint="@color/bottom_navigation_element" />
+        app:tint="@color/bottom_navigation_element_unchecked" />
 
     <ImageView
         android:id="@+id/collapse_arrow"

@@ -15,7 +15,8 @@
     <color name="bd_edit_message_field">#282828</color>
     <color name="about_text">#BCBCBC</color>
     <color name="log_out_button">#C7C7C7</color>
-    <color name="bottom_navigation_element">#323232</color>
+    <color name="bottom_navigation_element_checked">@color/teal_200</color>
+    <color name="bottom_navigation_element_unchecked">#323232</color>
     <color name="email_text">#999999</color>
     <color name="group_additional_text">#F5F5F5</color>
     <color name="tab_indicator">#FF03DAC5</color>
