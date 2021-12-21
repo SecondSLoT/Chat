@@ -235,7 +235,7 @@ class ChatPresenter @AssistedInject constructor(
             }
         }
 
-        if (messages[0] !is DateDivider) {
+        if (messages.isNotEmpty() && messages[0] !is DateDivider) {
             (messages as ArrayList).add(
                 0, DateDivider(
                     (messages[0] as MessageItem)
