@@ -216,7 +216,7 @@ class ChatFragment :
             bottomSheetReactions = BottomSheetDialog(requireContext())
             bottomSheetReactions?.run {
                 setContentView(R.layout.dialog_bottom_sheet)
-                setCancelable(false)
+                setCancelable(true)
                 setCanceledOnTouchOutside(true)
             }
 
@@ -245,7 +245,7 @@ class ChatFragment :
             bottomSheetMessageMenu = BottomSheetDialog(requireContext())
             bottomSheetMessageMenu?.run {
                 setContentView(R.layout.dialog_bottom_sheet)
-                setCancelable(false)
+                setCancelable(true)
                 setCanceledOnTouchOutside(true)
             }
 

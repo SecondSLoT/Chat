@@ -66,7 +66,7 @@ class ChatPresenter @AssistedInject constructor(
             3,
             R.string.move_to_topic,
             R.drawable.ic_baseline_multiple_stop_24,
-            false
+            true
         ),
         MessageMenuItem(
             4,

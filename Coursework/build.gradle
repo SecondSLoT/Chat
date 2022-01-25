@@ -56,9 +56,9 @@ ext {
 
     // App dependencies
     androidCoreVersion = '1.7.0'
-    androidXAppCompatVersion = '1.4.0'
-    materialVersion = '1.4.0'
-    constraintLayoutVersion = '2.1.2'
+    androidXAppCompatVersion = '1.4.1'
+    materialVersion = '1.5.0'
+    constraintLayoutVersion = '2.1.3'
     fragmentVersion = "1.4.0"
     navigationVersion = '2.3.5'
     recyclerViewVersion = '1.2.1'
