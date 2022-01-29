@@ -1,6 +1,6 @@
 ## Chat
 
-Client app using zulip api https://zulip.com/api/
+Chat client app using zulip api https://zulip.com/api/
 
 
 **FAB to create new stream or subscribe to existing**
