@@ -6,13 +6,14 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.secondslot.coursework.App
+import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentStreamsListBinding
 import com.secondslot.coursework.di.NavigatorFactory
 import com.secondslot.coursework.features.channels.adapter.StreamsItemDecoration
@@ -53,6 +54,8 @@ class StreamsListFragment :
 
     private val streamsListAdapter = StreamsListAdapter(this, this)
 
+    private var snackbar: Snackbar? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val streamsComponent = DaggerStreamsComponent.factory().create(App.appComponent)
         streamsComponent.injectStreamsListFragment(this)
@@ -78,6 +81,13 @@ class StreamsListFragment :
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume()")
+        val isSnackbarShown = snackbar?.isShown ?: false
+        if (snackbar != null && !isSnackbarShown) presenter.onRetryClicked()
+    }
+
     private fun initViews() {
         binding.recyclerView.run {
             layoutManager = LinearLayoutManager(requireContext())
@@ -88,10 +98,6 @@ class StreamsListFragment :
     }
 
     private fun setListeners() = binding.run {
-
-        includedRetryButton.retryButton.setOnClickListener {
-            presenter.onRetryClicked()
-        }
 
         fab.setOnClickListener {
             presenter.onFabClicked()
@@ -129,31 +135,43 @@ class StreamsListFragment :
     private fun processFragmentState(state: ChannelsState) {
         when (state) {
             is Result -> {
+                Log.d(TAG, "State result")
                 submitStreamsList(state.items)
                 binding.run {
                     shimmer.isVisible = false
-                    includedRetryButton.retryButton.isVisible = false
                     recyclerView.isVisible = true
                 }
+                snackbar?.dismiss()
+                snackbar = null
             }
 
             Loading -> {
+                Log.d(TAG, "State loading")
                 binding.run {
                     recyclerView.isVisible = false
-                    includedRetryButton.retryButton.isVisible = false
                     shimmer.isVisible = true
                 }
+                snackbar?.dismiss()
+                snackbar = null
             }
 
             is Error -> {
-                Toast.makeText(requireContext(), state.error.message, Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "State error")
                 state.error.message?.let { Log.e(TAG, it) }
 
                 binding.run {
                     shimmer.isVisible = false
-                    recyclerView.isVisible = false
-                    includedRetryButton.retryButton.isVisible = true
+                    recyclerView.isVisible = true
                 }
+                snackbar = Snackbar.make(
+                    binding.root,
+                    getString(R.string.update_data),
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                    .setAction(getString(R.string.retry_button)) {
+                        presenter.onRetryClicked()
+                    }
+                snackbar?.show()
             }
         }
     }

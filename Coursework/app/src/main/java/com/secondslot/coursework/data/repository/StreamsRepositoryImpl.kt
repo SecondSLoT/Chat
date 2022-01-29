@@ -31,7 +31,8 @@ class StreamsRepositoryImpl @Inject constructor(
             .map { streamWithTopicsDbList ->
                 Log.d(TAG, "SubscribedStreamsTopicsDb size = ${streamWithTopicsDbList.size}")
                 StreamWithTopicsDbToDomainMapper.map(streamWithTopicsDbList)
-            }.toObservable()
+            }
+            .toObservable()
 
         // Data from network
         val streamTopicRemoteObservable = networkManager.getSubscribedStreams()

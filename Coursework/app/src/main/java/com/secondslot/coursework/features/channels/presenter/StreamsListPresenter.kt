@@ -48,16 +48,16 @@ class StreamsListPresenter @AssistedInject constructor(
         streamsObservable
             .subscribeOn(Schedulers.io())
             .map { ExpandableStreamModel.fromStream(it) }
-            .observeOn(AndroidSchedulers.mainThread())
+            .map { mergeStreams(streamsCache, it) }
+            .observeOn(AndroidSchedulers.mainThread(), true)
             .subscribeBy(
                 onNext = { newStreams ->
                     Log.d(TAG, "streamsObservable onNext")
                     if (newStreams.isNullOrEmpty()) {
                         viewState.setStateLoading()
                     } else {
-                        val resultList = mergeStreams(streamsCache, newStreams)
-                        viewState.setStateResult(resultList)
-                        streamsCache = resultList.toMutableList()
+                        viewState.setStateResult(newStreams)
+                        streamsCache = newStreams.toMutableList()
                     }
                 },
                 onError = { viewState.setStateError(it) }
@@ -69,6 +69,8 @@ class StreamsListPresenter @AssistedInject constructor(
         oldList: List<ExpandableStreamModel>,
         newList: List<ExpandableStreamModel>
     ): List<ExpandableStreamModel> {
+
+        if (streamsCache.isEmpty() || streamsCache == newList) return newList
 
         (newList as ArrayList).map { newStream ->
             val oldStream = oldList.find { it.stream.id == newStream.stream.id }

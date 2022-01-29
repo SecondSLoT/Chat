@@ -50,4 +50,5 @@
         ChildCount expected %d, but found %d</string>
     <string name="send_message_error">Error sending message</string>
     <string name="error_message">Error</string>
+    <string name="update_data">Couldn\'t update data</string>
 </resources>
