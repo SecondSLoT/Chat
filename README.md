@@ -1,10 +1,28 @@
-**FAB для создания нового стрима или подписки на существующий.**
+## Chat
 
-**Лонг тап на сообщении для входа в меню, в котором можно:**
- - добавить реакцию;
- - отредактировать сообщение;
- - удалить сообщение;
- - переместить сообщение в другую тему или в новую (если нет с таким названием). При наборе появляются подсказки с названиями существующих тем;
- - скопировать текст сообщения в буфер обмена.
+Chat client app using zulip api https://zulip.com/api/
 
- **Поддерживаются светлая и темная темы в зависимости от настроек устройства.**
+
+**FAB to create new stream or subscribe to existing**
+
+**Long click on message to enter message menu, which allows:**
+ - add a reaction to message;
+ - edit message;
+ - delete message;
+ - move message to another topic or new topic (if topic with specified name doesn't exists);
+ - copy message to clipboard.
+
+ **Supports light and dark themes depending on device settings.**
+
+
+**Technologies:**
+- Moxy (MVP)
+- CustomView
+- RecyclerView
+- RxJava 2
+- Dagger 2
+- Retrofit
+- OkHttp
+- Moshi
+- Room
+- Glide
