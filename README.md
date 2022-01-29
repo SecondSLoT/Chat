@@ -1,4 +1,4 @@
-## Zulip Chat
+## Chat
 
 Client app using zulip api https://zulip.com/api/
 
