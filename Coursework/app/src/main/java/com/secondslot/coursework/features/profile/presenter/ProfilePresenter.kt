@@ -44,7 +44,7 @@ class ProfilePresenter @AssistedInject constructor(
 
         profileObservable
             .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .observeOn(AndroidSchedulers.mainThread(), true)
             .subscribeBy(
                 onNext = {
                     Log.d(TAG, "profileObservable onNext")
@@ -59,6 +59,8 @@ class ProfilePresenter @AssistedInject constructor(
             )
             .disposeOnFinish()
     }
+
+    fun onRetryClicked() { loadProfile() }
 
     companion object {
         private const val TAG = "ProfilePresenter"

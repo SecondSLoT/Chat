@@ -4,10 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.secondslot.coursework.App
 import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentUsersBinding
@@ -45,6 +46,8 @@ class UsersFragment :
 
     private val usersAdapter = PeopleListAdapter(this)
 
+    private var snackbar: Snackbar? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val usersComponent = DaggerUsersComponent.factory().create(App.appComponent)
         usersComponent.inject(this)
@@ -80,7 +83,21 @@ class UsersFragment :
                 searchUsers(it.toString())
             }
 
-            includedRetryButton.retryButton.setOnClickListener { presenter.onRetry() }
+            recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    if (dy < 0) {
+                        presenter.onScrollUp()
+                    }
+
+                    if (dy > 0) {
+                        presenter.onScrollDown(
+                            (binding.recyclerView.layoutManager as LinearLayoutManager)
+                                .findLastCompletelyVisibleItemPosition()
+                        )
+                    }
+                }
+            })
         }
     }
 
@@ -107,28 +124,41 @@ class UsersFragment :
 
                 binding.run {
                     shimmer.isVisible = false
-                    includedRetryButton.retryButton.isVisible = false
                     recyclerView.isVisible = true
                 }
+                snackbar?.dismiss()
+                snackbar = null
             }
 
             Loading -> {
                 binding.run {
                     recyclerView.isVisible = false
-                    includedRetryButton.retryButton.isVisible = false
                     shimmer.isVisible = true
                 }
+                snackbar?.dismiss()
+                snackbar = null
             }
 
             is Error -> {
-                Toast.makeText(requireContext(), state.error.message, Toast.LENGTH_SHORT).show()
                 binding.run {
                     shimmer.isVisible = false
-                    recyclerView.isVisible = false
-                    includedRetryButton.retryButton.isVisible = true
+                    recyclerView.isVisible = true
                 }
+                snackbar = Snackbar.make(
+                    binding.root,
+                    getString(R.string.update_data),
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                    .setAction(getString(R.string.retry_button)) {
+                        presenter.onRetry()
+                    }
+                snackbar?.show()
             }
         }
+    }
+
+    override fun showSnackbar(show: Boolean) {
+        if (show) snackbar?.show() else snackbar?.dismiss()
     }
 
     override fun onUserClick(userId: Int) {

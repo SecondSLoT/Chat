@@ -16,6 +16,7 @@ class UsersPresenter @Inject constructor(
 ) : MoxyRxPresenter<UsersView>() {
 
     private val searchSubject: PublishSubject<String> = PublishSubject.create()
+    private var usersListSize: Int = 0
 
     override fun onFirstViewAttach() {
         super.onFirstViewAttach()
@@ -37,13 +38,14 @@ class UsersPresenter @Inject constructor(
     private fun loadUsers() {
         getAllUsersUseCase.execute()
             .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .observeOn(AndroidSchedulers.mainThread(), true)
             .subscribeBy(
                 onNext = {
                     if (it.isNullOrEmpty()) {
                         viewState.setStateLoading()
                     } else {
                         viewState.setStateResult(it)
+                        usersListSize = it.size
                     }
                 },
                 onError = { viewState.setStateError(it) }
@@ -66,13 +68,26 @@ class UsersPresenter @Inject constructor(
             .switchMap { searchQuery -> getAllUsersUseCase.execute(searchQuery) }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                onNext = { viewState.setStateResult(it) },
+                onNext = {
+                    viewState.setStateResult(it)
+                    usersListSize = it.size
+                },
                 onError = {
                     Log.d(TAG, "searchSubject error")
                     viewState.setStateError(it)
                 }
             )
             .disposeOnFinish()
+    }
+
+    fun onScrollUp() {
+        viewState.showSnackbar(true)
+    }
+
+    fun onScrollDown(lastVisiblePosition: Int) {
+        if (lastVisiblePosition == usersListSize - 1) {
+            viewState.showSnackbar(false)
+        }
     }
 
     fun onRetry() {

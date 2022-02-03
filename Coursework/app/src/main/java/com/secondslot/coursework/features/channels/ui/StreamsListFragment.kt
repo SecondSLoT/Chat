@@ -176,6 +176,10 @@ class StreamsListFragment :
         }
     }
 
+    override fun showSnackbar(show: Boolean) {
+        if (show) snackbar?.show() else snackbar?.dismiss()
+    }
+
     override fun expandRow(position: Int) {
         presenter.onExpandRow(position)
     }

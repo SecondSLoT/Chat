@@ -8,7 +8,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import com.google.android.material.snackbar.Snackbar
 import com.secondslot.coursework.App
+import com.secondslot.coursework.R
 import com.secondslot.coursework.databinding.FragmentProfileBinding
 import com.secondslot.coursework.domain.model.User
 import com.secondslot.coursework.extentions.loadImage
@@ -35,6 +37,8 @@ class ProfileFragment : MvpAppCompatFragment(), ProfileView {
 
     private var myId = -1
     private val userId: Int by lazy { arguments?.getInt(USER_ID, 0) ?: 0 }
+
+    private var snackbar: Snackbar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val profileComponent = DaggerProfileComponent.factory().create(App.appComponent)
@@ -94,6 +98,8 @@ class ProfileFragment : MvpAppCompatFragment(), ProfileView {
 
                     if (userId == -1) myId = state.user.userId
                 }
+                snackbar?.dismiss()
+                snackbar = null
             }
 
             Loading -> {
@@ -101,14 +107,27 @@ class ProfileFragment : MvpAppCompatFragment(), ProfileView {
                     group.isVisible = false
                     shimmer.isVisible = true
                 }
+                snackbar?.dismiss()
+                snackbar = null
             }
 
             is Error -> {
-                Toast.makeText(requireContext(), state.error.message, Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "Error: ${state.error.message}")
+
                 binding.run {
                     shimmer.isVisible = false
                     group.isVisible = true
                 }
+
+                snackbar = Snackbar.make(
+                    binding.root,
+                    getString(R.string.update_data),
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                    .setAction(getString(R.string.retry_button)) {
+                        presenter.onRetryClicked()
+                    }
+                snackbar?.show()
             }
         }
     }

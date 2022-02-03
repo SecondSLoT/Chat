@@ -2,6 +2,7 @@ package com.secondslot.coursework.features.people.ui
 
 import com.secondslot.coursework.domain.model.User
 import moxy.MvpView
+import moxy.viewstate.strategy.alias.AddToEndSingle
 import moxy.viewstate.strategy.alias.OneExecution
 import moxy.viewstate.strategy.alias.SingleState
 
@@ -18,4 +19,7 @@ interface UsersView : MvpView {
 
     @OneExecution
     fun openUser(userId: Int)
+
+    @AddToEndSingle
+    fun showSnackbar(show: Boolean)
 }

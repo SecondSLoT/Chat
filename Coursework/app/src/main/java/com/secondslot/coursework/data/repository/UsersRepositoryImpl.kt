@@ -61,6 +61,8 @@ class UsersRepositoryImpl @Inject constructor(
         val userDbObservable = database.userDao.getUser(userId)
             .map { listOf(it.toDomainModel()) }
             .toObservable()
+            .doOnNext { Log.d(TAG, "userDbObservable onNext") }
+            .doOnError { Log.d(TAG, "userDbObservable onError")}
 
         // Data from network
         val userRemoteObservable = networkManager.getUser(userId)

@@ -181,11 +181,13 @@ class StreamsListPresenter @AssistedInject constructor(
 
     fun onScrollUp() {
         viewState.showFab(true)
+        viewState.showSnackbar(true)
     }
 
     fun onScrollDown(lastVisiblePosition: Int) {
         if (lastVisiblePosition == streamsCache.size - 1) {
             viewState.showFab(false)
+            viewState.showSnackbar(false)
         }
     }
 
@@ -202,6 +204,7 @@ class StreamsListPresenter @AssistedInject constructor(
                 onSuccess = {
                     Log.d(TAG, "Create stream: ${it.result}")
                     searchStreams("")
+                    loadStreams()
                 },
                 onError = { Log.d(TAG, "Error: ${it.message}") }
             )

@@ -29,6 +29,9 @@ interface StreamsListView : MvpView {
     @AddToEndSingle
     fun submitStreamsList(expandableStreamModel: List<ExpandableStreamModel>)
 
+    @AddToEndSingle
+    fun showSnackbar(show: Boolean)
+
     companion object {
         const val SUBSCRIBED = "subscribed"
         const val ALL_STREAMS = "all_streams"
