@@ -98,6 +98,10 @@ class UsersFragment :
                     }
                 }
             })
+
+            swipeRefreshLayout.setOnRefreshListener {
+                presenter.onRetry()
+            }
         }
     }
 
@@ -125,6 +129,7 @@ class UsersFragment :
                 binding.run {
                     shimmer.isVisible = false
                     recyclerView.isVisible = true
+                    swipeRefreshLayout.isRefreshing = false
                 }
                 snackbar?.dismiss()
                 snackbar = null
@@ -143,6 +148,7 @@ class UsersFragment :
                 binding.run {
                     shimmer.isVisible = false
                     recyclerView.isVisible = true
+                    swipeRefreshLayout.isRefreshing = false
                 }
                 snackbar = Snackbar.make(
                     binding.root,
